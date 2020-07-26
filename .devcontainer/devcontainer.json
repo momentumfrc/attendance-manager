@@ -3,7 +3,7 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.112.0/containers/php-7
 {
-	"name": "Attendence-Meister Development Environment",
+	"name": "Attendence-Manager Development Environment",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "php",
 	
