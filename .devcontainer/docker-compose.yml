@@ -20,4 +20,7 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: just-for-testing
             MYSQL_DATABASE: VscodeDev
-
+        volumes:
+            - 'database:/var/lib/mysql'
+volumes:
+    database:

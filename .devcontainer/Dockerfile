@@ -22,7 +22,7 @@ RUN apt-get update \
     && apt-get install -y mariadb-client \
     #
     # install git iproute2, procps, lsb-release (useful for CLI installs)
-    && apt-get -y install git openssh-client less iproute2 procps iproute2 lsb-release \
+    && apt-get -y install git openssh-client less vim iproute2 procps iproute2 lsb-release \
     #
     # Install xdebug
     && yes | pecl install xdebug \
@@ -49,7 +49,8 @@ RUN apt-get update \
 RUN apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install zlib1g-dev libzip-dev zip unzip \
-    && docker-php-ext-install -j "$(nproc)" zip
+    && docker-php-ext-install -j "$(nproc)" zip \
+    && docker-php-ext-install -j "$(nproc)" mysqli pdo pdo_mysql
 
 RUN EXPECTED_CHECKSUM="$(curl -q -L https://composer.github.io/installer.sig)" ; \
     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" ; \
