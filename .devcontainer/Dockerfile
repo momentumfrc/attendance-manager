@@ -50,7 +50,9 @@ RUN apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install zlib1g-dev libzip-dev zip unzip \
     && docker-php-ext-install -j "$(nproc)" zip \
-    && docker-php-ext-install -j "$(nproc)" mysqli pdo pdo_mysql
+    && docker-php-ext-install -j "$(nproc)" mysqli pdo pdo_mysql \
+    && apt-get -y install sqlite3 libsqlite3-dev \
+    && docker-php-ext-install -j "$(nproc)" pdo_sqlite
 
 RUN EXPECTED_CHECKSUM="$(curl -q -L https://composer.github.io/installer.sig)" ; \
     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" ; \

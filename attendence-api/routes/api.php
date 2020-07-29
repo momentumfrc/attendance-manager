@@ -20,6 +20,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('users/all', 'StudentController@all');
 Route::get('users/id/{id}', 'StudentController@getById');
-Route::get('users/id/search', 'StudentController@search');
+Route::get('users/search', 'StudentController@search');
 Route::post('users', 'StudentController@store');
 Route::put('users/{id}', 'StudentController@update');

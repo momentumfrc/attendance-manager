@@ -20,10 +20,10 @@ class StudentController extends Controller
         return new StudentResource(Student::findOrFail($id));
     }
 
-    public function findByName(SearchStudentRequest $request) {
+    public function search(SearchStudentRequest $request) {
         $validatedData = $request->validated();
 
-        $students = Student::whereRaw("UPPER('name') LIKE ?", \strtoupper($validatedData['name']).'%')->get();
+        $students = Student::whereRaw("UPPER(`name`) LIKE ?", \strtoupper($validatedData['name']).'%')->get();
 
         return StudentResource::collection($students);
     }
@@ -43,7 +43,7 @@ class StudentController extends Controller
         $validatedData = $request->validated();
         $student = Student::findOrFail($id);
 
-        $student->update($request);
+        $student->update($request->all());
 
         return new StudentResource($student);
     }
