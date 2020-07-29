@@ -3,6 +3,7 @@ version: "3"
 services: 
     php:
         build: .
+        image: docker.pkg.github.com/momentumfrc/attendence-manager/dev_environment
         volumes:
             - ..:/workspace:cached
         ports:
