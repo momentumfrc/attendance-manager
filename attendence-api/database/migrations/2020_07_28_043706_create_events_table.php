@@ -19,6 +19,7 @@ class CreateEventsTable extends Migration
             $table->bigInteger("subjectId");
             $table->string("type");
             $table->bigInteger("registrarId");
+            $table->dateTime("date");
             $table->string("notes");
         });
     }

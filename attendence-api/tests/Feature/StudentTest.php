@@ -65,7 +65,7 @@ class StudentTest extends TestCase
         $selected = $students->random();
 
         $name = $selected->name;
-        $search = substr($name, 0, rand(0, strlen($name)));
+        $search = substr($name, 0, rand(1, strlen($name)));
 
         $results = $students->filter(function($student) use ($search) {
             return strtoupper($search) === strtoupper(substr($student->name, 0, strlen($search)));

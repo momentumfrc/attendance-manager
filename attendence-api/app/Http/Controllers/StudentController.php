@@ -43,7 +43,7 @@ class StudentController extends Controller
         $validatedData = $request->validated();
         $student = Student::findOrFail($id);
 
-        $student->update($request->all());
+        $student->update($validatedData);
 
         return new StudentResource($student);
     }
