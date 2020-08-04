@@ -12,11 +12,6 @@ class StudentTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * A basic test example.
-     *
-     * @return void
-     */
     public function testGetAllNoEntries() {
         $response = $this->get('/api/users/all');
 
@@ -100,8 +95,11 @@ class StudentTest extends TestCase
         ]);
 
         $response->assertStatus(201);
+        $responseData = $response->decodeResponseJson()['data'];
+        $id = $responseData['id'];
 
         $this->assertDatabaseHas('students',[
+            'id' => $id,
             'name' => $student->name,
             'role' => $student->role
         ]);

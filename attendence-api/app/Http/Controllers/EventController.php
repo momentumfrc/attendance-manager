@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\EventDataRequest;
 
 use App\Http\Resources\Event as EventResource;
+
+use Carbon\Carbon;
 
 use App\Event;
 
@@ -27,9 +30,11 @@ class EventController extends Controller
     }
 
     public function store(EventDataRequest $request) {
-        $vaildatedData = $request->validated();
+        $validatedData = $request->validated();
 
         $event = new Event($validatedData);
+        $event->date = Carbon::now();
+        $event->registrarId = 1; // TODO: Get the authenticated registrar
         $event->save();
 
         return (new EventResource($event))

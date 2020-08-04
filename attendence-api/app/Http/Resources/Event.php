@@ -19,6 +19,7 @@ class Event extends JsonResource
             "subjectId" => $this->subjectId,
             "type" => $this->type,
             "registrarId" => $this->registrarId,
+            "date" => '@'.$this->date->timestamp,
             "notes" => $this->notes
         ];
     }

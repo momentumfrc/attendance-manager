@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
+
 use Illuminate\Foundation\Http\FormRequest;
 
 class EventDataRequest extends FormRequest
@@ -26,7 +28,6 @@ class EventDataRequest extends FormRequest
         return [
             'subjectId' => ['required', 'integer'],
             'type' => ['required', Rule::in(['in', 'out'])],
-            'registrarId' => ['required', 'integer'],
             'notes' => ['present']
         ];
     }
