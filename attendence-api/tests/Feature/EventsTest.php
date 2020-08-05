@@ -6,9 +6,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
+use Laravel\Passport\Passport;
+
 use Carbon\Carbon;
 
 use App\Event;
+use App\User;
 
 class EventsTest extends TestCase
 {
@@ -108,6 +111,28 @@ class EventsTest extends TestCase
             'notes' => $event->notes
         ]);
 
+        $response->assertStatus(401);
+        
+        $student = factory(User::class)->create();
+        Passport::actingAs($student);
+
+        $response = $this->json('POST', '/api/events', [
+            'subjectId' => $event->subjectId,
+            'type' => $event->type,
+            'notes' => $event->notes
+        ]);
+        $response->assertStatus(403);
+
+        $mentor = factory(User::class)->make();
+        $mentor->role = \App\Roles::ROLE_MENTOR;
+        $mentor->saveOrFail();
+        Passport::actingAs($mentor);
+
+        $response = $this->json('POST', '/api/events', [
+            'subjectId' => $event->subjectId,
+            'type' => $event->type,
+            'notes' => $event->notes
+        ]);
         $response->assertStatus(201);
 
         $response->assertJson([
@@ -139,6 +164,19 @@ class EventsTest extends TestCase
         $newSubjectId = 10;
         $newType = 'in';
         $newNotes = 'Lorem ipsum dolor';
+
+        $response = $this->json('PUT', '/api/events/'.$event->id, [
+            'subjectId' => $newSubjectId,
+            'type' => $newType,
+            'notes' => $newNotes,
+        ]);
+
+        $response->assertStatus(401);
+
+        $user = factory(User::class)->make();
+        $user->role = \App\Roles::ROLE_MENTOR;
+        $user->saveOrFail();
+        Passport::actingAs($user);
 
         $response = $this->json('PUT', '/api/events/'.$event->id, [
             'subjectId' => $newSubjectId,
