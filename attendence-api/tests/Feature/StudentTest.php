@@ -6,7 +6,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
+use Laravel\Passport\Passport;
+
 use App\Student;
+use App\User;
 
 class StudentTest extends TestCase
 {
@@ -31,8 +34,7 @@ class StudentTest extends TestCase
             'data' => $students->map(function($student) {
                 return [
                     'id' => $student->id,
-                    'name' => $student->name,
-                    'role' => $student->role
+                    'name' => $student->name
                 ];
             })
         ]);
@@ -49,8 +51,7 @@ class StudentTest extends TestCase
         $response->assertExactJson([
             'data' => [
                 'id' => $student->id,
-                'name' => $student->name,
-                'role' => $student->role
+                'name' => $student->name
             ]
         ]);
     }
@@ -74,8 +75,7 @@ class StudentTest extends TestCase
             'data' => $results->map(function($student) {
                 return [
                     'id' => $student->id,
-                    'name' => $student->name,
-                    'role' => $student->role
+                    'name' => $student->name
                 ];
             })
         ]);
@@ -85,23 +85,30 @@ class StudentTest extends TestCase
         $student = factory(Student::class)->make();
 
         $this->assertDatabaseMissing('students',[
-            'name' => $student->name,
-            'role' => $student->role
+            'name' => $student->name
         ]);
         
         $response = $this->json('POST', '/api/users', [
-            'name' => $student->name,
-            'role' => $student->role
+            'name' => $student->name
         ]);
 
-        $response->assertStatus(201);
+        $response->assertStatus(401);
+
+        $mentor = factory(User::class)->make();
+        $mentor->role = \App\Roles::ROLE_MENTOR;
+        $mentor->saveOrFail();
+        Passport::actingAs($mentor);
+
+        $response = $this->json('POST', '/api/users', [
+            'name' => $student->name
+        ]);
+
         $responseData = $response->decodeResponseJson()['data'];
         $id = $responseData['id'];
 
         $this->assertDatabaseHas('students',[
             'id' => $id,
-            'name' => $student->name,
-            'role' => $student->role
+            'name' => $student->name
         ]);
     }
 
@@ -109,11 +116,20 @@ class StudentTest extends TestCase
         $student = factory(Student::class)->create();
 
         $newname = 'Dr. Test User';
-        $newrole = 'mentor';
 
         $response = $this->json('PUT', '/api/users/'.$student->id, [
-            'name' => $newname,
-            'role' => $newrole
+            'name' => $newname
+        ]);
+
+        $response->assertStatus(401);
+
+        $mentor = factory(User::class)->make();
+        $mentor->role = \App\Roles::ROLE_MENTOR;
+        $mentor->saveOrFail();
+        Passport::actingAs($mentor);
+
+        $response = $this->json('PUT', '/api/users/'.$student->id, [
+            'name' => $newname
         ]);
 
         $response->assertStatus(200);
@@ -121,6 +137,5 @@ class StudentTest extends TestCase
         $student->refresh();
 
         $this->assertEquals($newname, $student->name);
-        $this->assertEquals($newrole, $student->role);
     }
 }

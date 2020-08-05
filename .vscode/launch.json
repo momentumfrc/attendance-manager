@@ -8,8 +8,8 @@
             "name": "Launch tests",
             "type": "php",
             "request": "launch",
-            "program": "${workspaceFolder}/attendence-api/artisan",
-            "args": ["test", "--without-tty"],
+            "program": "${workspaceFolder}/attendence-api/vendor/bin/phpunit",
+            "args": [],
             "cwd": "${workspaceFolder}/attendence-api/",
             "port": 9000
         }

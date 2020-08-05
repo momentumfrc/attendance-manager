@@ -25,8 +25,7 @@ class StudentDataRequest extends FormRequest
      */
     public function rules() {
         return [
-            'name' => ['required'],
-            'role' => ['required', Rule::in(['student', 'mentor', 'tool'])]
+            'name' => ['required']
         ];
     }
 }

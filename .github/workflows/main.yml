@@ -40,5 +40,5 @@ jobs:
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.lock') }}
     
     - name: Run laravel tests
-      run: docker-compose run php bash -c "cd /workspace/attendence-api && composer install && php artisan test"
+      run: docker-compose run php bash -c "cd /workspace/attendence-api && composer install && vendor/bin/phpunit"
       working-directory: ./.devcontainer
