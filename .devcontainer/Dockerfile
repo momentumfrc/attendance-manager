@@ -40,6 +40,7 @@ RUN apt-get update \
     #
     # [Optional] Install NPM to assist with frontend development (Dramatically increases build time on slower connections)
     && apt-get install -y npm \
+    && npm install npm@latest -g \
     #
     # Clean up
     && apt-get autoremove -y \
