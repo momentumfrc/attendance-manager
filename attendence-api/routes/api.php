@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\CheckOutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,5 +24,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::apiResource('students', StudentController::class, [
     'only' => ['index', 'show', 'store', 'destroy']
+]);
+
+Route::apiResource('attendence/check-in', CheckInController::class, [
+    'only' => ['show', 'store']
+]);
+
+Route::apiResource('attendence/check-out', CheckOutController::class, [
+    'only' => ['show', 'store']
 ]);
 
