@@ -5,6 +5,10 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+use App\Models\Student;
+use App\Models\CheckIn;
+use App\Models\CheckOut;
+
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -20,5 +24,11 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        Student::factory()
+            ->count(50)
+            ->has(CheckIn::factory()->count(15))
+            ->has(CheckOut::factory()->count(15))
+            ->create();
     }
 }
