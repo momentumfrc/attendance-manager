@@ -1,1 +1,11 @@
+<mat-toolbar color="primary" class="mainToolBar">
+<span>Attendence Manager</span>
+<button mat-icon-button aria-label="Button to open the navigation menu" [matMenuTriggerFor]="navMenu">
+    <mat-icon>menu</mat-icon>
+</button>
+<mat-menu #navMenu="matMenu">
+    <a mat-menu-item routerLink="attendence">Check In / Check Out</a>
+    <a mat-menu-item routerLink="students">Student List</a>
+</mat-menu>
+</mat-toolbar>
 <router-outlet></router-outlet>
