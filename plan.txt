@@ -8,10 +8,13 @@
     - Register new user (anyone can sign up)
     - Require log-in to check-in or check-out
 5. Invite-only registration
-6. User roles
+6. Cosmetics
+----- MVP -----
+7. User roles
     - Admin or Mentor role
     - Students are not users, so no student role
-6. Admin features
+8. Admin features
     - Elevate other mentors to Admin
     - Deactivate or delete user accounts
     - Deactivate or delete students
+9. Api keys
