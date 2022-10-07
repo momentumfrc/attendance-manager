@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable, EMPTY } from 'rxjs';
 
-import { Student, StudentsService } from 'src/app/services/students.service';
+import { StudentsService } from 'src/app/services/students.service';
+import { Student } from 'src/app/models/student.model';
 
 @Component({
   selector: 'app-students-list',
@@ -16,6 +17,8 @@ export class StudentsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.students = this.studentService.getAllStudents()
+
+    this.students.subscribe((students: Array<Student>) => { console.log(students); });
   }
 
 }

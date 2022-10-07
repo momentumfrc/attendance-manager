@@ -1,0 +1,7 @@
+<input type="text" [formControl]="searchControl" >
+<div *ngFor="let student of filteredStudents | async">
+    <div style="display: inline-block; width: 150px; margin-left: 20px;">{{ student.name }}</div>
+    <button mat-raised-button color="primary" (click)="checkIn(student)" [disabled]="shouldDisableCheckIn(student)">Check In</button>
+    <button mat-raised-button color="accent" (click)="checkOut(student)" [disabled]="shouldDisableCheckOut(student)">Check Out</button>
+</div>
+<div [style.display]="(filteredStudents | async)?.length == 0 ? 'block' : 'none' ">No results!</div>
