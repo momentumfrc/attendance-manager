@@ -27,10 +27,9 @@ Route::apiResource('students', StudentController::class, [
 ]);
 
 Route::apiResource('attendence/check-in', CheckInController::class, [
-    'only' => ['show', 'store']
+    'only' => ['index', 'show', 'store']
 ]);
 
 Route::apiResource('attendence/check-out', CheckOutController::class, [
-    'only' => ['show', 'store']
+    'only' => ['index', 'show', 'store']
 ]);
-
