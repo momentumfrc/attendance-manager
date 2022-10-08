@@ -8,7 +8,8 @@ const routes: Routes = [
   { path: 'students', component: StudentsListComponent },
   { path: 'students/register', component: RegisterStudentComponent },
   { path: 'attendence', component: AddAttendenceEventComponent },
-  { path: '', redirectTo: '/attendence', pathMatch: 'full' }
+  { path: '', redirectTo: '/attendence', pathMatch: 'full' },
+  { path: '**', redirectTo: '/'}
 ];
 
 @NgModule({

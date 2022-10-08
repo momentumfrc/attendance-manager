@@ -22,14 +22,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('students', StudentController::class, [
+Route::middleware('auth:sanctum')->apiResource('students', StudentController::class, [
     'only' => ['index', 'show', 'store', 'destroy']
 ]);
 
-Route::apiResource('attendence/check-in', CheckInController::class, [
+Route::middleware('auth:sanctum')->apiResource('attendence/check-in', CheckInController::class, [
     'only' => ['index', 'show', 'store']
 ]);
 
-Route::apiResource('attendence/check-out', CheckOutController::class, [
+Route::middleware('auth:sanctum')->apiResource('attendence/check-out', CheckOutController::class, [
     'only' => ['index', 'show', 'store']
 ]);
