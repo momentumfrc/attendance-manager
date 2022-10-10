@@ -17,19 +17,38 @@ use App\Http\Controllers\CheckOutController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('students', StudentController::class, [
+        'only' => ['index', 'show']
+    ]);
+    Route::apiResource('attendence/check-in', CheckInController::class, [
+        'only' => ['index', 'show']
+    ]);
+    Route::apiResource('attendence/check-out', CheckOutController::class, [
+        'only' => ['index', 'show']
+    ]);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
+    Route::get('user', function (Request $request) {
+        return $request->user();
+    });
+
+
+    Route::middleware('can:add students')->apiResource('students', StudentController::class, [
+        'only' => ['store']
+    ]);
+    Route::middleware('can:remove students')->apiResource('students', StudentController::class, [
+        'only' => ['destroy']
+    ]);
+
+    Route::middleware('can:take attendence')->apiResource('attendence/check-in', CheckInController::class, [
+        'only' => ['store']
+    ]);
+    Route::middleware('can:take attendence')->apiResource('attendence/check-out', CheckOutController::class, [
+        'only' => ['store']
+    ]);
+
+    Route::middleware('can:list users')->get('users', function() { return \App\Model\User::all(); });
 });
 
-Route::middleware('auth:sanctum')->apiResource('students', StudentController::class, [
-    'only' => ['index', 'show', 'store', 'destroy']
-]);
 
-Route::middleware('auth:sanctum')->apiResource('attendence/check-in', CheckInController::class, [
-    'only' => ['index', 'show', 'store']
-]);
-
-Route::middleware('auth:sanctum')->apiResource('attendence/check-out', CheckOutController::class, [
-    'only' => ['index', 'show', 'store']
-]);
