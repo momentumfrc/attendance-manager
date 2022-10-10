@@ -17,6 +17,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AddAttendenceEventComponent } from './components/add-attendence-event/add-attendence-event.component';
 
 import { httpInterceptorProviders } from './http-interceptors';
+import { LoginComponent } from './components/login/login.component';
 
 
 @NgModule({
@@ -24,7 +25,8 @@ import { httpInterceptorProviders } from './http-interceptors';
     AppComponent,
     StudentsListComponent,
     RegisterStudentComponent,
-    AddAttendenceEventComponent
+    AddAttendenceEventComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
