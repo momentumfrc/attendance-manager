@@ -1,0 +1,5 @@
+<mat-list>
+    <ng-container *ngFor="let user of users | async">
+        <app-user-role-selector [user]="user"></app-user-role-selector>
+    </ng-container>
+</mat-list>

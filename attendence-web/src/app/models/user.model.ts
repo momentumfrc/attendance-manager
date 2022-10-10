@@ -4,5 +4,6 @@ export interface User {
     slack_id: string,
     avatar: string,
     created_at: Date,
-    updated_at: Date
+    updated_at: Date,
+    role_names: Array<string>
 }

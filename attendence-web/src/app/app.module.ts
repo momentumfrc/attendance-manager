@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatListModule } from '@angular/material/list';
+import { MatDividerModule } from '@angular/material/divider';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,6 +20,8 @@ import { AddAttendenceEventComponent } from './components/add-attendence-event/a
 
 import { httpInterceptorProviders } from './http-interceptors';
 import { LoginComponent } from './components/login/login.component';
+import { ElevateUsersComponent } from './components/elevate-users/elevate-users.component';
+import { UserComponent } from './components/elevate-users/user/user.component';
 
 
 @NgModule({
@@ -26,7 +30,9 @@ import { LoginComponent } from './components/login/login.component';
     StudentsListComponent,
     RegisterStudentComponent,
     AddAttendenceEventComponent,
-    LoginComponent
+    LoginComponent,
+    ElevateUsersComponent,
+    UserComponent
   ],
   imports: [
     BrowserModule,
@@ -37,7 +43,9 @@ import { LoginComponent } from './components/login/login.component';
     MatButtonModule,
     MatToolbarModule,
     MatIconModule,
-    MatMenuModule
+    MatMenuModule,
+    MatListModule,
+    MatDividerModule
   ],
   providers: [
     httpInterceptorProviders

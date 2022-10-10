@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http'
 import { environment } from 'src/environments/environment';
 
 import { User } from 'src/app/models/user.model';
-import { catchError, map, Observable, of, throwError } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, catchError, map, Observable, of, ReplaySubject, Subject, tap, throwError } from 'rxjs';
 
 export class UnauthenticatedError implements Error {
   readonly name = "UnauthenticatedError";
@@ -14,25 +14,45 @@ export class UnauthenticatedError implements Error {
   providedIn: 'root'
 })
 export class AuthService {
+  private cachedUser = new AsyncSubject<User | null>();
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient) {
+    this.invalidateUserCache();
+  }
+
+  public invalidateUserCache() {
+    this.cachedUser = new AsyncSubject<User | null>();
+    this.httpClient.get<User | null>(environment.apiRoot + '/user').pipe(
+      catchError((error: HttpErrorResponse) => {
+        if(error.status == 401 || error.status == 419) {
+          return of(null);
+        }
+        return throwError(() => error);
+      })
+    ).subscribe(this.cachedUser);
+  }
 
   public logIn() : void {
     window.location.href = "/auth/redirect";
   }
 
-  public getUser() : Observable<User> {
-    return this.httpClient.get<User>(environment.apiRoot + '/user');
+  public getUser() : Observable<User | null> {
+    return this.cachedUser;
   }
 
   public checkLoggedIn(): Observable<boolean> {
-    return this.getUser().pipe(
-      map((_: User) => true),
-      catchError((error: HttpErrorResponse) => {
-        if(error.status == 401 || error.status == 419) {
-          return of(false);
+    return this.cachedUser.pipe(map((user: User|null) => user != null));
+  }
+
+  public checkHasAnyRole(roles: Array<string>): Observable<boolean> {
+    return this.cachedUser.pipe(
+      map((user: User|null) => {
+        if(user == null) {
+          return false;
         }
-        return throwError(() => error);
+        return roles.reduce((previousValue, currentValue) =>
+          previousValue || user.role_names.includes(currentValue), false
+        );
       })
     );
   }

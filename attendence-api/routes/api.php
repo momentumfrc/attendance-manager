@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CheckOutController;
+use App\Http\Controllers\UserRoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'only' => ['store']
     ]);
 
-    Route::middleware('can:list users')->get('users', function() { return \App\Model\User::all(); });
+    Route::middleware('can:list users')->get('users', [UserRoleController::class, 'listUsers']);
+    Route::middleware('can:list roles')->get('roles', [UserRoleController::class, 'listRoles']);
+    Route::middleware('can:elevate users')->put('users/roles', [UserRoleController::class, 'updateRoles']);
 });
 
 

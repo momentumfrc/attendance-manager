@@ -23,6 +23,7 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'take attendence']);
 
         Permission::create(['name' => 'list users']);
+        Permission::create(['name' => 'list roles']);
         Permission::create(['name' => 'elevate users']);
 
         $role = Role::create(['name' => 'mentor'])
@@ -30,6 +31,7 @@ class RolesSeeder extends Seeder
                 'add students',
                 'take attendence',
                 'list users',
+                'list roles',
                 'elevate users'
             ]);
 
