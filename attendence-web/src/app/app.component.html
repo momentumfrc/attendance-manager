@@ -1,15 +1,18 @@
 <mat-toolbar color="primary" class="mainToolBar" id="mainToolBar">
     <div id="mainToolBarContainer">
         <span>Attendence Manager</span>
-        <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" [matMenuTriggerFor]="navMenu">
-            <mat-icon>menu</mat-icon>
-        </button>
-        <mat-menu #navMenu="matMenu">
-            <a mat-menu-item routerLink="/">Home</a>
-            <a *ngIf="authService.checkHasAnyRole(['admin', 'mentor']) | async" mat-menu-item routerLink="/register-student">Register Student</a>
-            <a *ngIf="authService.checkHasAnyRole(['admin', 'mentor']) | async" mat-menu-item routerLink="/admin">Admin Console</a>
-            <a mat-menu-item href="{{logoutUrl}}">Log out</a>
-        </mat-menu>
+        <div id="toolBarRightContainer">
+            <span id="userName" *ngIf="getFirstName() | async as name">Welcome, {{name}}</span>
+            <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" [matMenuTriggerFor]="navMenu">
+                <mat-icon>menu</mat-icon>
+            </button>
+            <mat-menu #navMenu="matMenu">
+                <a mat-menu-item routerLink="/">Home</a>
+                <a *ngIf="authService.checkHasAnyRole(['admin', 'mentor']) | async" mat-menu-item routerLink="/register-student">Register Student</a>
+                <a *ngIf="authService.checkHasAnyRole(['admin', 'mentor']) | async" mat-menu-item routerLink="/admin">Admin Console</a>
+                <a mat-menu-item href="{{logoutUrl}}">Log out</a>
+            </mat-menu>
+        </div>
         </div>
 </mat-toolbar>
 <div id="mainPage">

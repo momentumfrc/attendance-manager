@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from './services/auth.service';
 
@@ -13,4 +14,10 @@ export class AppComponent {
   readonly logoutUrl = environment.authRoot + '/logout';
 
   constructor(protected authService: AuthService) {}
+
+  getFirstName(): Observable<string|null> {
+    return this.authService.getUser().pipe(map(user =>
+      user?.name.split(" ")[0] ?? null
+    ));
+  }
 }
