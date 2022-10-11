@@ -1,0 +1,19 @@
+<ng-container *ngIf="authService.checkHasAnyRole(['mentor', 'admin']) | async; else notMentorHome">
+    <app-add-attendance-event></app-add-attendance-event>
+</ng-container>
+<ng-template #notMentorHome>
+<div id="notMentorMessage">
+    <h1 class="app-header">Welcome to the Attendance Manager!</h1>
+    <p class="app-text">
+        If you're seeing this screen, <span class="important">you have not been authorized to check students in or out</span>.
+        If you think you should be granted this capability, please contact one of the other mentors
+        and ask to be granted the required permissions.
+    </p>
+    <p class="app-text">
+        If you're a student looking to view your attendance status, <span class="important">that feature has not
+        yet been implemented.</span> Please stay tuned, and feel free to implement it yourself if you are
+        so inclined. Pull requests can be submitted at our
+        <a href="https://github.com/momentumfrc/attendance-manager">Github repository</a>.
+    </p>
+</div>
+</ng-template>
