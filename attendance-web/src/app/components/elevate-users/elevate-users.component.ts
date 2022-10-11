@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { combineLatest, map, Observable, startWith, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, startWith } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { AdminService } from 'src/app/services/admin.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -12,7 +12,7 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class ElevateUsersComponent implements OnInit {
 
-  protected users = new Subject<Array<User>>();
+  protected users = new BehaviorSubject<Array<User>>([]);
 
   constructor(private adminService : AdminService, private authService: AuthService) { }
 

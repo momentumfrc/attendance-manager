@@ -7,7 +7,7 @@
         <app-user-role-selector [user]="user"></app-user-role-selector>
         <mat-divider *ngIf="!isLast"></mat-divider>
     </ng-container>
-    <mat-list-item *ngIf="noUsers() | async" id="noResults">
-        No other users are registered!
+    <mat-list-item *ngIf="(noUsers() | async) == true" id="noResults">
+        No matching users found!
     </mat-list-item>
 </mat-list>
