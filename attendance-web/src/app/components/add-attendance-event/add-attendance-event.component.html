@@ -24,4 +24,4 @@
     <mat-divider *ngIf="!isLast"></mat-divider>
     </ng-container>
 </div>
-<div [style.display]="(filteredStudents | async)?.length == 0 ? 'block' : 'none' ">No results!</div>
+<div *ngIf="(filteredStudents | async)?.length == 0" id="noStudentsWarn">No results!</div>
