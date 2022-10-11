@@ -6,7 +6,7 @@ import { AuthService } from '../services/auth.service';
 @Injectable({
   providedIn: 'root'
 })
-export class RoleGuard implements CanActivate, CanActivateChild {
+export class MustHaveRoleGuard implements CanActivate, CanActivateChild {
 
   constructor(private authService: AuthService) {}
 
@@ -22,7 +22,7 @@ export class RoleGuard implements CanActivate, CanActivateChild {
   }
 
   private checkRoles(route: ActivatedRouteSnapshot) : Observable<boolean> {
-    let routeRoles = route.data['allowedRoles'] as Array<string>;
+    let routeRoles = route.data['roleOptions'] as Array<string>;
     return this.authService.checkHasAnyRole(routeRoles);
   }
 

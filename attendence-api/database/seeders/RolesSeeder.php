@@ -35,15 +35,19 @@ class RolesSeeder extends Seeder
                 'elevate users'
             ]);
 
-        $adminRole = Role::create(['name' => 'admin'])
-            ->givePermissionTo(Permission::all());
-
         $adminUser = \App\Models\User::create([
             'slack_id' => 'U2Q3A63J9',
             'name' => 'Jordan Powers',
             'avatar' => ''
         ]);
 
-        $adminUser->assignRole('mentor', 'admin');
+        $adminUser->assignRole('mentor');
+
+        /*
+        $adminRole = Role::create(['name' => 'admin'])
+            ->givePermissionTo(Permission::all());
+
+        $adminuser->assignRole('admin');
+        */
     }
 }

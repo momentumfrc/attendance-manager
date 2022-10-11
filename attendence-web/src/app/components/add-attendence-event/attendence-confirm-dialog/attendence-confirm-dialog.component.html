@@ -1,0 +1,13 @@
+<h1 mat-dialog-title>Confirm {{conjugate()[0]}}</h1>
+<div mat-dialog-content>
+    <p>
+        Student {{data.student.name}} is already {{conjugate()[1]}}.
+    </p>
+    <p>
+        Last {{conjugate()[1]}} on {{last_event() | date:'short'}}.
+    </p>
+</div>
+<div mat-dialog-options id="dialogOptions">
+    <button mat-stroked-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-stroked-button color="primary" [mat-dialog-close]="true">Confirm</button>
+</div>

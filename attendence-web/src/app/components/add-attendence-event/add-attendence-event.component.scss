@@ -1,0 +1,69 @@
+#studentFilters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+#studentSearch {
+    width: 100%;
+    min-width: 150px;
+
+    flex-grow: 1;
+
+    display: flex;
+
+    border: 2px solid #ccc;
+    border-radius: 4px;
+
+    align-items: center;
+
+    padding: 0px 20px 0px 10px;
+    gap: 10px;
+
+    box-sizing: border-box;
+}
+
+#studentSearch > input {
+    flex-grow: 1;
+    box-sizing: border-box;
+    border: none;
+    padding: 12px 0px;
+
+    font: 300 1.4em helvetica, sans-serif;
+
+    outline: none;
+}
+
+#studentSearch > mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+}
+
+#studentResults {
+    font-size: 1.4em;
+    line-height: 1.4;
+    font-weight: 200;
+
+    margin-top: 20px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+}
+
+.studentRow {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin: 5px 0px;
+}
+
+.studentName {
+    margin-left: 20px;
+}
+

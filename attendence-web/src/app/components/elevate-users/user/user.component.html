@@ -1,10 +1,11 @@
 <mat-list-item>
-    {{user.name}}
-    <button mat-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">Roles</button>
+<div class="userItem">
+    <div class="userName">{{user.name}}</div>
+    <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">Roles</button>
     <mat-menu #roleMenu="matMenu" (closed)="menuClosed()">
         <mat-selection-list (click)="$event.stopPropagation()" #selectedRoles>
-            <mat-list-option *ngFor="let role of roles | async" selected="user.roles.includes(role)" value="{{role}}">{{role}}</mat-list-option>
+            <mat-list-option *ngFor="let role of roles | async" selected="{{shouldSelectRole(role)}}" value="{{role}}">{{role}}</mat-list-option>
         </mat-selection-list>
     </mat-menu>
+</div>
 </mat-list-item>
-<mat-divider></mat-divider>

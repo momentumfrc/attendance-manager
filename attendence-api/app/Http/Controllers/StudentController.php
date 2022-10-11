@@ -29,7 +29,7 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required'
+            'name' => 'required|unique:students,name'
         ]);
 
         $student = new Student;

@@ -1,7 +1,20 @@
-.mainToolBar {
+#mainToolBar {
+    justify-content: center;
+}
+
+#mainToolBarContainer {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 30px;
+    padding-right: 30px;
+    width: 740px;
+}
+
+#mainPage {
+    padding-top: 30px;
+    padding-left: 30px;
+    padding-right: 30px;
+    max-width: 740px;
+    margin: auto;
 }

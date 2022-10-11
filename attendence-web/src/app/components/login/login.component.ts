@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
 
 import { environment } from 'src/environments/environment';
 
@@ -8,11 +10,12 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  readonly loginRedirectUrl = environment.authRoot + '/redirect';
+  constructor(private authService: AuthService, private router: Router) { }
 
-  constructor() { }
+  ngOnInit(): void {}
 
-  ngOnInit(): void {
+  protected doLogin(): void {
+    this.authService.logIn();
   }
 
 }

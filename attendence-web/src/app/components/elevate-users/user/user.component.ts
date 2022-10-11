@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { MatSelectionList } from '@angular/material/list';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { AdminService } from 'src/app/services/admin.service';
@@ -15,9 +16,13 @@ export class UserComponent implements OnInit {
 
   protected roles = this.adminService.getAllRoles();
 
-  constructor(private adminService: AdminService) { }
+  constructor(private adminService: AdminService, private snackbar: MatSnackBar) { }
 
   ngOnInit(): void {
+  }
+
+  shouldSelectRole(role: string): boolean {
+    return this.user.role_names.includes(role);
   }
 
   menuClosed(): void {
@@ -41,6 +46,10 @@ export class UserComponent implements OnInit {
       this.user = updatedUser;
       let selectedOptions = this.selectedRoles.options.filter(option => this.user.role_names.includes(option.value));
       this.selectedRoles.selectedOptions.setSelection(...selectedOptions);
+
+      this.snackbar.open("Roles updated for " + updatedUser.name, '', {
+        duration: 4000
+      });
     });
   }
 

@@ -1,6 +1,0 @@
-<ul>
-    <li *ngFor="let student of students | async">{{student.name}}</li>
-</ul>
-
-<div [style.display]="(students | async)?.length == 0 ? 'block' : 'none' "> No students registered!</div>
-<a routerLink="/students/register">Add</a>

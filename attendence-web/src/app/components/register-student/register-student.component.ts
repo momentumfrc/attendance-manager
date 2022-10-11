@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators, AsyncValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
+import { AsyncSubject, map, Observable, of } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-register-student',
@@ -11,19 +13,40 @@ import { Student } from 'src/app/models/student.model';
 })
 export class RegisterStudentComponent implements OnInit {
 
-  constructor(private studentsService : StudentsService, private router: Router) { }
+  private students = new AsyncSubject<Array<Student>>();
+
+  constructor(private studentsService : StudentsService, private snackBar: MatSnackBar) { }
 
   ngOnInit(): void {
+    this.studentsService.getAllStudents().subscribe(this.students);
+  }
+
+  private nameTakenValidator : AsyncValidatorFn = (control) => {
+    const name = (control.value ?? "").toLocaleLowerCase();
+    return this.students.pipe(map(students => {
+      const invalid = students.some(student => student.name.toLocaleLowerCase() == name);
+      if(invalid) {
+        return { nameTaken: { value: control.value } };
+      } else {
+        return null;
+      }
+    }));
   }
 
   mainForm = new FormGroup({
-    name: new FormControl('', [Validators.required])
+    name: new FormControl('', {
+      validators: [Validators.required],
+      asyncValidators: [this.nameTakenValidator]
+    })
   });
 
   onSubmit(): void {
     this.mainForm.disable();
-    this.studentsService.registerNewStudent(this.mainForm.value.name!).subscribe((student: Student) => {
-      this.router.navigate(['/students']);
+    const studentName = this.mainForm.value.name!;
+    this.studentsService.registerNewStudent(studentName).subscribe((student: Student) => {
+      this.snackBar.open("Student " + studentName + " registered!", '', {
+        duration: 4000
+      });
     })
   }
 

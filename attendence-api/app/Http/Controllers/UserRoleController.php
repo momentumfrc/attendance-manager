@@ -22,7 +22,7 @@ class UserRoleController extends Controller
 
     public function updateRoles(Request $request) {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id|not_in:'.Auth::id(),
             'roles.*' => 'string|distinct|exists:roles,name'
         ]);
 

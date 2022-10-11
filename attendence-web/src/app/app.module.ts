@@ -10,10 +10,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { StudentsListComponent } from './components/students-list/students-list.component';
 import { RegisterStudentComponent } from './components/register-student/register-student.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AddAttendenceEventComponent } from './components/add-attendence-event/add-attendence-event.component';
@@ -22,17 +26,20 @@ import { httpInterceptorProviders } from './http-interceptors';
 import { LoginComponent } from './components/login/login.component';
 import { ElevateUsersComponent } from './components/elevate-users/elevate-users.component';
 import { UserComponent } from './components/elevate-users/user/user.component';
+import { HomeComponent } from './components/home/home.component';
+import { AttendenceConfirmDialogComponent } from './components/add-attendence-event/attendence-confirm-dialog/attendence-confirm-dialog.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    StudentsListComponent,
     RegisterStudentComponent,
     AddAttendenceEventComponent,
     LoginComponent,
     ElevateUsersComponent,
-    UserComponent
+    UserComponent,
+    HomeComponent,
+    AttendenceConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -45,7 +52,12 @@ import { UserComponent } from './components/elevate-users/user/user.component';
     MatIconModule,
     MatMenuModule,
     MatListModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule,
+    MatButtonToggleModule,
+    MatInputModule,
+    MatCardModule,
+    MatSnackBarModule
   ],
   providers: [
     httpInterceptorProviders
