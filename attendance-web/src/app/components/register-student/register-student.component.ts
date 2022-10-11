@@ -44,6 +44,8 @@ export class RegisterStudentComponent implements OnInit {
     this.mainForm.disable();
     const studentName = this.mainForm.value.name!;
     this.studentsService.registerNewStudent(studentName).subscribe((student: Student) => {
+      this.mainForm.controls.name.reset();
+      this.mainForm.enable();
       this.snackBar.open("Student " + studentName + " registered!", '', {
         duration: 4000
       });
