@@ -1,6 +1,6 @@
 <h1>Register student</h1>
 <mat-card id="registerCard">
-<form [formGroup]="mainForm" (ngSubmit)="onSubmit()">
+<form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm">
     <div class="formRow">
         <mat-icon aria-hidden="true" fontIcon="person"></mat-icon>
         <mat-form-field apperance="fill">
