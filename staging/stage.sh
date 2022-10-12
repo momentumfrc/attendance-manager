@@ -6,7 +6,7 @@ SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
 
 docker compose down -v
-sudo rm -rf www/attendance/attendance-api www/attendance/attendance-web
+rm -rf www/attendance/attendance-api www/attendance/attendance-web
 
 git ls-files ../attendance-api | cpio -pdm ./www/attendance/attendance-api
 
@@ -44,7 +44,7 @@ sed -r -i "s/\t#?ServerName.*/\tServerName ${APP_SERVER_NAME//\//\\\/}/g" data/s
 
 docker compose up --build -d
 sleep 5
-docker compose exec -w /var/www/html/attendance/attendance-api apache php artisan migrate --seed --seeder RolesSeeder
+docker compose exec -w /var/www/html/attendance/attendance-api -u 1000:1000 apache php artisan migrate --seed --seeder RolesSeeder
 
 docker compose logs -f
 popd
