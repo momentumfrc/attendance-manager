@@ -31,7 +31,7 @@ export class ElevateUsersComponent implements OnInit {
       let retval = users.filter(user => user.id != loggedInUser.id);
 
       if(search != "") {
-        retval = retval.filter(user => user.name.split(' ').some(namePart => namePart.toLocaleLowerCase().startsWith(search)));
+        retval = retval.filter(user => user.name.toLocaleLowerCase().includes(search));
       };
 
       retval = retval.sort();

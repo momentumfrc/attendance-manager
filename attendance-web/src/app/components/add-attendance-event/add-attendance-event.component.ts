@@ -41,8 +41,7 @@ export class AddAttendanceEventComponent implements OnInit {
 
       // implement search
       if(search != "") {
-        value = value.filter(student => student.name.split(" ")
-          .some(namePart => namePart.toLocaleLowerCase().startsWith(search)));
+        value = value.filter(student => student.name.toLocaleLowerCase().includes(search));
       }
 
       // implement sort
