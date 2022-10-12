@@ -32,12 +32,12 @@ export class AttendanceConfirmDialogComponent {
     }[this.data.action];
   }
 
-  protected last_event(): Date {
+  protected last_event(): Date | null {
     switch(this.data.action) {
       case AttendanceAction.CheckIn:
-        return this.data.student.last_check_in.created_at;
+        return this.data.student.last_check_in?.created_at;
       case AttendanceAction.CheckOut:
-        return this.data.student.last_check_out.created_at;
+        return this.data.student.last_check_out?.created_at;
       default:
         throw Error('Hit base case of exahustive switch!');
     }

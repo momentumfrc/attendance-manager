@@ -79,7 +79,7 @@ export class AddAttendanceEventComponent implements OnInit {
         break;
     }
 
-    result.subscribe((response: CheckIn | CheckOut) => {
+    result.pipe(map((response: CheckIn | CheckOut) => {
       let cachedStudents = this.allStudents.getValue();
       let modIdx = cachedStudents.findIndex(student => student.id == response.student_id);
       switch(action) {
@@ -90,8 +90,8 @@ export class AddAttendanceEventComponent implements OnInit {
           cachedStudents[modIdx].last_check_out = response;
           break;
       }
-      this.allStudents.next(cachedStudents);
-    });
+      return cachedStudents;
+    })).subscribe(this.allStudents);
   }
 
   private attendance(
