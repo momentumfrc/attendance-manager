@@ -17,9 +17,7 @@ class User extends Authenticatable
     protected $hidden = ['remember_token', 'roles'];
     protected $appends = ['role_names'];
 
-    protected function roleNames(): Attribute {
-        return new Attribute(
-            get: fn() => $this->getRoleNames()
-        );
+    public function getRoleNamesAttribute() {
+        return $this->getRoleNames();
     }
 }
