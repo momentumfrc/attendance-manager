@@ -46,7 +46,8 @@ cd attendance-api
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan config:cache
-php artisan migrate:refresh --seed --seeder=RolesSeeder
+php artisan migrate
+#php artisan seed --class=RolesSeeder
 
 echo INSTALL FINISHED
 sleep 2
