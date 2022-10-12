@@ -33,7 +33,7 @@ export class AuthService {
   }
 
   public logIn() : void {
-    window.location.href = "/auth/redirect";
+    window.location.href = environment.authRoot + '/redirect';
   }
 
   public getUser() : Observable<User | null> {

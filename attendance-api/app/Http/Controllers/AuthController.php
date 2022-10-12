@@ -27,7 +27,9 @@ class AuthController extends Controller
 
         Auth::guard('web')->login($dbuser, $remember = true);
 
-        return redirect('/');
+        $subdir = config('app.subdir', '/');
+
+        return redirect($subdir);
     }
 
     public function logout(Request $request) {
@@ -36,6 +38,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        $subdir = config('app.subdir', '/');
+        return redirect($subdir);
     }
 }

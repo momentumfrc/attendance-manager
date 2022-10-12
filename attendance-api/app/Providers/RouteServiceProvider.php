@@ -37,7 +37,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
-        $this->routes(function () {
+        $routes = function() {
             Route::prefix('api')
                 ->middleware('api')
                 ->namespace($this->namespace)
@@ -46,7 +46,16 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
-        });
+        };
+
+        $subdir = config('app.subdir', '/');
+        if(!$subdir || $subdir == '/') {
+            $this->routes($routes);
+        } else {
+            $this->routes(function() use ($subdir, $routes) {
+                Route::prefix($subdir)->group($routes);
+            });
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiRoot: "/api",
-  authRoot: "/auth"
+  apiRoot: "/attendance/api",
+  authRoot: "/attendance/auth"
 };
