@@ -35,8 +35,15 @@ class RolesSeeder extends Seeder
                 'elevate users'
             ]);
 
+
+        if(config('app.debug', false)) {
+            $adminId = 'U2Q3A63J9';
+        } else {
+            $adminId = 'U2YL0PXB5';
+        }
+
         $adminUser = \App\Models\User::create([
-            'slack_id' => 'U2Q3A63J9',
+            'slack_id' => $adminId,
             'name' => 'Jordan Powers',
             'avatar' => ''
         ]);
