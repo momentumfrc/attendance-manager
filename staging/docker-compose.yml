@@ -1,0 +1,28 @@
+version: '3'
+services:
+  apache:
+    build:
+      context: ./apache
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./data/sites-available:/etc/apache2/sites-available
+      - ./www:/var/www/html
+    networks:
+      staging:
+  db:
+    image: mariadb
+    environment:
+      - MARIADB_USER=laravel
+      - MARIADB_PASSWORD=password
+      - MARIADB_DATABASE=attendance_api
+      - MARIADB_RANDOM_ROOT_PASSWORD=yes
+    expose:
+      - "3306"
+    networks:
+      staging:
+networks:
+  staging:
+    driver: bridge

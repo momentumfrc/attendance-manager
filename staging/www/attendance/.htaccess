@@ -1,0 +1,11 @@
+RewriteEngine On
+
+RewriteCond %{REQUEST_URI} ^/attendance/api/.*$ [OR]
+RewriteCond %{REQUEST_URI} ^/attendance/auth/.*$
+RewriteRule ^(.*)$ attendance-api/public/$1 [L]
+
+RewriteCond %{REQUEST_URI} ^/attendance/(.+)$
+RewriteCond %{DOCUMENT_ROOT}/attendance/attendance-web/$1 -f
+RewriteRule ^(.*)$ attendance-web/$1 [END]
+
+RewriteRule ^(.*)$ attendance-web/index.html [END]
