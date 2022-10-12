@@ -20,16 +20,12 @@ class Student extends Model
         return $this->hasMany(CheckOut::class);
     }
 
-    public function lastCheckIn(): Attribute {
-        return new Attribute(
-            get: fn() => $this->checkIns()->orderBy('updated_at', 'desc')->first()
-        );
+    public function getLastCheckInAttribute() {
+        return $this->checkIns()->orderBy('updated_at', 'desc')->first();
     }
 
-    public function lastCheckOut(): Attribute {
-        return new Attribute(
-            get: fn() => $this->checkOuts()->orderBy('updated_at', 'desc')->first()
-        );
+    public function getLastCheckOutAttribute() {
+        return $this->checkOuts()->orderBy('updated_at', 'desc')->first();
     }
 
 }
