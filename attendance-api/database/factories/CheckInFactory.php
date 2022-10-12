@@ -16,7 +16,8 @@ class CheckInFactory extends Factory
      */
     public function definition()
     {
-        $checkIn = fake()->dateTimeBetween('-3 month', 'now');
+        $faker = \Faker\Factory::create();
+        $checkIn = $faker->dateTimeBetween('-3 month', 'now');
         return [
             'created_at' => $checkIn,
             'updated_at' => $checkIn

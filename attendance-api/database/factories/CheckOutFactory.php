@@ -16,7 +16,8 @@ class CheckOutFactory extends Factory
      */
     public function definition()
     {
-        $checkOut = fake()->dateTimeBetween('-3 month', 'now');
+        $faker = \Faker\Factory::create();
+        $checkOut = $faker->dateTimeBetween('-3 month', 'now');
         return [
             'created_at' => $checkOut,
             'updated_at' => $checkOut

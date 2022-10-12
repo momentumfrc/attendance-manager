@@ -16,8 +16,10 @@ class StudentFactory extends Factory
      */
     public function definition()
     {
+        $faker = \Faker\Factory::create();
+
         return [
-            'name' => fake()->name()
+            'name' => $faker->name()
         ];
     }
 }
