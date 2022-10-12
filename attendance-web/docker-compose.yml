@@ -1,0 +1,22 @@
+version: '3'
+services:
+    angular.test:
+        build:
+            context: ./.devcontainer
+            dockerfile: Dockerfile
+        environment:
+            PUBLIC_HOST: attendance.powers.jordanpowers.link
+        working_dir: /var/www/html
+        user: node
+        command: sh -c "npm install && ng serve --host 0.0.0.0 --public-host $${PUBLIC_HOST}"
+        expose:
+            - '4200'
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            attendance:
+                ipv4_address: 172.20.0.201
+networks:
+    attendance:
+        external: true
+        name: attendance

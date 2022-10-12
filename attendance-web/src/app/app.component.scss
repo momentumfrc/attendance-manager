@@ -1,0 +1,32 @@
+#mainToolBar {
+    justify-content: center;
+}
+
+#mainToolBarContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-left: 30px;
+    padding-right: 30px;
+    width: 740px;
+}
+
+#mainPage {
+    padding-top: 30px;
+    padding-left: 30px;
+    padding-right: 30px;
+    max-width: 740px;
+    margin: auto;
+}
+
+#toolBarRightContainer {
+    display: flex;
+    align-items: center;
+}
+
+#userName {
+    font-weight: 200;
+    font-size: 0.85em;
+    margin-right: 20px;
+}

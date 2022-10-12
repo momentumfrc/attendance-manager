@@ -1,0 +1,20 @@
+1. Register students
+    - Students are objects, not users
+2. Check-in / check-out students
+3. Status
+    - Who is currently checked-in?
+    - Log of check-in/check-out events
+4. Authentication
+    - Register new user (anyone can sign up)
+    - Require log-in to check-in or check-out
+5. Invite-only registration
+6. Cosmetics
+----- MVP -----
+7. User roles
+    - Admin or Mentor role
+    - Students are not users, so no student role
+8. Admin features
+    - Elevate other mentors to Admin
+    - Deactivate or delete user accounts
+    - Deactivate or delete students
+9. Api keys

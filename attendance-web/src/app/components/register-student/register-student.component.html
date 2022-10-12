@@ -1,0 +1,18 @@
+<h1>Register student</h1>
+<mat-card id="registerCard">
+<form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm">
+    <div class="formRow">
+        <mat-icon aria-hidden="true" fontIcon="person"></mat-icon>
+        <mat-form-field apperance="fill">
+            <mat-label>Name</mat-label>
+            <input matInput placeholder="John Doe" type="text" formControlName="name" autocomplete="off">
+            <mat-hint>Names must be unique</mat-hint>
+            <mat-error *ngIf="mainForm.controls['name'].errors?.['required']">Name is required</mat-error>
+            <mat-error *ngIf="mainForm.controls['name'].errors?.['nameTaken']">Student is already registered</mat-error>
+        </mat-form-field>
+    </div>
+    <div id="submitRow">
+        <button mat-raised-button color="primary" type="submit" [disabled]="!mainForm.valid" id="submitButton">Submit</button>
+    </div>
+</form>
+</mat-card>

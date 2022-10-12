@@ -1,0 +1,13 @@
+<div id="userSearch">
+    <mat-icon aria-hidden="false" aria-label="Search icon" fontIcon="search"></mat-icon>
+    <input type="text" [formControl]="searchControl" autocomplete="off" >
+</div>
+<mat-list>
+    <ng-container *ngFor="let user of users | async ; last as isLast">
+        <app-user-role-selector [user]="user"></app-user-role-selector>
+        <mat-divider *ngIf="!isLast"></mat-divider>
+    </ng-container>
+    <mat-list-item *ngIf="(noUsers() | async) == true" id="noResults">
+        No matching users found!
+    </mat-list-item>
+</mat-list>

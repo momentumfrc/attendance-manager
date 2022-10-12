@@ -1,0 +1,27 @@
+#loginContainer {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 30px;
+    height: 150px;
+}
+
+#loginButton {
+    /* Taken from https://api.slack.com/authentication/sign-in-with-slack#generator */
+    align-items: center;
+    color: #fff;
+    background-color: #4A154B;
+    border: 0;
+    border-radius: 4px;
+    display: inline-flex;
+    font-family: Lato, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    height: 56px;
+    justify-content: center;
+    text-decoration: none;
+    width: 296px;
+    cursor: pointer;
+}
