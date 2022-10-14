@@ -1,5 +1,12 @@
+@use "media";
+
 #mainToolBar {
     justify-content: center;
+
+    @include media.mobile {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 }
 
 #mainToolBarContainer {
@@ -7,17 +14,32 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: baseline;
-    padding-left: 30px;
-    padding-right: 30px;
-    width: 740px;
+
+    flex-grow: 1;
+
+    @include media.desktop {
+        max-width: 740px;
+    }
+
+    @include media.mobile {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 }
 
 #mainPage {
-    padding-top: 30px;
-    padding-left: 30px;
-    padding-right: 30px;
     max-width: 740px;
     margin: auto;
+
+    @include media.desktop {
+        padding-top: 30px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    @include media.mobile {
+        padding: 10px;
+    }
 }
 
 #toolBarRightContainer {
@@ -29,4 +51,8 @@
     font-weight: 200;
     font-size: 0.85em;
     margin-right: 20px;
+
+    @include media.mobile {
+        display: none;
+    }
 }

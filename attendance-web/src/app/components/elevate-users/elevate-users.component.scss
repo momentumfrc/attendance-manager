@@ -1,3 +1,5 @@
+@use 'media';
+
 #noResults {
     font-size: 1.4em;
     font-weight: 300;
@@ -17,8 +19,23 @@
 
     align-items: center;
 
-    padding: 0px 20px 0px 10px;
-    gap: 10px;
+    @include media.desktop {
+        padding-top: 0px;
+        padding-left: 20px;
+        padding-bottom: 0px;
+        padding-right: 10px;
+        gap: 10px;
+    }
+
+    @include media.mobile {
+        margin-top: 6px;
+
+        padding-top: 0px;
+        padding-left: 2px;
+        padding-bottom: 0px;
+        padding-right: 5px;
+        gap: 5px;
+    }
 
     box-sizing: border-box;
 }
@@ -27,9 +44,14 @@
     flex-grow: 1;
     box-sizing: border-box;
     border: none;
-    padding: 12px 0px;
 
-    font: 300 1.4em helvetica, sans-serif;
+    @include media.desktop {
+        padding: 12px 0px;
+        font: 300 1.4em helvetica, sans-serif;
+    }
+    @include media.mobile {
+        font: 400 1.4em helvetica, sans-serif;
+    }
 
     outline: none;
 }

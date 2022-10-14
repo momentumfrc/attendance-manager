@@ -9,4 +9,13 @@
 .userName {
     font-size: 1.4em;
     font-weight: 300;
+    line-height: 1.1em;
+
+    margin-right: 15px;
+}
+
+.mat-list-item {
+    height: fit-content;
+    min-height: 48px;
+    padding-top: 15px;
 }
