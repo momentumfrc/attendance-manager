@@ -1,6 +1,6 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, map, Observable, startWith } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, interval, map, Observable, startWith, Subscription, switchMap } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -8,13 +8,14 @@ import { CheckIn } from 'src/app/models/check-in.model';
 import { CheckOut } from 'src/app/models/check-out.model';
 import { AttendanceAction, AttendanceConfirmDialogComponent } from './attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-add-attendance-event',
   templateUrl: './add-attendance-event.component.html',
   styleUrls: ['./add-attendance-event.component.scss']
 })
-export class AddAttendanceEventComponent implements OnInit {
+export class AddAttendanceEventComponent implements OnInit, OnDestroy {
   allStudents = new BehaviorSubject<Array<Student>>([])
 
   filteredStudents: Observable<Array<Student>>
@@ -22,12 +23,45 @@ export class AddAttendanceEventComponent implements OnInit {
   searchControl = new FormControl();
   actionControl = new FormControl('checkIn');
 
+  polling: Subscription
+
   constructor(
     studentsService : StudentsService,
     private attendanceService : AttendanceService,
     private dialog: MatDialog
   ) {
-    studentsService.getAllStudents().subscribe(this.allStudents)
+    // Get students from database
+    studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+
+    // Set up polling for new check-ins/check-outs
+    this.polling = interval(environment.pollInterval).pipe(
+      switchMap(() => {
+        const since = new Date();
+        since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
+        return forkJoin({
+          'checkIns': attendanceService.getRecentCheckIns(since),
+          'checkOuts': attendanceService.getRecentCheckOuts(since)
+        })
+      }),
+      map(updates => {
+        updates.checkIns.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+        updates.checkOuts.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+        return this.allStudents.getValue().map(student => {
+          let newStudent : Student = {
+            id: student.id,
+            name: student.name,
+            created_at: student.created_at,
+            updated_at: student.updated_at,
+            last_check_in: updates.checkIns.find(item => item.student_id == student.id) ?? student.last_check_in,
+            last_check_out: updates.checkOuts.find(item => item.student_id == student.id) ?? student.last_check_out
+          };
+          return newStudent;
+        });
+      })
+    ).subscribe((students) => this.allStudents.next(students));
+
+    // Combine search, sort filters, and student roster into the final observable which
+    // will be formatted and shown to the user
     this.filteredStudents = combineLatest([
       this.allStudents,
       (this.searchControl.valueChanges as Observable<string | null>).pipe(startWith("")),
@@ -65,6 +99,13 @@ export class AddAttendanceEventComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.allStudents.subscribe({
+      complete: () => console.log("COMPLETE")
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.polling.unsubscribe();
   }
 
   private updateStudent(student: Student, action: AttendanceAction) : void {
@@ -79,7 +120,7 @@ export class AddAttendanceEventComponent implements OnInit {
     }
 
     result.pipe(map((response: CheckIn | CheckOut) => {
-      let cachedStudents = this.allStudents.getValue();
+      let cachedStudents = structuredClone(this.allStudents.getValue());
       let modIdx = cachedStudents.findIndex(student => student.id == response.student_id);
       switch(action) {
         case AttendanceAction.CheckIn:
@@ -90,7 +131,7 @@ export class AddAttendanceEventComponent implements OnInit {
           break;
       }
       return cachedStudents;
-    })).subscribe(this.allStudents);
+    })).subscribe((students) => this.allStudents.next(students));
   }
 
   private attendance(

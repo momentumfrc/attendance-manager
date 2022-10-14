@@ -5,7 +5,8 @@
 export const environment = {
   production: false,
   apiRoot: "/api",
-  authRoot: "/auth"
+  authRoot: "/auth",
+  pollInterval: 5000
 };
 
 /*

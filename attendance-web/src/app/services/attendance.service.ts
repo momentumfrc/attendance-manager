@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http'
+import { HttpClient, HttpParams } from '@angular/common/http'
 import { environment } from 'src/environments/environment';
 
 import { Observable } from 'rxjs';
@@ -25,5 +25,15 @@ export class AttendanceService {
     return this.httpClient.post<CheckOut>(environment.apiRoot + '/attendance/check-out', {
       'student_id': studentId
     });
+  }
+
+  getRecentCheckIns(since: Date): Observable<Array<CheckIn>> {
+    const params = (new HttpParams()).set('since', Math.floor(since.getTime() / 1000));
+    return this.httpClient.get<Array<CheckIn>>(environment.apiRoot + '/attendance/check-in', {params});
+  }
+
+  getRecentCheckOuts(since: Date): Observable<Array<CheckOut>> {
+    const params = (new HttpParams()).set('since', Math.floor(since.getTime() / 1000));
+    return this.httpClient.get<Array<CheckOut>>(environment.apiRoot + '/attendance/check-out', {params});
   }
 }
