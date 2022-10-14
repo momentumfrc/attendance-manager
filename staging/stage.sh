@@ -49,6 +49,10 @@ mkdir -p data/sites-available
 cp 000-default.conf data/sites-available/
 sed -r -i "s/\t#?ServerName.*/\tServerName ${APP_SERVER_NAME//\//\\\/}/g" data/sites-available/000-default.conf
 
+pushd ../dev-proxy
+docker compose down -v
+popd
+
 docker compose up --build -d
 sleep 5
 for i in 1..10; do
