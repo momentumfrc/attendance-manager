@@ -33,7 +33,14 @@ docker run -it --rm \
 popd
 
 pushd ../attendance-web
-docker compose run angular.test ng build -c "production" --base-href ${APP_SUBDIR}/
+rm -r dist/attendance-web
+
+docker run --rm \
+    --entrypoint "sh" \
+    -u 1000:1000 \
+    -v ${PWD}/:/mnt \
+    node:alpine \
+    -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
 cp -r ../attendance-web/dist/attendance-web www/attendance/
@@ -44,7 +51,9 @@ sed -r -i "s/\t#?ServerName.*/\tServerName ${APP_SERVER_NAME//\//\\\/}/g" data/s
 
 docker compose up --build -d
 sleep 5
-docker compose exec -w /var/www/html/attendance/attendance-api -u 1000:1000 apache php artisan migrate --seed --seeder RolesSeeder
+for i in 1..10; do
+    docker compose exec -w /var/www/html/attendance/attendance-api -u 1000:1000 apache php artisan migrate --seed --seeder RolesSeeder && break
+done
 
 docker compose logs -f
 popd

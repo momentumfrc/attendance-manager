@@ -29,7 +29,14 @@ sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
 popd
 
 pushd ../attendance-web
-docker compose run angular.test ng build -c "production" --base-href ${APP_SUBDIR}/
+rm -r dist/attendance-web
+
+docker run --rm \
+    --entrypoint "sh" \
+    -u 1000:1000 \
+    -v ${PWD}/:/mnt \
+    node:alpine \
+    -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
 cp -r ../attendance-web/dist/attendance-web attendance/
