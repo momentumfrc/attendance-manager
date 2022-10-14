@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use Carbon\Carbon;
+
 use App\Models\CheckIn;
 use App\Models\Student;
+
+use Illuminate\Support\Facades\Log;
 
 class CheckInController extends Controller
 {
@@ -13,7 +17,7 @@ class CheckInController extends Controller
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',
-            'since' => 'date'
+            'since' => 'date_format:U|lt:4294967295'
         ]);
 
         $response = CheckIn::query();
@@ -22,7 +26,8 @@ class CheckInController extends Controller
         }
 
         if($request->has('since')) {
-            $response = $response->where('created_at', '>=', $request->date('since'));
+            Log::debug('Get all checkins since '.Carbon::createFromTimestamp($request->since)->toDateTimeString());
+            $response = $response->where('created_at', '>=', Carbon::createFromTimestamp($request->since));
         }
 
         return $response->get();

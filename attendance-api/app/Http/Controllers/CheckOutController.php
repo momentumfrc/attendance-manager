@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+
 use Illuminate\Http\Request;
 
 use App\Models\CheckOut;
@@ -12,7 +14,7 @@ class CheckOutController extends Controller
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',
-            'since' => 'date'
+            'since' => 'date_format:U|lt:4294967295'
         ]);
 
         $response = CheckOut::query();
@@ -21,7 +23,7 @@ class CheckOutController extends Controller
         }
 
         if($request->has('since')) {
-            $response = $response->where('created_at', '>=', $request->date('since'));
+            $response = $response->where('created_at', '>=', Carbon::createFromTimestamp($request->since));
         }
 
         return $response->get();
