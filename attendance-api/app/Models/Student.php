@@ -11,6 +11,7 @@ class Student extends Model
     use HasFactory;
 
     protected $appends = ['last_check_in', 'last_check_out'];
+    protected $fillable = ['name'];
 
     public function checkIns() {
         return $this->hasMany(CheckIn::class);

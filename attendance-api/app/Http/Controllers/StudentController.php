@@ -11,6 +11,7 @@ class StudentController extends Controller
 {
     public function __construct() {
         $this->middleware('can:add students')->only('store');
+        $this->middleware('can:modify students')->only('update');
         $this->middleware('can:remove students')->only('destroy');
     }
 
@@ -54,6 +55,23 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
+        return $student;
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Student $student
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Student $student) {
+        $request->validate([
+            'name'=>'required|unique:students,name'
+        ]);
+
+        $student->update(['name' => $request->name]);
+
         return $student;
     }
 

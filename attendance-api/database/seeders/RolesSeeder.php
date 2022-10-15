@@ -19,6 +19,7 @@ class RolesSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         Permission::create(['name' => 'add students']);
+        Permission::create(['name' => 'modify students']);
         Permission::create(['name' => 'remove students']);
         Permission::create(['name' => 'take attendance']);
 
@@ -29,6 +30,8 @@ class RolesSeeder extends Seeder
         $role = Role::create(['name' => 'mentor'])
             ->givePermissionTo([
                 'add students',
+                'modify students',
+                'remove students',
                 'take attendance',
                 'list users',
                 'list roles',

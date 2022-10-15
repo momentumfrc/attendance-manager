@@ -19,9 +19,7 @@ use App\Http\Controllers\UserRoleController;
 |
 */
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('students', StudentController::class)->only([
-        'index', 'show', 'store'
-    ]);
+    Route::apiResource('students', StudentController::class);
     Route::apiResource('attendance/check-in', CheckInController::class)->only([
         'index', 'show', 'store'
     ]);
