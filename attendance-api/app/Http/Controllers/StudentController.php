@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:add students')->only('store');
+        $this->middleware('can:remove students')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *

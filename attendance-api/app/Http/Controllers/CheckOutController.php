@@ -11,6 +11,10 @@ use App\Models\Student;
 
 class CheckOutController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:take attendance')->only('store');
+    }
+
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',

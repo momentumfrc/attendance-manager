@@ -19,35 +19,20 @@ use App\Http\Controllers\UserRoleController;
 |
 */
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('students', StudentController::class, [
-        'only' => ['index', 'show']
+    Route::apiResource('students', StudentController::class)->only([
+        'index', 'show', 'store'
     ]);
-    Route::apiResource('attendance/check-in', CheckInController::class, [
-        'only' => ['index', 'show']
+    Route::apiResource('attendance/check-in', CheckInController::class)->only([
+        'index', 'show', 'store'
     ]);
-    Route::apiResource('attendance/check-out', CheckOutController::class, [
-        'only' => ['index', 'show']
+    Route::apiResource('attendance/check-out', CheckOutController::class)->only([
+        'index', 'show', 'store'
     ]);
 
 
     Route::get('user', function (Request $request) {
         return $request->user();
     });
-
-
-    Route::middleware('can:add students')->apiResource('students', StudentController::class, [
-        'only' => ['store']
-    ]);
-    Route::middleware('can:remove students')->apiResource('students', StudentController::class, [
-        'only' => ['destroy']
-    ]);
-
-    Route::middleware('can:take attendance')->apiResource('attendance/check-in', CheckInController::class, [
-        'only' => ['store']
-    ]);
-    Route::middleware('can:take attendance')->apiResource('attendance/check-out', CheckOutController::class, [
-        'only' => ['store']
-    ]);
 
     Route::middleware('can:list users')->get('users', [UserRoleController::class, 'listUsers']);
     Route::middleware('can:list roles')->get('roles', [UserRoleController::class, 'listRoles']);

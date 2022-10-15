@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Log;
 
 class CheckInController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:take attendance')->only('store');
+    }
 
     public function index(Request $request) {
         $request->validate([
