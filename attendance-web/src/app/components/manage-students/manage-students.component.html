@@ -1,0 +1,9 @@
+<nav mat-tab-nav-bar [tabPanel]="studentTabPanel">
+    <a mat-tab-link *ngFor="let tab of tabs"
+        [routerLink]="tab.path"
+        routerLinkActive #rla="routerLinkActive"
+        [active]="rla.isActive">{{tab.name}}</a>
+  </nav>
+  <mat-tab-nav-panel #studentTabPanel>
+    <router-outlet></router-outlet>
+  </mat-tab-nav-panel>
