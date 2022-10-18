@@ -1,8 +1,5 @@
 <div id="studentFilters">
-    <div id="studentSearch">
-        <mat-icon aria-hidden="false" aria-label="Search icon" fontIcon="search"></mat-icon>
-        <input type="text" [formControl]="searchControl" autocomplete="off" >
-    </div>
+    <app-search-box></app-search-box>
     <div>
         <button mat-fab aria-label="Filters" color="primary" [matMenuTriggerFor]="filterMenu"><mat-icon>tune</mat-icon></button>
         <mat-menu #filterMenu="matMenu">

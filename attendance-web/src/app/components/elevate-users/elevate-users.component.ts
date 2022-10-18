@@ -1,28 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, Observable, startWith } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { AdminService } from 'src/app/services/admin.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { SearchBoxComponent } from '../reuse/search-box/search-box.component';
 
 @Component({
   selector: 'app-elevate-users',
   templateUrl: './elevate-users.component.html',
   styleUrls: ['./elevate-users.component.scss']
 })
-export class ElevateUsersComponent implements OnInit {
+export class ElevateUsersComponent implements AfterViewInit {
+
+  @ViewChild(SearchBoxComponent) searchBox!: SearchBoxComponent
 
   protected users = new BehaviorSubject<Array<User>>([]);
 
   constructor(private adminService : AdminService, private authService: AuthService) { }
 
-  searchControl = new FormControl('');
-
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    console.log(this.searchBox)
     combineLatest([
       this.adminService.getAllUsers(),
       this.authService.getUser(),
-      this.searchControl.valueChanges.pipe(startWith(''))
+      this.searchBox.searchUpdatedEvent.pipe(startWith(""))
     ]).pipe(map((inputs) => {
       const users = inputs[0] as Array<User>
       const loggedInUser = inputs[1] as User;

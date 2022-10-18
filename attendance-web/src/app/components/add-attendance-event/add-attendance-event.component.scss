@@ -8,58 +8,8 @@
     gap: 10px;
 }
 
-
-#studentSearch {
-    width: 100%;
-
+app-search-box {
     flex-grow: 1;
-
-    display: flex;
-
-    border: 2px solid #ccc;
-    border-radius: 4px;
-
-    align-items: center;
-
-    @include media.desktop {
-        padding-top: 0px;
-        padding-left: 20px;
-        padding-bottom: 0px;
-        padding-right: 10px;
-        gap: 10px;
-    }
-
-    @include media.mobile {
-        padding-top: 0px;
-        padding-left: 2px;
-        padding-bottom: 0px;
-        padding-right: 5px;
-        gap: 5px;
-    }
-
-    box-sizing: border-box;
-}
-
-#studentSearch > input {
-    flex-grow: 1;
-    box-sizing: border-box;
-    border: none;
-
-    @include media.desktop {
-        padding: 12px 0px;
-        font: 300 1.4em helvetica, sans-serif;
-    }
-    @include media.mobile {
-        font: 400 1.4em helvetica, sans-serif;
-    }
-
-    outline: none;
-}
-
-#studentSearch > mat-icon {
-    font-size: 40px;
-    width: 40px;
-    height: 40px;
 }
 
 #studentResults {

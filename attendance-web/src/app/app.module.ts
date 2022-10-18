@@ -33,6 +33,7 @@ import { AttendanceConfirmDialogComponent } from './components/add-attendance-ev
 import { ManageStudentsComponent } from './components/manage-students/manage-students.component';
 import { ListStudentsComponent } from './components/manage-students/list-students/list-students.component';
 import { ImportStudentsComponent } from './components/manage-students/import-students/import-students.component';
+import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
 
 
 @NgModule({
@@ -47,7 +48,8 @@ import { ImportStudentsComponent } from './components/manage-students/import-stu
     AttendanceConfirmDialogComponent,
     ManageStudentsComponent,
     ListStudentsComponent,
-    ImportStudentsComponent
+    ImportStudentsComponent,
+    SearchBoxComponent
   ],
   imports: [
     BrowserModule,

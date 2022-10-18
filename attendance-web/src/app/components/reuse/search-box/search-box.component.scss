@@ -1,0 +1,56 @@
+@use 'media';
+.search {
+    width: 100%;
+    min-width: 150px;
+
+    flex-grow: 1;
+
+    display: flex;
+
+    border: 2px solid #ccc;
+    border-radius: 4px;
+
+    align-items: center;
+    box-sizing: border-box;
+
+    @include media.desktop {
+        padding-top: 0px;
+        padding-left: 20px;
+        padding-bottom: 0px;
+        padding-right: 10px;
+        gap: 10px;
+    }
+
+    @include media.mobile {
+        margin-top: 6px;
+
+        padding-top: 0px;
+        padding-left: 2px;
+        padding-bottom: 0px;
+        padding-right: 5px;
+        gap: 5px;
+    }
+
+}
+
+.search > input {
+    flex-grow: 1;
+    box-sizing: border-box;
+    border: none;
+
+    @include media.desktop {
+        padding: 12px 0px;
+        font: 300 1.4em helvetica, sans-serif;
+    }
+    @include media.mobile {
+        font: 400 1.4em helvetica, sans-serif;
+    }
+
+    outline: none;
+}
+
+.search > mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+}

@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, forkJoin, interval, map, Observable, startWith, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, interval, map, Observable, of, startWith, Subject, Subscription, switchMap } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -9,29 +9,32 @@ import { CheckOut } from 'src/app/models/check-out.model';
 import { AttendanceAction, AttendanceConfirmDialogComponent } from './attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
+import { SearchBoxComponent } from '../reuse/search-box/search-box.component';
 
 @Component({
   selector: 'app-add-attendance-event',
   templateUrl: './add-attendance-event.component.html',
   styleUrls: ['./add-attendance-event.component.scss']
 })
-export class AddAttendanceEventComponent implements OnInit, OnDestroy {
+export class AddAttendanceEventComponent implements AfterViewInit, OnDestroy {
   allStudents = new BehaviorSubject<Array<Student>>([])
 
-  filteredStudents: Observable<Array<Student>>
+  filteredStudents = new Subject<Array<Student>>
 
-  searchControl = new FormControl();
+  @ViewChild(SearchBoxComponent) searchBox!: SearchBoxComponent
   actionControl = new FormControl('checkIn');
 
-  polling: Subscription
+  polling: Subscription|null = null
 
   constructor(
-    studentsService : StudentsService,
+    private studentsService : StudentsService,
     private attendanceService : AttendanceService,
     private dialog: MatDialog
-  ) {
+  ) {}
+
+  ngAfterViewInit(): void {
     // Get students from database
-    studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+    this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
 
     // Set up polling for new check-ins/check-outs
     this.polling = interval(environment.pollInterval).pipe(
@@ -39,8 +42,8 @@ export class AddAttendanceEventComponent implements OnInit, OnDestroy {
         const since = new Date();
         since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
         return forkJoin({
-          'checkIns': attendanceService.getRecentCheckIns(since),
-          'checkOuts': attendanceService.getRecentCheckOuts(since)
+          'checkIns': this.attendanceService.getRecentCheckIns(since),
+          'checkOuts': this.attendanceService.getRecentCheckOuts(since)
         })
       }),
       map(updates => {
@@ -62,9 +65,9 @@ export class AddAttendanceEventComponent implements OnInit, OnDestroy {
 
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
-    this.filteredStudents = combineLatest([
+    combineLatest([
       this.allStudents,
-      (this.searchControl.valueChanges as Observable<string | null>).pipe(startWith("")),
+      (this.searchBox.searchUpdatedEvent).pipe(startWith("")),
       this.actionControl.valueChanges.pipe(startWith('checkIn'))
     ]).pipe(map((values : Array<Array<Student> | string | null>) => {
       let students = (values[0] as Array<Student>);
@@ -95,17 +98,11 @@ export class AddAttendanceEventComponent implements OnInit, OnDestroy {
       });
 
       return value;
-      }));
-  }
-
-  ngOnInit(): void {
-    this.allStudents.subscribe({
-      complete: () => console.log("COMPLETE")
-    });
+      })).subscribe(this.filteredStudents)
   }
 
   ngOnDestroy(): void {
-    this.polling.unsubscribe();
+    this.polling?.unsubscribe();
   }
 
   private updateStudent(student: Student, action: AttendanceAction) : void {
