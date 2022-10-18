@@ -34,6 +34,7 @@ import { ManageStudentsComponent } from './components/manage-students/manage-stu
 import { ListStudentsComponent } from './components/manage-students/list-students/list-students.component';
 import { ImportStudentsComponent } from './components/manage-students/import-students/import-students.component';
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
+import { StudentListItemComponent } from './components/manage-students/list-students/student-list-item/student-list-item.component';
 
 
 @NgModule({
@@ -49,7 +50,8 @@ import { SearchBoxComponent } from './components/reuse/search-box/search-box.com
     ManageStudentsComponent,
     ListStudentsComponent,
     ImportStudentsComponent,
-    SearchBoxComponent
+    SearchBoxComponent,
+    StudentListItemComponent
   ],
   imports: [
     BrowserModule,

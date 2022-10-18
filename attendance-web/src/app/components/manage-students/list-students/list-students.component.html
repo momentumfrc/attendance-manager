@@ -1,1 +1,7 @@
-<p>list-students works!</p>
+<app-search-box></app-search-box>
+<mat-list>
+    <ng-container *ngFor="let student of filteredStudents | async ; last as isLast">
+    <app-student-list-item [student]="student"></app-student-list-item>
+    <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
+    </ng-container>
+</mat-list>
