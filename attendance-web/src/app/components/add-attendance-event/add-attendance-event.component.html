@@ -1,5 +1,5 @@
 <div id="studentFilters">
-    <app-search-box></app-search-box>
+    <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
     <div>
         <button mat-fab aria-label="Filters" color="primary" [matMenuTriggerFor]="filterMenu"><mat-icon>tune</mat-icon></button>
         <mat-menu #filterMenu="matMenu">

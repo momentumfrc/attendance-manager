@@ -1,0 +1,11 @@
+<app-search-box (searchUpdatedEvent)="studentSearch.next($event)"></app-search-box>
+<mat-list>
+    <ng-container *ngFor="let student of filteredStudents | async ; last as isLast">
+    <a [routerLink]="['..', 'detail', student.id]">
+    <mat-list-item>
+        {{student.name}}
+    </mat-list-item>
+    </a>
+    <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
+    </ng-container>
+</mat-list>

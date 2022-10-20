@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
-  selector: 'app-manage-students',
-  templateUrl: './manage-students.component.html',
-  styleUrls: ['./manage-students.component.scss']
+  selector: 'app-students',
+  templateUrl: './students.component.html',
+  styleUrls: ['./students.component.scss']
 })
-export class ManageStudentsComponent implements OnInit {
+export class StudentsComponent implements OnInit {
   readonly tabs = [
     {
       path: './list',

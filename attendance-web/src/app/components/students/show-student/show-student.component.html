@@ -1,0 +1,7 @@
+<ng-container *ngIf="student|async as student; else notFound">
+    <h1>{{student.name}}</h1>
+    <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
+</ng-container>
+<ng-template #notFound>
+    <h1>Student not found!</h1>
+</ng-template>

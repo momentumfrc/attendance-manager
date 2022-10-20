@@ -20,7 +20,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { RegisterStudentComponent } from './components/manage-students/register-student/register-student.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AddAttendanceEventComponent } from './components/add-attendance-event/add-attendance-event.component';
 
@@ -30,28 +29,29 @@ import { ElevateUsersComponent } from './components/elevate-users/elevate-users.
 import { UserComponent } from './components/elevate-users/user/user.component';
 import { HomeComponent } from './components/home/home.component';
 import { AttendanceConfirmDialogComponent } from './components/add-attendance-event/attendance-confirm-dialog/attendance-confirm-dialog.component';
-import { ManageStudentsComponent } from './components/manage-students/manage-students.component';
-import { ListStudentsComponent } from './components/manage-students/list-students/list-students.component';
-import { ImportStudentsComponent } from './components/manage-students/import-students/import-students.component';
+import { StudentsComponent } from './components/students/students.component';
+import { ListStudentsComponent } from './components/students/list-students/list-students.component';
+import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
-import { StudentListItemComponent } from './components/manage-students/list-students/student-list-item/student-list-item.component';
+import { ShowStudentComponent } from './components/students/show-student/show-student.component';
+import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    RegisterStudentComponent,
+    UpdateOrCreateStudentComponent,
     AddAttendanceEventComponent,
     LoginComponent,
     ElevateUsersComponent,
     UserComponent,
     HomeComponent,
     AttendanceConfirmDialogComponent,
-    ManageStudentsComponent,
+    StudentsComponent,
     ListStudentsComponent,
     ImportStudentsComponent,
     SearchBoxComponent,
-    StudentListItemComponent
+    ShowStudentComponent
   ],
   imports: [
     BrowserModule,

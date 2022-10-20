@@ -1,34 +1,36 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, startWith, Subject } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, combineLatest, map, ReplaySubject, startWith, Subject, Subscription, takeUntil, tap } from 'rxjs';
 import { Student } from 'src/app/models/student.model';
 import { StudentsService } from 'src/app/services/students.service';
-import { SearchBoxComponent } from '../../reuse/search-box/search-box.component';
 
 @Component({
   selector: 'app-list-students',
   templateUrl: './list-students.component.html',
   styleUrls: ['./list-students.component.scss']
 })
-export class ListStudentsComponent implements AfterViewInit {
-  allStudents = new BehaviorSubject<Array<Student>>([])
+export class ListStudentsComponent implements OnInit, OnDestroy {
+  studentSearch = new Subject<string>();
+  allStudents = new BehaviorSubject<Array<Student>>([]);
 
-  filteredStudents = new Subject<Array<Student>>
-  @ViewChild(SearchBoxComponent) searchBox!: SearchBoxComponent
+  filteredStudents = new ReplaySubject<Array<Student>>(1);
+
+  private allStudentSubscription!: Subscription
 
   constructor(
     private studentsService : StudentsService,
   ) { }
 
-  ngAfterViewInit(): void {
-     // Get students from database
-    this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+  ngOnInit(): void {
+    // Get students from database
+    this.allStudentSubscription = this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
 
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
     combineLatest([
       this.allStudents,
-      (this.searchBox.searchUpdatedEvent).pipe(startWith(""))
-    ]).pipe(map((values : [Array<Student>, string]) => {
+      (this.studentSearch).pipe(startWith(""))
+    ]).pipe(
+      map((values : [Array<Student>, string]) => {
       let students = (values[0] as Array<Student>);
       let search = values[1].toLocaleLowerCase();
 
@@ -40,7 +42,11 @@ export class ListStudentsComponent implements AfterViewInit {
       }
 
       return value;
-      })).subscribe(this.filteredStudents)
+    })).subscribe(this.filteredStudents)
+  }
+
+  ngOnDestroy(): void {
+    this.allStudentSubscription.unsubscribe();
   }
 
   refreshStudents(): void {
