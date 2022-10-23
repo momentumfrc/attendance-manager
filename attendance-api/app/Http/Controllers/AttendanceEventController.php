@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-
 use Illuminate\Http\Request;
 
-use App\Models\CheckOut;
+use Carbon\Carbon;
+
+use App\Models\AttendanceEvent;
 use App\Models\Student;
 
-class CheckOutController extends Controller
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
+class AttendanceEventController extends Controller
 {
     public function __construct() {
         $this->middleware('can:take attendance')->only('store');
@@ -19,10 +22,11 @@ class CheckOutController extends Controller
         $request->validate([
             'student_id' => 'exists:students,id',
             'since' => 'date_format:U|lt:4294967295',
-            'limit' => 'integer|min:1'
+            'limit' => 'integer|min:1',
+            'type' => 'string|in:'.join(',', config('enums.attendance_event_types'))
         ]);
 
-        $response = CheckOut::query();
+        $response = AttendanceEvent::query();
 
         $response->orderBy('created_at', 'desc');
 
@@ -31,7 +35,12 @@ class CheckOutController extends Controller
         }
 
         if($request->has('since')) {
+            Log::debug('Get all events since '.Carbon::createFromTimestamp($request->since)->toDateTimeString());
             $response = $response->where('created_at', '>=', Carbon::createFromTimestamp($request->since));
+        }
+
+        if($request->has('type')) {
+            $response = $response->where('type', '=', $request->type);
         }
 
         if($request->has('limit')) {
@@ -45,20 +54,24 @@ class CheckOutController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'required|exists:students,id'
+            'student_id' => 'required|exists:students,id',
+            'type' => 'required|string|in:'.join(',', config('enums.attendance_event_types'))
         ]);
 
         $student = Student::find($request->student_id);
 
-        $checkOut = new CheckOut;
-        $student->checkOuts()->save($checkOut);
+        $event = new AttendanceEvent;
+        $event->type = $request->type;
+        $event->registered_by = Auth::id();
 
-        return $checkOut;
+        $student->attendanceEvents()->save($event);
+
+        return $event;
     }
 
-    public function show(CheckOut $checkOut)
+    public function show(AttendanceEvent $event)
     {
-        return $checkOut;
+        return $event;
     }
 
 }

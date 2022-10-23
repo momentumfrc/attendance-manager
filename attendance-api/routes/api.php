@@ -4,8 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\StudentController;
-use App\Http\Controllers\CheckInController;
-use App\Http\Controllers\CheckOutController;
+use App\Http\Controllers\AttendanceEventController;
 use App\Http\Controllers\UserRoleController;
 
 /*
@@ -20,10 +19,7 @@ use App\Http\Controllers\UserRoleController;
 */
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('students', StudentController::class);
-    Route::apiResource('attendance/check-in', CheckInController::class)->only([
-        'index', 'show', 'store'
-    ]);
-    Route::apiResource('attendance/check-out', CheckOutController::class)->only([
+    Route::apiResource('attendance/events', AttendanceEventController::class)->only([
         'index', 'show', 'store'
     ]);
 

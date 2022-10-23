@@ -13,20 +13,15 @@ class Student extends Model
     protected $appends = ['last_check_in', 'last_check_out'];
     protected $fillable = ['name'];
 
-    public function checkIns() {
-        return $this->hasMany(CheckIn::class);
-    }
-
-    public function checkOuts() {
-        return $this->hasMany(CheckOut::class);
-    }
-
     public function getLastCheckInAttribute() {
-        return $this->checkIns()->orderBy('updated_at', 'desc')->first();
+        return $this->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
+    }
+    public function getLastCheckOutAttribute() {
+        return $this->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('updated_at', 'desc')->first();
     }
 
-    public function getLastCheckOutAttribute() {
-        return $this->checkOuts()->orderBy('updated_at', 'desc')->first();
+    public function attendanceEvents() {
+        return $this->hasMany(AttendanceEvent::class);
     }
 
 }

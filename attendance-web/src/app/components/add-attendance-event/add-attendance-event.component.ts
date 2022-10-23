@@ -1,14 +1,13 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, startWith, Subject, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
-import { CheckIn } from 'src/app/models/check-in.model';
-import { CheckOut } from 'src/app/models/check-out.model';
 import { AttendanceAction, AttendanceConfirmDialogComponent } from './attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
+import { AttendanceEventType } from 'src/app/models/attendance-event.model';
 
 @Component({
   selector: 'app-add-attendance-event',
@@ -42,22 +41,20 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
       switchMap(() => {
         const since = new Date();
         since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
-        return forkJoin({
-          'checkIns': this.attendanceService.getCheckIns({since: since}),
-          'checkOuts': this.attendanceService.getCheckOuts({since: since})
-        })
+        return this.attendanceService.getEvents({since: since});
       }),
-      map(updates => {
-        updates.checkIns.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
-        updates.checkOuts.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+      map(update => {
+        update.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+        const checkIns = update.filter(it => it.type == AttendanceEventType.CHECK_IN);
+        const checkOuts = update.filter(it => it.type == AttendanceEventType.CHECK_OUT);
         return this.allStudents.getValue().map(student => {
           let newStudent : Student = {
             id: student.id,
             name: student.name,
             created_at: student.created_at,
             updated_at: student.updated_at,
-            last_check_in: updates.checkIns.find(item => item.student_id == student.id) ?? student.last_check_in,
-            last_check_out: updates.checkOuts.find(item => item.student_id == student.id) ?? student.last_check_out
+            last_check_in: checkIns.find(item => item.student_id == student.id) ?? student.last_check_in,
+            last_check_out: checkOuts.find(item => item.student_id == student.id) ?? student.last_check_out
           };
           return newStudent;
         });
@@ -111,24 +108,21 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
   }
 
   private updateStudent(student: Student, action: AttendanceAction) : void {
-    let result: Observable<CheckIn|CheckOut>;
-    switch(action) {
-      case AttendanceAction.CheckIn:
-        result = this.attendanceService.registerCheckIn(student.id);
-        break;
-      case AttendanceAction.CheckOut:
-        result = this.attendanceService.registerCheckOut(student.id);
-        break;
-    }
+    // FIXME: It would be better to remove AttendanceAction entirely and just use
+    //        AttendanceEventType for everything
+    const eventType = {
+      [AttendanceAction.CheckIn]: AttendanceEventType.CHECK_IN,
+      [AttendanceAction.CheckOut]: AttendanceEventType.CHECK_OUT
+    }[action];
 
-    result.pipe(map((response: CheckIn | CheckOut) => {
+    this.attendanceService.registerEvent(student.id, eventType).pipe(map(response => {
       let cachedStudents = structuredClone(this.allStudents.getValue());
       let modIdx = cachedStudents.findIndex(student => student.id == response.student_id);
-      switch(action) {
-        case AttendanceAction.CheckIn:
+      switch(response.type) {
+        case AttendanceEventType.CHECK_IN:
           cachedStudents[modIdx].last_check_in = response;
           break;
-        case AttendanceAction.CheckOut:
+        case AttendanceEventType.CHECK_OUT:
           cachedStudents[modIdx].last_check_out = response;
           break;
       }

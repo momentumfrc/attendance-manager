@@ -1,11 +1,10 @@
-import { CheckIn } from './check-in.model';
-import { CheckOut } from './check-out.model';
+import { AttendanceEvent } from "./attendance-event.model"
 
 export interface Student {
     id: number,
     name: string,
     created_at: Date,
     updated_at: Date,
-    last_check_in: CheckIn,
-    last_check_out: CheckOut
+    last_check_in: AttendanceEvent,
+    last_check_out: AttendanceEvent
 }
