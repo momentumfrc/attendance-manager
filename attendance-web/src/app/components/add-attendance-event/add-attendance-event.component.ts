@@ -43,8 +43,8 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
         const since = new Date();
         since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
         return forkJoin({
-          'checkIns': this.attendanceService.getRecentCheckIns(since),
-          'checkOuts': this.attendanceService.getRecentCheckOuts(since)
+          'checkIns': this.attendanceService.getCheckIns({since: since}),
+          'checkOuts': this.attendanceService.getCheckOuts({since: since})
         })
       }),
       map(updates => {

@@ -20,10 +20,14 @@ class CheckInController extends Controller
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',
-            'since' => 'date_format:U|lt:4294967295'
+            'since' => 'date_format:U|lt:4294967295',
+            'limit' => 'integer|min:1'
         ]);
 
         $response = CheckIn::query();
+
+        $response->orderBy('created_at', 'desc');
+
         if($request->has('student_id')) {
             $response = $response->where('student_id', '=', $request->student_id);
         }
@@ -31,6 +35,10 @@ class CheckInController extends Controller
         if($request->has('since')) {
             Log::debug('Get all checkins since '.Carbon::createFromTimestamp($request->since)->toDateTimeString());
             $response = $response->where('created_at', '>=', Carbon::createFromTimestamp($request->since));
+        }
+
+        if($request->has('limit')) {
+            $response = $response->limit($request->limit);
         }
 
         return $response->get();

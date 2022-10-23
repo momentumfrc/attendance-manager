@@ -27,13 +27,33 @@ export class AttendanceService {
     });
   }
 
-  getRecentCheckIns(since: Date): Observable<Array<CheckIn>> {
-    const params = (new HttpParams()).set('since', Math.floor(since.getTime() / 1000));
+  getCheckIns(options: {since?: Date, forStudentId?: number, limit?: number}): Observable<Array<CheckOut>> {
+    const params = new HttpParams();
+    if(options.since) {
+      params.set('since', Math.floor(options.since.getTime() / 1000));
+    }
+    if(options.forStudentId) {
+      params.set('student_id', options.forStudentId);
+    }
+    if(options.limit) {
+      params.set('limit', options.limit);
+    }
+
     return this.httpClient.get<Array<CheckIn>>(environment.apiRoot + '/attendance/check-in', {params});
   }
 
-  getRecentCheckOuts(since: Date): Observable<Array<CheckOut>> {
-    const params = (new HttpParams()).set('since', Math.floor(since.getTime() / 1000));
+  getCheckOuts(options: {since?: Date, forStudentId?: number, limit?: number}): Observable<Array<CheckOut>> {
+    const params = new HttpParams();
+    if(options.since) {
+      params.set('since', Math.floor(options.since.getTime() / 1000));
+    }
+    if(options.forStudentId) {
+      params.set('student_id', options.forStudentId);
+    }
+    if(options.limit) {
+      params.set('limit', options.limit);
+    }
+
     return this.httpClient.get<Array<CheckOut>>(environment.apiRoot + '/attendance/check-out', {params});
   }
 }

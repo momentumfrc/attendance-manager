@@ -19,7 +19,7 @@ export class StudentsService {
   constructor(private httpClient: HttpClient) {
   }
 
-  private students = new ReplaySubject<Array<Student>>(1)
+  private students = new ReplaySubject<Array<Student>>(1);
   private lastRefresh: Date|null = null;
 
   private hiddenStudents = new Set<number>();
