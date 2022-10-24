@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Validation\Rule;
+
 class StudentController extends Controller
 {
     public function __construct() {
@@ -68,7 +70,10 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student) {
         $request->validate([
-            'name'=>'required|unique:students,name'
+            'name'=> [
+                'required',
+                Rule::unique('students', 'name')->ignore($student)
+            ]
         ]);
 
         $student->update(['name' => $request->name]);
