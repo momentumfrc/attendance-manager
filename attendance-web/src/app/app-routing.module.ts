@@ -25,7 +25,7 @@ const routes: Routes = [
       {path: 'import', component: ImportStudentsComponent}
     ]
   },
-  { path: 'admin', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
+  { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor', 'admin'] }},
   { path: 'login', component: LoginComponent, canActivate: [MustNotBeLoggedInGuard] },
   { path: '', component: HomeComponent, canActivate: [MustBeLoggedInGuard] },

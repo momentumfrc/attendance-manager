@@ -45,8 +45,9 @@ class RolesSeeder extends Seeder
             $adminId = 'U2YL0PXB5';
         }
 
-        $adminUser = \App\Models\User::create([
+        $adminUser = \App\Models\User::firstOrCreate([
             'slack_id' => $adminId,
+        ], [
             'name' => 'Jordan Powers',
             'avatar' => ''
         ]);
