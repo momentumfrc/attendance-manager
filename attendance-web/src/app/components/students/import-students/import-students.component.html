@@ -1,6 +1,6 @@
 <ng-container *ngIf="uploading|async ; else uploadForm">
     <h1>Uploading...</h1>
-    <app-spinner></app-spinner>
+    <mat-progress-bar mode="determinate" [value]="uploadProgress|async"></mat-progress-bar>
 </ng-container>
 <ng-template #uploadForm>
     <button mat-raised-button color="primary" (click)="fileInput.click()">Choose File</button>

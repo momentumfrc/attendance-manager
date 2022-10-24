@@ -3,7 +3,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 
 import { Papa } from 'ngx-papaparse';
-import { BehaviorSubject, combineLatest, forkJoin, map, ReplaySubject, startWith, Subject, switchMap, take, throwError } from 'rxjs';
+import { BehaviorSubject, combineLatest, concat, finalize, forkJoin, from, map, merge, mergeAll, mergeMap, Observable, ReplaySubject, share, startWith, Subject, switchMap, take, tap, throwError, toArray } from 'rxjs';
+import { Student } from 'src/app/models/student.model';
 import { StudentsService } from 'src/app/services/students.service';
 
 type Validator = (info: NewStudentInfo) => boolean;
@@ -44,6 +45,7 @@ export class ImportStudentsComponent implements OnInit {
   protected validatedData = new ReplaySubject<Array<ValidatedInfo>>(1);
 
   protected uploading = new BehaviorSubject<boolean>(false);
+  protected uploadProgress = new Subject<number>();
 
   constructor(
     private papa: Papa,
@@ -80,6 +82,8 @@ export class ImportStudentsComponent implements OnInit {
       }
       this.parseError.next(null);
       this.parsedData.next(cleaned);
+
+      this.uploadProgress.subscribe(console.log);
     })
 
     combineLatest({
@@ -117,16 +121,21 @@ export class ImportStudentsComponent implements OnInit {
 
   submit() {
     this.uploading.next(true);
-    this.validatedData.pipe(
+    const studentStream = this.validatedData.pipe(
       take(1),
       map(items => items.filter(it => it.valid)),
-      switchMap(items => forkJoin(items.map(it => this.studentsService.registerNewStudent(it.info.name))))
-      ).subscribe( (students) => {
-        this.snackBar.open('Registered ' + students.length + ' new students', '', {
-          duration: 4000
-        });
-        this.studentsService.refreshStudents();
-        this.router.navigate(['/', 'students', 'list'])
-      });
+      switchMap(items => from(items).pipe(
+        // ValidatedInfo, ValidatedInfo, ...
+        mergeMap(it => this.studentsService.registerNewStudent(it.info.name)), // Student, Student, ...
+        map( (_, idx) => Math.ceil( ( (idx+1) / items.length) * 100)), // 10, 20, 30, ..., 100
+        finalize( () => {
+          this.snackBar.open('Registered ' + items.length + ' new students', '', {
+            duration: 4000
+          });
+          this.studentsService.refreshStudents();
+          this.router.navigate(['/', 'students', 'list'])
+        })
+      )), // 10, 20, 30, ..., 100
+    ).subscribe(this.uploadProgress);
   }
 }
