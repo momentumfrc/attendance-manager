@@ -1,8 +1,6 @@
 <ng-container *ngIf="{ state: state | async } as context">
 <ng-container *ngIf="context.state == stateType.LOADING_STUDENT">
-    <div id="loadingSpinner">
-        <mat-spinner></mat-spinner>
-    </div>
+    <app-spinner></app-spinner>
 </ng-container>
 <ng-container *ngIf="context.state == stateType.NO_STUDENT_FOUND">
     <h1>Student not found!</h1>

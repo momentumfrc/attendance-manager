@@ -1,26 +1,32 @@
-<button mat-raised-button color="primary" (click)="fileInput.click()">Choose File</button>
-<input hidden (change)="onFileSelected($event)" #fileInput type="file">
-<p *ngIf="(fileInput.files?.length ?? 0) > 0">{{fileInput.files![0].name}}</p>
-<br>
-
-<ng-container *ngIf="validatedData|async as data; else fileReqs">
-    <ng-container *ngIf="data.length > 0; else fileReqs">
-        <button *ngIf="data.length > 10" mat-raised-button color="primary" (click)="submit()" >Submit</button>
-        <mat-list>
-            <ng-container *ngFor="let row of data ; last as isLast">
-                <mat-list-item>{{row.info.name}} [Valid: {{row.valid}}]</mat-list-item>
-                <mat-divider *ngIf="!isLast"></mat-divider>
-            </ng-container>
-        </mat-list>
-        <button mat-raised-button color="primary" (click)="submit()" [disabled]="!isAnyInfoValid(data)">Submit</button>
-    </ng-container>
+<ng-container *ngIf="uploading|async ; else uploadForm">
+    <h1>Uploading...</h1>
+    <app-spinner></app-spinner>
 </ng-container>
+<ng-template #uploadForm>
+    <button mat-raised-button color="primary" (click)="fileInput.click()">Choose File</button>
+    <input hidden (change)="onFileSelected($event)" #fileInput type="file">
+    <p *ngIf="(fileInput.files?.length ?? 0) > 0">{{fileInput.files![0].name}}</p>
+    <br>
 
-<ng-template #fileReqs>
-    <p>Note: The input CSV must follow these requirements:</p>
-    <ol>
-        <li>The first row of the input shall consist of headers.</li>
-        <li>There shall be exactly one column with the 'Name' header.</li>
-    </ol>
-    <p *ngIf="parseError | async as error">{{error}}</p>
+    <ng-container *ngIf="validatedData|async as data; else fileReqs">
+        <ng-container *ngIf="data.length > 0; else fileReqs">
+            <button *ngIf="data.length > 10" mat-raised-button color="primary" (click)="submit()" >Submit</button>
+            <mat-list>
+                <ng-container *ngFor="let row of data ; last as isLast">
+                    <mat-list-item>{{row.info.name}} [Valid: {{row.valid}}]</mat-list-item>
+                    <mat-divider *ngIf="!isLast"></mat-divider>
+                </ng-container>
+            </mat-list>
+            <button mat-raised-button color="primary" (click)="submit()" [disabled]="!isAnyInfoValid(data)">Submit</button>
+        </ng-container>
+    </ng-container>
+
+    <ng-template #fileReqs>
+        <p>Note: The input CSV must follow these requirements:</p>
+        <ol>
+            <li>The first row of the input shall consist of headers.</li>
+            <li>There shall be exactly one column with the 'Name' header.</li>
+        </ol>
+        <p *ngIf="parseError | async as error">{{error}}</p>
+    </ng-template>
 </ng-template>

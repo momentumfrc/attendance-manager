@@ -29,7 +29,5 @@
     <div *ngIf="filteredStudents?.length == 0" id="noStudentsWarn">No matching students found!</div>
 </div>
 <ng-template #loading>
-    <div id="loadingSpinner">
-        <mat-spinner></mat-spinner>
-    </div>
+    <app-spinner></app-spinner>
 </ng-template>

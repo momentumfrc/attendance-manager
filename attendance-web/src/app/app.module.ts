@@ -37,6 +37,7 @@ import { ImportStudentsComponent } from './components/students/import-students/i
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
+import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
 
 
 @NgModule({
@@ -53,7 +54,8 @@ import { UpdateOrCreateStudentComponent } from './components/students/update-or-
     ListStudentsComponent,
     ImportStudentsComponent,
     SearchBoxComponent,
-    ShowStudentComponent
+    ShowStudentComponent,
+    SpinnerComponent
   ],
   imports: [
     BrowserModule,

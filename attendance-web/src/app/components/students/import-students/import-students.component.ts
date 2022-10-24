@@ -43,6 +43,8 @@ export class ImportStudentsComponent implements OnInit {
   protected parseError = new BehaviorSubject<string|null>(null);
   protected validatedData = new ReplaySubject<Array<ValidatedInfo>>(1);
 
+  protected uploading = new BehaviorSubject<boolean>(false);
+
   constructor(
     private papa: Papa,
     private studentsService: StudentsService,
@@ -114,6 +116,7 @@ export class ImportStudentsComponent implements OnInit {
   }
 
   submit() {
+    this.uploading.next(true);
     this.validatedData.pipe(
       take(1),
       map(items => items.filter(it => it.valid)),
