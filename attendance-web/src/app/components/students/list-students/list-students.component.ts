@@ -41,6 +41,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
         value = value.filter(student => student.name.toLocaleLowerCase().includes(search));
       }
 
+      value = value.sort((a, b) => a.name.localeCompare(b.name));
+
       return value;
     })).subscribe(this.filteredStudents)
   }
