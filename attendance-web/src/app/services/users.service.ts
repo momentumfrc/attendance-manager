@@ -7,7 +7,7 @@ import { User } from '../models/user.model';
 @Injectable({
   providedIn: 'root'
 })
-export class AdminService {
+export class UsersService {
 
   private roles = new AsyncSubject<Array<string>>();
 
@@ -17,6 +17,10 @@ export class AdminService {
 
   public getAllUsers() : Observable<Array<User>> {
     return this.httpClient.get<Array<User>>(environment.apiRoot + '/users').pipe(share());
+  }
+
+  public getUser(userId: number): Observable<User> {
+    return this.httpClient.get<User>(environment.apiRoot + '/users/' + userId);
   }
 
   public getAllRoles() : Observable<Array<string>> {

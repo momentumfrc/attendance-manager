@@ -3,7 +3,7 @@ import { MatSelectionList } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject } from 'rxjs';
 import { User } from 'src/app/models/user.model';
-import { AdminService } from 'src/app/services/admin.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-user-role-selector',
@@ -14,9 +14,9 @@ export class UserComponent implements OnInit {
   @Input() user!: User
   @ViewChild('selectedRoles') selectedRoles!: MatSelectionList;
 
-  protected roles = this.adminService.getAllRoles();
+  protected roles = this.usersService.getAllRoles();
 
-  constructor(private adminService: AdminService, private snackbar: MatSnackBar) { }
+  constructor(private usersService: UsersService, private snackbar: MatSnackBar) { }
 
   ngOnInit(): void {
   }
@@ -42,7 +42,7 @@ export class UserComponent implements OnInit {
       return;
     }
 
-    this.adminService.syncUserRoles(this.user.id, selectedRoles).subscribe((updatedUser) => {
+    this.usersService.syncUserRoles(this.user.id, selectedRoles).subscribe((updatedUser) => {
       this.user = updatedUser;
       let selectedOptions = this.selectedRoles.options.filter(option => this.user.role_names.includes(option.value));
       this.selectedRoles.selectedOptions.setSelection(...selectedOptions);

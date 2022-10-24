@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, Observable, startWith } from 'rxjs';
 import { User } from 'src/app/models/user.model';
-import { AdminService } from 'src/app/services/admin.service';
+import { UsersService } from 'src/app/services/users.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { SearchBoxComponent } from '../reuse/search-box/search-box.component';
 
@@ -17,12 +17,12 @@ export class ElevateUsersComponent implements AfterViewInit {
 
   protected users = new BehaviorSubject<Array<User>>([]);
 
-  constructor(private adminService : AdminService, private authService: AuthService) { }
+  constructor(private usersService : UsersService, private authService: AuthService) { }
 
   ngAfterViewInit(): void {
     console.log(this.searchBox)
     combineLatest([
-      this.adminService.getAllUsers(),
+      this.usersService.getAllUsers(),
       this.authService.getUser(),
       this.searchBox.searchUpdatedEvent.pipe(startWith(""))
     ]).pipe(map((inputs) => {

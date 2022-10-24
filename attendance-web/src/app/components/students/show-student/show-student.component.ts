@@ -14,7 +14,7 @@ export class ShowStudentComponent implements OnInit {
 
   constructor(
     studentService: StudentsService,
-    private route: ActivatedRoute
+    route: ActivatedRoute
   ) {
     let studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     if(studentId) {
