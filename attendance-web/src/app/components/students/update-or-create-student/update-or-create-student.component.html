@@ -1,9 +1,15 @@
-<ng-container *ngIf="editStudent != null && (editStudent|async) == null">
+<ng-container *ngIf="{ state: state | async } as context">
+<ng-container *ngIf="context.state == stateType.LOADING_STUDENT">
+    <div id="loadingSpinner">
+        <mat-spinner></mat-spinner>
+    </div>
+</ng-container>
+<ng-container *ngIf="context.state == stateType.NO_STUDENT_FOUND">
     <h1>Student not found!</h1>
 </ng-container>
-<ng-container *ngIf="editStudent == null || (editStudent|async) != null">
-    <h1 *ngIf="editStudent == null">Register student</h1>
-    <h1 *ngIf="editStudent != null">Edit Student</h1>
+<ng-container *ngIf="(context.state == stateType.NO_STUDENT_PROVIDED) || (context.state == stateType.LOADED)">
+    <h1 *ngIf="context.state == stateType.NO_STUDENT_PROVIDED">Register student</h1>
+    <h1 *ngIf="context.state == stateType.LOADED">Edit Student</h1>
 
     <mat-card id="registerCard">
         <form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm">
@@ -24,4 +30,4 @@
         <button *ngIf="editStudent|async as student" mat-raised-button color="warn" (click)="doDelete(student)">Delete</button>
         </mat-card>
 </ng-container>
-
+</ng-container>

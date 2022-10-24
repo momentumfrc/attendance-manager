@@ -1,6 +1,6 @@
 <app-search-box></app-search-box>
-<mat-list>
-    <ng-container *ngFor="let user of users | async ; last as isLast">
+<mat-list *ngIf="users | async as users; else loading">
+    <ng-container *ngFor="let user of users; last as isLast">
         <app-user-role-selector [user]="user"></app-user-role-selector>
         <mat-divider *ngIf="!isLast"></mat-divider>
     </ng-container>
@@ -8,3 +8,8 @@
         No matching users found!
     </mat-list-item>
 </mat-list>
+<ng-template #loading>
+    <div id="loadingSpinner">
+        <mat-spinner></mat-spinner>
+    </div>
+</ng-template>

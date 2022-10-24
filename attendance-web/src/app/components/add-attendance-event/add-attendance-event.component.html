@@ -13,8 +13,8 @@
         </mat-menu>
     </div>
 </div>
-<div id="studentResults">
-    <ng-container *ngFor="let student of filteredStudents | async ; last as isLast">
+<div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
+    <ng-container *ngFor="let student of filteredStudents; last as isLast">
     <div class="studentRow">
         <div class="studentName">{{ student.name }}</div>
         <div class="studentActions">
@@ -26,5 +26,10 @@
     </div>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
+    <div *ngIf="filteredStudents?.length == 0" id="noStudentsWarn">No matching students found!</div>
 </div>
-<div *ngIf="(filteredStudents | async)?.length == 0" id="noStudentsWarn">No matching students found!</div>
+<ng-template #loading>
+    <div id="loadingSpinner">
+        <mat-spinner></mat-spinner>
+    </div>
+</ng-template>

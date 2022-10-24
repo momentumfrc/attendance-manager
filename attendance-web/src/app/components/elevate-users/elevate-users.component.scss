@@ -4,3 +4,11 @@
     font-size: 1.4em;
     font-weight: 300;
 }
+
+#loadingSpinner {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+
+    padding-top: 20px;
+}

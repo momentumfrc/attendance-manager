@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, map, Observable, startWith } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, startWith } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { UsersService } from 'src/app/services/users.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,7 +15,7 @@ export class ElevateUsersComponent implements AfterViewInit {
 
   @ViewChild(SearchBoxComponent) searchBox!: SearchBoxComponent
 
-  protected users = new BehaviorSubject<Array<User>>([]);
+  protected users = new ReplaySubject<Array<User>>(1);
 
   constructor(private usersService : UsersService, private authService: AuthService) { }
 

@@ -10,7 +10,7 @@ import { StudentsService } from 'src/app/services/students.service';
 })
 export class ListStudentsComponent implements OnInit, OnDestroy {
   studentSearch = new Subject<string>();
-  allStudents = new BehaviorSubject<Array<Student>>([]);
+  allStudents = new ReplaySubject<Array<Student>>(1);
 
   filteredStudents = new ReplaySubject<Array<Student>>(1);
 

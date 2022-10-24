@@ -3,8 +3,15 @@ import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirectiv
 import { ActivatedRoute, Router, UrlSegment } from '@angular/router';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
-import { AsyncSubject, combineLatest, forkJoin, map, Observable, of, ReplaySubject, Subscription, take } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, combineLatest, forkJoin, map, Observable, of, ReplaySubject, Subscription, take, tap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+enum ComponentState {
+  NO_STUDENT_PROVIDED,
+  LOADING_STUDENT,
+  NO_STUDENT_FOUND,
+  LOADED
+}
 
 @Component({
   selector: 'app-update-or-create-student',
@@ -12,10 +19,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./update-or-create-student.component.scss']
 })
 export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
-
+  protected readonly stateType = ComponentState
+  protected state: BehaviorSubject<ComponentState>
   private students : Observable<Array<Student>>
 
-  editStudent : AsyncSubject<Student|null> | null
+  editStudent = new ReplaySubject<Student|null>(1)
 
   private studentsSub!: Subscription
 
@@ -28,17 +36,26 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
       this.students = this.studentsService.getAllStudents();
       if(route.snapshot.url[0].path == 'edit' && id != null) {
         let parsedId = parseInt(id);
-        this.editStudent = new AsyncSubject<Student|null>();
         this.students.pipe(take(1), map( (students: Array<Student>) => {
           return students.find(it => it.id == parsedId) ?? null;
         })).subscribe(this.editStudent);
+
+        this.state = new BehaviorSubject<ComponentState>(ComponentState.LOADING_STUDENT);
+        this.editStudent.pipe(map(student => {
+          if(student != null) {
+            return ComponentState.LOADED;
+          } else {
+            return ComponentState.NO_STUDENT_FOUND;
+          }
+        })).subscribe((state) => this.state.next(state));
       } else {
-        this.editStudent = null;
+        this.state = new BehaviorSubject<ComponentState>(ComponentState.NO_STUDENT_PROVIDED);
+        this.editStudent.next(null);
       }
     }
 
   ngOnInit(): void {
-    if(this.editStudent != null) {
+    if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
       this.editStudent.subscribe((student) => {
         if(student != null) {
           this.mainForm.controls.name.setValue(student.name);
@@ -52,13 +69,10 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
   private nameTakenValidator : AsyncValidatorFn = (control) => {
     const name = (control.value ?? "").toLocaleLowerCase();
-    let editStudent: Observable<Student|null> | null = this.editStudent;
-    if(editStudent == null) {
-      editStudent = of(null);
-    }
+    let editStudent: Observable<Student|null> = this.editStudent;
     return forkJoin([
       this.students.pipe(take(1)),
-      editStudent
+      editStudent.pipe(take(1))
     ]).pipe(
       map((values: [Array<Student>, Student|null]) => {
         const students = values[0];
@@ -85,7 +99,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   onSubmit(formData: any, formDirective: FormGroupDirective): void {
     this.mainForm.disable();
     const studentName = this.mainForm.value.name!;
-    if(this.editStudent != null) {
+    if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
       // edit existing user
       this.editStudent.subscribe(student => {
         if(student == null) {

@@ -1,8 +1,15 @@
 <ng-container *ngIf="student|async as student; else notFound">
-    <h1>{{student.name}}</h1>
+    <h1>{{ student.name }}</h1>
     <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
     <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
 </ng-container>
 <ng-template #notFound>
-    <h1>Student not found!</h1>
+    <div *ngIf="invalidStudent|async; else loading">
+        <h1>Student not found!</h1>
+    </div>
+    <ng-template #loading>
+        <div id="loadingSpinner">
+            <mat-spinner></mat-spinner>
+        </div>
+    </ng-template>
 </ng-template>

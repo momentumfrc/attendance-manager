@@ -76,10 +76,6 @@ app-search-box {
 }
 
 #noStudentsWarn {
-    font-size: 1.4em;
-    line-height: 1.4;
-    font-weight: 300;
-
     padding: 0px 16px;
 }
 
@@ -103,4 +99,12 @@ app-search-box {
         margin-top: 30px;
         margin-bottom: 30px;
     }
+}
+
+#loadingSpinner {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+
+    padding-top: 20px;
 }

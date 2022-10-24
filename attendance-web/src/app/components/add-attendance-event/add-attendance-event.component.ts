@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, forkJoin, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -15,7 +15,7 @@ import { AttendanceEventType } from 'src/app/models/attendance-event.model';
   styleUrls: ['./add-attendance-event.component.scss']
 })
 export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDestroy {
-  allStudents = new BehaviorSubject<Array<Student>>([]);
+  allStudents = new ReplaySubject<Array<Student>>(1);
 
   filteredStudents = new ReplaySubject<Array<Student>>(1);
   searchValue = new Subject<string>();
@@ -34,6 +34,9 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit(): void {
     // Get students from database
+    // I can't directly just .subscribe(this.allStudents) because that will cause this.allStudents
+    // to complete when the request finishes, but I want allStudents to be long-lived so it can
+    // respond to updates
     this.studentsSub = this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
 
     // Set up polling for new check-ins/check-outs
@@ -41,13 +44,16 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
       switchMap(() => {
         const since = new Date();
         since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
-        return this.attendanceService.getEvents({since: since});
+        return forkJoin({
+          updates: this.attendanceService.getEvents({since: since}),
+          currentValue: this.allStudents.pipe(take(1))
+        });
       }),
-      map(update => {
-        update.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
-        const checkIns = update.filter(it => it.type == AttendanceEventType.CHECK_IN);
-        const checkOuts = update.filter(it => it.type == AttendanceEventType.CHECK_OUT);
-        return this.allStudents.getValue().map(student => {
+      map(({updates, currentValue}) => {
+        updates.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+        const checkIns = updates.filter(it => it.type == AttendanceEventType.CHECK_IN);
+        const checkOuts = updates.filter(it => it.type == AttendanceEventType.CHECK_OUT);
+        return currentValue.map(student => {
           let newStudent : Student = {
             id: student.id,
             name: student.name,
@@ -116,8 +122,10 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
       [AttendanceAction.CheckOut]: AttendanceEventType.CHECK_OUT
     }[action];
 
-    this.attendanceService.registerEvent(student.id, eventType).pipe(map(response => {
-      let cachedStudents = structuredClone(this.allStudents.getValue());
+    forkJoin({
+      response: this.attendanceService.registerEvent(student.id, eventType),
+      cachedStudents: this.allStudents.pipe(take(1))
+    }).pipe(map(({response, cachedStudents}) => {
       let modIdx = cachedStudents.findIndex(student => student.id == response.student_id);
       switch(response.type) {
         case AttendanceEventType.CHECK_IN:
