@@ -34,7 +34,10 @@
             "scripts": [],
             "stylePreprocessorOptions": {
               "includePaths": ["src/style"]
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "papaparse"
+            ]
           },
           "configurations": {
             "production": {

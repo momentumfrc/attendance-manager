@@ -17,6 +17,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -71,7 +72,8 @@ import { UpdateOrCreateStudentComponent } from './components/students/update-or-
     MatCardModule,
     MatSnackBarModule,
     MatRadioModule,
-    MatTabsModule
+    MatTabsModule,
+    MatCheckboxModule
   ],
   providers: [
     httpInterceptorProviders
