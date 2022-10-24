@@ -24,8 +24,7 @@ export class AdminService {
   }
 
   public syncUserRoles(userId: number, roles: Array<string>) : Observable<User> {
-    return this.httpClient.put<User>(environment.apiRoot + '/users/roles', {
-      user_id: userId,
+    return this.httpClient.put<User>(environment.apiRoot + '/users/' + userId, {
       roles: roles
     });
   }

@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AttendanceEventController;
-use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\UserController;
+
+use Spatie\Permission\Models\Role;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,9 +30,13 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::middleware('can:list users')->get('users', [UserRoleController::class, 'listUsers']);
-    Route::middleware('can:list roles')->get('roles', [UserRoleController::class, 'listRoles']);
-    Route::middleware('can:elevate users')->put('users/roles', [UserRoleController::class, 'updateRoles']);
+    Route::apiResource('users', UserController::class)->only([
+        'index', 'show', 'update'
+    ]);
+
+    Route::middleware('can:list roles')->get('roles', function() {
+        return Role::all()->pluck('name');
+    });
 });
 
 
