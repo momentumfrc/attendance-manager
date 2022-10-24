@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name')->unique();
+            $table->foreignId('registered_by')->constrained('users')->onDelete('restrict');
         });
     }
 

@@ -51,6 +51,7 @@ export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDes
           let newStudent : Student = {
             id: student.id,
             name: student.name,
+            registered_by: student.registered_by,
             created_at: student.created_at,
             updated_at: student.updated_at,
             last_check_in: checkIns.find(item => item.student_id == student.id) ?? student.last_check_in,

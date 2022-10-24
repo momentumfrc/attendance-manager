@@ -19,7 +19,8 @@ class StudentFactory extends Factory
         $faker = \Faker\Factory::create();
 
         return [
-            'name' => $faker->name()
+            'name' => $faker->name(),
+            'registered_by' => 1
         ];
     }
 }

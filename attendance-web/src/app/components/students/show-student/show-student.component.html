@@ -1,5 +1,6 @@
 <ng-container *ngIf="student|async as student; else notFound">
     <h1>{{student.name}}</h1>
+    <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
     <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
 </ng-container>
 <ng-template #notFound>

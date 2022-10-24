@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Auth;
+
 class StudentController extends Controller
 {
     public function __construct() {
@@ -39,6 +41,7 @@ class StudentController extends Controller
         $student = new Student;
 
         $student->name = $request->name;
+        $student->registered_by = Auth::id();
 
         $student->save();
 
