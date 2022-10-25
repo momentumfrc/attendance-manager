@@ -11,7 +11,20 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    private function do_login(User $user) {
+        Auth::guard('web')->login($user, $remember = true);
+
+        $subdir = config('app.subdir', '/');
+
+        return redirect($subdir);
+    }
+
     public function redirect() {
+        if(config('app.skip_auth')) {
+            $user = User::first();
+            return $this->do_login($user);
+
+        }
         return Socialite::driver('slack')->redirect();
     }
 
@@ -25,11 +38,7 @@ class AuthController extends Controller
             'avatar' => $slackuser->avatar
         ]);
 
-        Auth::guard('web')->login($dbuser, $remember = true);
-
-        $subdir = config('app.subdir', '/');
-
-        return redirect($subdir);
+        return $this->do_login($dbuser);
     }
 
     public function logout(Request $request) {

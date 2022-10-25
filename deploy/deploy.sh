@@ -5,6 +5,19 @@ set -ex
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
 
+pushd ..
+for patch in deploy/patches/*.patch ; do
+    patch -p1 -R < ${patch}
+done
+popd
+function finish {
+    cd ${SCRIPT_DIR}/..
+    for patch in deploy/patches/*.patch ; do
+        patch -p1 < ${patch}
+    done
+}
+trap finish EXIT
+
 rm -rf attendance
 mkdir attendance
 

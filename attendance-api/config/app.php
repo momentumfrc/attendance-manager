@@ -124,6 +124,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'skip_auth' => env('APP_SKIP_AUTH', false),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

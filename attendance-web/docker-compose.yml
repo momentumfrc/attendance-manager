@@ -5,7 +5,7 @@ services:
             context: ./.devcontainer
             dockerfile: Dockerfile
         environment:
-            PUBLIC_HOST: attendance.powers.jordanpowers.link
+            - PUBLIC_HOST
         working_dir: /var/www/html
         user: node
         command: sh -c "npm install && ng serve --host 0.0.0.0 --public-host $${PUBLIC_HOST}"

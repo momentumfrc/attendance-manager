@@ -1,0 +1,38 @@
+diff --git a/attendance-api/app/Http/Controllers/AuthController.php b/attendance-api/app/Http/Controllers/AuthController.php
+index ecc30da..79b9b48 100644
+--- a/attendance-api/app/Http/Controllers/AuthController.php
++++ b/attendance-api/app/Http/Controllers/AuthController.php
+@@ -11,7 +11,20 @@
+ 
+ class AuthController extends Controller
+ {
++    private function do_login(User $user) {
++        Auth::guard('web')->login($user, $remember = true);
++
++        $subdir = config('app.subdir', '/');
++
++        return redirect($subdir);
++    }
++
+     public function redirect() {
++        if(config('app.skip_auth')) {
++            $user = User::first();
++            return $this->do_login($user);
++
++        }
+         return Socialite::driver('slack')->redirect();
+     }
+ 
+@@ -25,11 +38,7 @@ public function callback() {
+             'avatar' => $slackuser->avatar
+         ]);
+ 
+-        Auth::guard('web')->login($dbuser, $remember = true);
+-
+-        $subdir = config('app.subdir', '/');
+-
+-        return redirect($subdir);
++        return $this->do_login($dbuser);
+     }
+ 
+     public function logout(Request $request) {
