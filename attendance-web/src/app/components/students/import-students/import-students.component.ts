@@ -47,6 +47,8 @@ export class ImportStudentsComponent implements OnInit {
   protected uploading = new BehaviorSubject<boolean>(false);
   protected uploadProgress = new Subject<number>();
 
+  columnsToDisplay = ['name', 'isValid'];
+
   constructor(
     private papa: Papa,
     private studentsService: StudentsService,

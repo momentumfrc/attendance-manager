@@ -6,9 +6,6 @@
     <h1>Student not found!</h1>
 </ng-container>
 <ng-container *ngIf="(context.state == stateType.NO_STUDENT_PROVIDED) || (context.state == stateType.LOADED)">
-    <h1 *ngIf="context.state == stateType.NO_STUDENT_PROVIDED">Register student</h1>
-    <h1 *ngIf="context.state == stateType.LOADED">Edit Student</h1>
-
     <mat-card id="registerCard">
         <form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm">
             <div class="formRow">
@@ -21,11 +18,11 @@
                     <mat-error *ngIf="mainForm.controls['name'].errors?.['nameTaken']">A student with that name already exists</mat-error>
                 </mat-form-field>
             </div>
-            <div id="submitRow">
-                <button mat-raised-button color="primary" type="submit" [disabled]="!mainForm.valid" id="submitButton">Submit</button>
+            <div id="actionRow">
+                <button *ngIf="editStudent|async as student" mat-raised-button color="warn" (click)="doDelete(student)">Delete</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="!mainForm.valid" id="submitButton">Save</button>
             </div>
         </form>
-        <button *ngIf="editStudent|async as student" mat-raised-button color="warn" (click)="doDelete(student)">Delete</button>
         </mat-card>
 </ng-container>
 </ng-container>

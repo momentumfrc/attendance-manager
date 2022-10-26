@@ -1,20 +1,5 @@
 @use 'media';
 
-h1 {
-    @include media.desktop {
-        font-size: 2.5em;
-    }
-    @include media.mobile {
-        margin-top: 6px;
-        font-size: 2em;
-    }
-    line-height: normal;
-
-    margin: 0px 20px;
-
-
-
-}
 
 #registerCard {
     padding-top: 24px;
@@ -41,13 +26,22 @@ h1 {
     height: 40px;
 }
 
-#submitRow {
+#actionRow {
     display: flex;
-    justify-content: flex-end;
     width: 100%;
+
+    @include media.desktop {
+        gap: 20px;
+        justify-content: flex-end;
+        flex-direction: row;
+    }
+
+    @include media.mobile {
+        flex-direction: column;
+    }
 }
 
-#submitRow > button {
+#actionRow > button {
     font-size: 1em;
     font-weight: 400;
     padding: 5px 30px;

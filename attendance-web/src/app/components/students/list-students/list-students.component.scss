@@ -1,0 +1,14 @@
+@use 'media';
+
+app-search-box {
+    display: block;
+    margin-top: 20px;
+}
+
+.student-detail-link {
+    color: inherit;
+}
+
+.student-list-item {
+    @include media.text;
+}

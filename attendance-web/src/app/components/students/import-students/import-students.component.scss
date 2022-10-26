@@ -1,0 +1,119 @@
+@use 'media';
+
+$valid-indicator-width: 60px;
+
+#fileReqs {
+    @include media.desktop {
+        font-size: 1.4em;
+        line-height: 1.4;
+        font-weight: 200;
+    }
+
+    @include media.mobile {
+        font-size: 1.6em;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+
+    margin-top: 20px;
+}
+
+#validationError {
+    color: red;
+    font-weight: 500;
+}
+
+
+#mainPage {
+    margin-top: 20px;
+}
+
+#uploadElement > * {
+    display: inline-block;
+}
+
+#uploadElement > input {
+    display: none;
+}
+
+#uploadElement > p {
+    margin-left: 10px;
+    font-size: 1.4em;
+    font-weight: 400;
+}
+
+div.import-item-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    @include media.desktop {
+        font-size: 1.4em;
+        line-height: 1.4;
+        font-weight: 200;
+    }
+
+    @include media.mobile {
+        font-size: 1.6em;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+}
+
+#previewData {
+    margin-top: 20px;
+}
+
+#header-container {
+    width: 100;
+    display: flex;
+    justify-content: space-between;
+
+    padding: 0px 16px;
+
+}
+
+div.col-header {
+    font-weight: 400;
+
+    @include media.desktop {
+        font-size: 1.6em;
+        line-height: 1.6;
+    }
+
+    @include media.mobile {
+        font-size: 1.8em;
+        line-height: 1.8;
+    }
+}
+
+.col-header-valid {
+    width: $valid-indicator-width;
+    text-align: center;
+}
+
+div.import-valid-indicator {
+    width: $valid-indicator-width;
+    height: 40px;
+
+    text-align: center;
+}
+
+div.import-is-valid {
+    color: green;
+}
+
+div.import-is-invalid {
+    color: red;
+}
+
+div.import-valid-indicator > mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 20px;
+}

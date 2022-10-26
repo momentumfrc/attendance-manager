@@ -11,3 +11,17 @@ $mobile-width: 600px;
         @content;
     }
 }
+
+@mixin text {
+    @include desktop {
+        font-size: 1.4em;
+        line-height: 1.4;
+        font-weight: 200;
+    }
+
+    @include mobile {
+        font-size: 1.6em;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+}

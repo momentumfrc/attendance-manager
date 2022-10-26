@@ -6,20 +6,25 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./students.component.scss']
 })
 export class StudentsComponent implements OnInit {
-  readonly tabs = [
+  tabs = [
     {
       path: './list',
       name: 'List Students',
     }, {
       path: './add',
       name: 'Add Student'
-    }, {
-      path: './import',
-      name: 'Import Students'
     }
   ]
 
   constructor() {
+    // FIXME: This should always be the same value as the $mobile-width scss variable. It would be
+    //        best if we somehow imported the scss variable instead of hardcoding the magic number.
+    if(window.innerWidth > 600) {
+      this.tabs.push( {
+        path: './import',
+        name: 'Import Students'
+      })
+    }
   }
 
   ngOnInit(): void {
