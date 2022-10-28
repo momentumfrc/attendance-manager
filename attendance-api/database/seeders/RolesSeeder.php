@@ -27,7 +27,7 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'list roles']);
         Permission::create(['name' => 'elevate users']);
 
-        $role = Role::create(['name' => 'mentor'])
+        Role::create(['name' => 'mentor'])
             ->givePermissionTo([
                 'add students',
                 'modify students',
@@ -38,6 +38,13 @@ class RolesSeeder extends Seeder
                 'elevate users'
             ]);
 
+        Role::create(['name' => 'student-lead'])
+            ->givePermissionTo([
+                'add students',
+                'modify students',
+                'remove students',
+                'take attendance'
+            ]);
 
         if(config('app.debug', false)) {
             $adminId = 'U2Q3A63J9';

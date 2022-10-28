@@ -15,7 +15,7 @@ import { ShowStudentComponent } from './components/students/show-student/show-st
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
     canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor', 'admin']},
+    data: { roleOptions: ['mentor', 'student-lead']},
     children: [
       {path: '', redirectTo: 'list', pathMatch: 'full'},
       {path: 'detail/:studentId', component: ShowStudentComponent},
@@ -26,7 +26,7 @@ const routes: Routes = [
     ]
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor', 'admin'] }},
+    data: { roleOptions: ['mentor'] }},
   { path: 'login', component: LoginComponent, canActivate: [MustNotBeLoggedInGuard] },
   { path: '', component: HomeComponent, canActivate: [MustBeLoggedInGuard] },
   { path: '**', redirectTo: '/'}
