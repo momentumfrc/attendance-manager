@@ -27,8 +27,10 @@ export class ElevateUsersComponent implements AfterViewInit {
     ]).pipe(map(([users, search]) => {
       let retval = users;
 
-      if(search != "") {
-        retval = retval.filter(user => user.name.toLocaleLowerCase().includes(search));
+      const lcSearch = search.toLocaleLowerCase();
+
+      if(lcSearch != "") {
+        retval = retval.filter(user => user.name.toLocaleLowerCase().includes(lcSearch));
       };
 
       retval = retval.sort();
