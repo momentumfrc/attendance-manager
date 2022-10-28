@@ -1,3 +1,22 @@
+commit b0bb3fa6f2d106ab825c640ac7b9ce4e37e4f0ea
+Author: Jordan Powers <jordanpowers1227@gmail.com>
+Date:   Mon Oct 24 21:23:41 2022 -0700
+
+    [*] Add option to ignore auth in dev environment
+
+diff --git a/attendance-api/.env.example b/attendance-api/.env.example
+index 3501a7b..33dc421 100644
+--- a/attendance-api/.env.example
++++ b/attendance-api/.env.example
+@@ -5,6 +5,8 @@ APP_DEBUG=true
+ APP_URL=http://localhost
+ APP_SUBDIR=
+ 
++APP_SKIP_AUTH=true
++
+ LOG_CHANNEL=stack
+ LOG_DEPRECATIONS_CHANNEL=null
+ LOG_LEVEL=debug
 diff --git a/attendance-api/app/Http/Controllers/AuthController.php b/attendance-api/app/Http/Controllers/AuthController.php
 index ecc30da..79b9b48 100644
 --- a/attendance-api/app/Http/Controllers/AuthController.php
@@ -36,3 +55,16 @@ index ecc30da..79b9b48 100644
      }
  
      public function logout(Request $request) {
+diff --git a/attendance-api/config/app.php b/attendance-api/config/app.php
+index 12e51c2..70681ca 100644
+--- a/attendance-api/config/app.php
++++ b/attendance-api/config/app.php
+@@ -124,6 +124,8 @@
+ 
+     'cipher' => 'AES-256-CBC',
+ 
++    'skip_auth' => env('APP_SKIP_AUTH', false),
++
+     /*
+     |--------------------------------------------------------------------------
+     | Autoloaded Service Providers
