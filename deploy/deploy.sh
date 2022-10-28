@@ -42,7 +42,7 @@ sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
 popd
 
 pushd ../attendance-web
-rm -r dist/attendance-web
+rm -rf dist/attendance-web
 
 docker run --rm \
     --entrypoint "sh" \
