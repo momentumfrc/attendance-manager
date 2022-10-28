@@ -1,11 +1,16 @@
 <mat-list-item>
 <div class="userItem">
     <div class="userName">{{user.name}}</div>
-    <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">Roles</button>
+    <ng-container *ngIf="(loggedInUser | async)?.id != user.id; else selfButton">
+        <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">Role</button>
+    </ng-container>
+    <ng-template #selfButton>
+        <button mat-stroked-button matTooltip="Cannot modify self" disabled>Role</button>
+    </ng-template>
     <mat-menu #roleMenu="matMenu" (closed)="menuClosed()">
-        <mat-selection-list (click)="$event.stopPropagation()" #selectedRoles>
-            <mat-list-option *ngFor="let role of roles | async" selected="{{shouldSelectRole(role)}}" value="{{role}}">{{role}}</mat-list-option>
-        </mat-selection-list>
+        <mat-radio-group (click)="$event.stopPropagation()" [formControl]="selectedRole" class="roleGroup">
+            <mat-radio-button *ngFor="let role of roles | async" [value]="role" class="roleOption">{{role}}</mat-radio-button>
+        </mat-radio-group>
     </mat-menu>
 </div>
 </mat-list-item>

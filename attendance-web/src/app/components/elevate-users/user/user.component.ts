@@ -1,8 +1,10 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { MatSelectionList } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
 import { User } from 'src/app/models/user.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { UsersService } from 'src/app/services/users.service';
 
 @Component({
@@ -12,42 +14,54 @@ import { UsersService } from 'src/app/services/users.service';
 })
 export class UserComponent implements OnInit {
   @Input() user!: User
-  @ViewChild('selectedRoles') selectedRoles!: MatSelectionList;
 
-  protected roles = this.usersService.getAllRoles();
+  protected selectedRole! : FormControl<string|null>
 
-  constructor(private usersService: UsersService, private snackbar: MatSnackBar) { }
+  protected roles = this.usersService.getAllRoles().pipe(map(roles => roles.concat(['none'])));
+  protected loggedInUser = this.authService.getUser();
 
-  ngOnInit(): void {
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+    private snackbar: MatSnackBar
+  ) { }
+
+  getRoleFromRoles(roles: Array<string>): string {
+    if(roles.length == 0) {
+      return 'none';
+    } else {
+      return roles[0];
+    }
   }
 
-  shouldSelectRole(role: string): boolean {
-    return this.user.role_names.includes(role);
+  ngOnInit(): void {
+    this.selectedRole = new FormControl(this.getRoleFromRoles(this.user.role_names));
   }
 
   menuClosed(): void {
-    let selectedRoles = this.selectedRoles.selectedOptions.selected.map(it => it.value).sort();
-    let currentRoles = this.user.role_names.sort();
-
-    var role_did_change = selectedRoles.length != currentRoles.length;
-    if(!role_did_change) {
-      for(var i = 0; i < selectedRoles.length; i++) {
-        if(selectedRoles[i] != currentRoles[i]) {
-          role_did_change = true;
-          break;
-        }
-      }
+    let selectedRole = this.selectedRole.value;
+    if(selectedRole == null) {
+      return;
     }
+    let role_did_change =
+      this.user.role_names.length > 1
+      || (this.user.role_names.length == 0 && selectedRole != 'none')
+      || (this.user.role_names.length > 0 && this.user.role_names[0] != selectedRole);
+
     if(!role_did_change) {
       return;
     }
 
-    this.usersService.syncUserRoles(this.user.id, selectedRoles).subscribe((updatedUser) => {
-      this.user = updatedUser;
-      let selectedOptions = this.selectedRoles.options.filter(option => this.user.role_names.includes(option.value));
-      this.selectedRoles.selectedOptions.setSelection(...selectedOptions);
+    let rolesArr: Array<string> = [];
+    if(selectedRole != 'none') {
+      rolesArr = [selectedRole];
+    }
 
-      this.snackbar.open("Roles updated for " + updatedUser.name, '', {
+    this.usersService.syncUserRoles(this.user.id, rolesArr).subscribe((updatedUser) => {
+      this.user = updatedUser;
+      const role = this.getRoleFromRoles(updatedUser.role_names);
+      this.selectedRole.setValue(role);
+      this.snackbar.open("Updated role for " + updatedUser.name + " to " + role, '', {
         duration: 4000
       });
     });

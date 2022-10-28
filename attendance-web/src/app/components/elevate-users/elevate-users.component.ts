@@ -23,14 +23,9 @@ export class ElevateUsersComponent implements AfterViewInit {
     console.log(this.searchBox)
     combineLatest([
       this.usersService.getAllUsers(),
-      this.authService.getUser(),
       this.searchBox.searchUpdatedEvent.pipe(startWith(""))
-    ]).pipe(map((inputs) => {
-      const users = inputs[0] as Array<User>
-      const loggedInUser = inputs[1] as User;
-      const search = (inputs[2] as string).toLocaleLowerCase();
-
-      let retval = users.filter(user => user.id != loggedInUser.id);
+    ]).pipe(map(([users, search]) => {
+      let retval = users;
 
       if(search != "") {
         retval = retval.filter(user => user.name.toLocaleLowerCase().includes(search));
