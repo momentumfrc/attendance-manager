@@ -8,7 +8,7 @@ services:
             - PUBLIC_HOST
         working_dir: /var/www/html
         user: node
-        command: sh -c "npm install && ng serve --host 0.0.0.0 --public-host $${PUBLIC_HOST}"
+        command: sh -c "npm install && ng serve --host 0.0.0.0 --public-host $${PUBLIC_HOST:-localhost}"
         expose:
             - '4200'
         volumes:
