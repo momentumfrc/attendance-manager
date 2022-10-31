@@ -11,6 +11,8 @@ import { StudentsComponent } from './components/students/students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
+import { ReportsComponent } from './components/reports/reports.component';
+import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -23,6 +25,14 @@ const routes: Routes = [
       {path: 'list', component: ListStudentsComponent},
       {path: 'add', component: UpdateOrCreateStudentComponent},
       {path: 'import', component: ImportStudentsComponent}
+    ]
+  },
+  { path: 'reports', component: ReportsComponent,
+    canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
+    data: { roleOptions: ['mentor', 'student-lead']},
+    children: [
+      {path: '', redirectTo: 'export', pathMatch: 'full'},
+      {path: 'export', component: CsvExportComponent}
     ]
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],

@@ -20,7 +20,6 @@ export class ElevateUsersComponent implements AfterViewInit {
   constructor(private usersService : UsersService, private authService: AuthService) { }
 
   ngAfterViewInit(): void {
-    console.log(this.searchBox)
     combineLatest([
       this.usersService.getAllUsers(),
       this.searchBox.searchUpdatedEvent.pipe(startWith(""))

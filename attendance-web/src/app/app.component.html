@@ -9,6 +9,7 @@
             <mat-menu #navMenu="matMenu">
                 <a mat-menu-item routerLink="/">Home</a>
                 <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/students">Manage Students</a>
+                <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/reports">View Reports</a>
                 <a *ngIf="authService.checkHasAnyRole(['mentor']) | async" mat-menu-item routerLink="/users">Manage Users</a>
                 <a mat-menu-item href="{{logoutUrl}}">Log out</a>
             </mat-menu>

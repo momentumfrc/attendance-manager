@@ -85,7 +85,6 @@ export class ImportStudentsComponent implements OnInit {
       this.parseError.next(null);
       this.parsedData.next(cleaned);
 
-      this.uploadProgress.subscribe(console.log);
     })
 
     combineLatest({

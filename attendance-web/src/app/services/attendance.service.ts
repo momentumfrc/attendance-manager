@@ -23,6 +23,7 @@ export class AttendanceService {
 
   getEvents(options: {
       since?: Date,
+      until?: Date,
       forStudentId?: number,
       limit?: number,
       type?: AttendanceEventType
@@ -30,6 +31,9 @@ export class AttendanceService {
     let params = new HttpParams();
     if(options.since) {
       params = params.set('since', Math.floor(options.since.getTime() / 1000));
+    }
+    if(options.until) {
+      params = params.set('until', Math.floor(options.until.getTime() / 1000));
     }
     if(options.forStudentId) {
       params = params.set('student_id', options.forStudentId);

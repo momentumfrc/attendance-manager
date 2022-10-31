@@ -21,6 +21,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -40,6 +42,8 @@ import { SearchBoxComponent } from './components/reuse/search-box/search-box.com
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
 import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
+import { ReportsComponent } from './components/reports/reports.component';
+import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 
 
 @NgModule({
@@ -57,7 +61,9 @@ import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
     ImportStudentsComponent,
     SearchBoxComponent,
     ShowStudentComponent,
-    SpinnerComponent
+    SpinnerComponent,
+    ReportsComponent,
+    CsvExportComponent
   ],
   imports: [
     BrowserModule,
@@ -81,7 +87,9 @@ import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   providers: [
     httpInterceptorProviders
