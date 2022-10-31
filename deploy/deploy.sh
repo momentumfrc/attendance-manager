@@ -23,7 +23,14 @@ mkdir attendance
 
 cp ../staging/www/attendance/.htaccess attendance
 
-git ls-files ../attendance-api | cpio -pdm ./attendance/attendance-api
+pushd ..
+
+git ls-files attendance-api | cpio -pdm deploy/attendance
+git ls-files attendance-web | cpio -pdm deploy/attendance
+
+popd
+
+mv attendance/attendance-web attendance/attendance-web-src
 
 source deploy.env
 
@@ -41,7 +48,7 @@ sed -i "s/SLACK_CLIENT_SECRET=.*/SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET//\//\
 sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
 popd
 
-pushd ../attendance-web
+pushd attendance/attendance-web-src
 rm -rf dist/attendance-web
 
 docker run --rm \
@@ -52,7 +59,9 @@ docker run --rm \
     -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
-cp -r ../attendance-web/dist/attendance-web attendance/
+mv attendance/attendance-web-src/dist/attendance-web attendance/attendance-web
+
+rm -rf attendance/attendance-web-src
 
 cat > attendance/install.sh << 'EOF'
 #!/bin/bash
