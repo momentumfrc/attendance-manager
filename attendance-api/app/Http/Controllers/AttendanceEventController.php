@@ -22,6 +22,7 @@ class AttendanceEventController extends Controller
         $request->validate([
             'student_id' => 'exists:students,id',
             'since' => 'date_format:U|lt:4294967295',
+            'until' => 'date_format:U|lt:4294967295',
             'limit' => 'integer|min:1',
             'type' => 'string|in:'.join(',', config('enums.attendance_event_types'))
         ]);
@@ -35,8 +36,11 @@ class AttendanceEventController extends Controller
         }
 
         if($request->has('since')) {
-            Log::debug('Get all events since '.Carbon::createFromTimestamp($request->since)->toDateTimeString());
             $response = $response->where('created_at', '>=', Carbon::createFromTimestamp($request->since));
+        }
+
+        if($request->has('until')) {
+            $response = $response->where('created_at', '<=',  Carbon::createFromTimestamp($request->until));
         }
 
         if($request->has('type')) {
