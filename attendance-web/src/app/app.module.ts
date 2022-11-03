@@ -27,7 +27,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { AddAttendanceEventComponent } from './components/add-attendance-event/add-attendance-event.component';
+import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
 
 import { httpInterceptorProviders } from './http-interceptors';
 import { LoginComponent } from './components/login/login.component';
@@ -50,7 +50,7 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
   declarations: [
     AppComponent,
     UpdateOrCreateStudentComponent,
-    AddAttendanceEventComponent,
+    AddAttendanceEventListComponent,
     LoginComponent,
     ElevateUsersComponent,
     UserComponent,

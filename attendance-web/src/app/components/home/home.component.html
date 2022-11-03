@@ -1,5 +1,5 @@
 <ng-container *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async; else notMentorHome">
-    <app-add-attendance-event></app-add-attendance-event>
+    <app-add-attendance-event-list></app-add-attendance-event-list>
 </ng-container>
 <ng-template #notMentorHome>
 <div id="notMentorMessage">

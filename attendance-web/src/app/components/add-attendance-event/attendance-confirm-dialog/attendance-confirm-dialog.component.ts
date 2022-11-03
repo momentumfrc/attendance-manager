@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Student } from 'src/app/models/student.model';
-import { AddAttendanceEventComponent } from '../add-attendance-event.component';
+import { AddAttendanceEventListComponent } from '../add-attendance-event-list/add-attendance-event-list.component';
 
 export enum AttendanceAction {
   CheckIn,
@@ -21,7 +21,7 @@ export interface ConfirmDialogData {
 })
 export class AttendanceConfirmDialogComponent {
   constructor(
-    public dialogRef: MatDialogRef<AddAttendanceEventComponent>,
+    public dialogRef: MatDialogRef<AddAttendanceEventListComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData
   ) {}
 

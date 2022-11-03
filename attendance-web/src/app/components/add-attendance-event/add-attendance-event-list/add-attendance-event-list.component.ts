@@ -4,17 +4,17 @@ import { BehaviorSubject, combineLatest, forkJoin, interval, map, ReplaySubject,
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
-import { AttendanceAction, AttendanceConfirmDialogComponent } from './attendance-confirm-dialog/attendance-confirm-dialog.component';
+import { AttendanceAction, AttendanceConfirmDialogComponent } from '../attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
 import { AttendanceEventType } from 'src/app/models/attendance-event.model';
 
 @Component({
-  selector: 'app-add-attendance-event',
-  templateUrl: './add-attendance-event.component.html',
-  styleUrls: ['./add-attendance-event.component.scss']
+  selector: 'app-add-attendance-event-list',
+  templateUrl: './add-attendance-event-list.component.html',
+  styleUrls: ['./add-attendance-event-list.component.scss']
 })
-export class AddAttendanceEventComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, OnDestroy {
   allStudents = new ReplaySubject<Array<Student>>(1);
 
   filteredStudents = new ReplaySubject<Array<Student>>(1);
