@@ -1,28 +1,12 @@
-<div id="studentFilters">
-    <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
-    <div>
-        <button mat-fab aria-label="Filters" color="primary" [matMenuTriggerFor]="filterMenu"><mat-icon>tune</mat-icon></button>
-        <mat-menu #filterMenu="matMenu">
-            <div id="filterMenu">
-            <p class="label">Sort first:</p>
-            <mat-radio-group aria-label="Select sort first" [formControl]="actionControl" (click)="$event.stopPropagation()">
-                <mat-radio-button value="checkIn">Check In</mat-radio-button>
-                <mat-radio-button value="checkOut">Check Out</mat-radio-button>
-            </mat-radio-group>
-        </div>
-        </mat-menu>
-    </div>
-</div>
+<app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
 <div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
     <ng-container *ngFor="let student of filteredStudents; last as isLast">
     <div class="studentRow">
-        <div class="studentName">{{ student.name }}</div>
-        <div class="studentActions">
-            <button class="studentActionButton" *ngIf="!isCheckedIn(student)" mat-raised-button color="primary" (click)="checkIn(student)">Check In</button>
-            <button class="studentActionButton" *ngIf="isCheckedIn(student)" mat-button (click)="checkIn(student, true)">Check In</button>
-            <button class="studentActionButton" *ngIf="isCheckedIn(student)" mat-raised-button color="accent" (click)="checkOut(student)">Check Out</button>
-            <button class="studentActionButton" *ngIf="!isCheckedIn(student)" mat-button (click)="checkOut(student, true)">Check Out</button>
-        </div>
+    <div class="studentName">{{ student.name }}</div>
+        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_IN && !isCheckedIn(student)" mat-raised-button color="primary" (click)="checkIn(student)">Check In</button>
+        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_IN && isCheckedIn(student)" mat-button (click)="checkIn(student, true)">Check In</button>
+        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_OUT && isCheckedIn(student)" mat-raised-button color="accent" (click)="checkOut(student)">Check Out</button>
+        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_OUT && !isCheckedIn(student)" mat-button (click)="checkOut(student, true)">Check Out</button>
     </div>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>

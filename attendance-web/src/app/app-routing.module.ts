@@ -13,6 +13,7 @@ import { ImportStudentsComponent } from './components/students/import-students/i
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
+import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -38,7 +39,15 @@ const routes: Routes = [
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor'] }},
   { path: 'login', component: LoginComponent, canActivate: [MustNotBeLoggedInGuard] },
-  { path: '', component: HomeComponent, canActivate: [MustBeLoggedInGuard] },
+  { path: '', component: HomeComponent,
+    canActivate: [MustBeLoggedInGuard],
+    children: [
+      { path: 'check-in', component: AddAttendanceEventListComponent,
+        canActivate: [MustHaveRoleGuard], data: { roleOptions: [ 'mentor', 'student-lead' ]}},
+      { path: 'check-out', component: AddAttendanceEventListComponent,
+        canActivate: [MustHaveRoleGuard], data: { roleOptions: [ 'mentor', 'student-lead' ]}}
+    ]
+  },
   { path: '**', redirectTo: '/'}
 ];
 

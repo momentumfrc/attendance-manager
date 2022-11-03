@@ -8,6 +8,7 @@ import { AttendanceAction, AttendanceConfirmDialogComponent } from '../attendanc
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
 import { AttendanceEventType } from 'src/app/models/attendance-event.model';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -20,17 +21,25 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   filteredStudents = new ReplaySubject<Array<Student>>(1);
   searchValue = new Subject<string>();
 
-  actionControl = new FormControl('checkIn');
-
   polling: Subscription|null = null;
 
   private studentsSub!: Subscription;
 
+  protected readonly eventTypes = AttendanceEventType
+  protected mode: AttendanceEventType
+
   constructor(
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    route: ActivatedRoute
+  ) {
+    if(route.snapshot.url[0].path == 'check-in') {
+      this.mode = AttendanceEventType.CHECK_IN;
+    } else {
+      this.mode = AttendanceEventType.CHECK_OUT;
+    }
+  }
 
   ngOnInit(): void {
     // Get students from database
@@ -72,18 +81,15 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     // will be formatted and shown to the user
     combineLatest([
       this.allStudents,
-      this.searchValue.pipe(startWith("")),
-      this.actionControl.valueChanges.pipe(startWith('checkIn'))
-    ]).pipe(map((values : Array<Array<Student> | string | null>) => {
-      let students = (values[0] as Array<Student>);
-      let search = ((values[1] as string | null) ?? "").toLocaleLowerCase();
-      let action = values[2] as string;
+      this.searchValue.pipe(startWith(""))
+    ]).pipe(map(([students, search]) => {
+      let searchLc = (search ?? "").toLocaleLowerCase();
 
       let value = students;
 
       // implement search
-      if(search != "") {
-        value = value.filter(student => student.name.toLocaleLowerCase().includes(search));
+      if(searchLc != "") {
+        value = value.filter(student => student.name.toLocaleLowerCase().includes(searchLc));
       }
 
       // implement sort
@@ -93,9 +99,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
         if(aCheckedIn != bCheckedIn) {
           if(aCheckedIn) {
-            return action == 'checkIn' ? 1 : -1;
+            return this.mode == this.eventTypes.CHECK_IN ? 1 : -1;
           } else {
-            return action == 'checkIn' ? -1 : 1;
+            return this.mode == this.eventTypes.CHECK_IN ? -1 : 1;
           }
         }
 

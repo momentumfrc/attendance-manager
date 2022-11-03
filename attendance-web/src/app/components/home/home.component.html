@@ -1,5 +1,13 @@
-<ng-container *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async; else notMentorHome">
-    <app-add-attendance-event-list></app-add-attendance-event-list>
+<ng-container *ngIf="authService.checkHasAnyRole(allowedRoles) | async; else notMentorHome">
+    <nav mat-tab-nav-bar [tabPanel]="eventOptionsTabPanel">
+        <a mat-tab-link *ngFor="let tab of tabs"
+            [routerLink]="tab.path"
+            routerLinkActive #rla="routerLinkActive"
+            [active]="rla.isActive">{{tab.name}}</a>
+      </nav>
+      <mat-tab-nav-panel #eventOptionsTabPanel>
+        <router-outlet></router-outlet>
+      </mat-tab-nav-panel>
 </ng-container>
 <ng-template #notMentorHome>
 <div id="notMentorMessage">
