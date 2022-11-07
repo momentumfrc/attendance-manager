@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http'
 
-import { Observable, ReplaySubject, share } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, share, Subject, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
@@ -11,18 +11,70 @@ export interface StudentUpdate {
   name: string
 }
 
+export enum PendingUpdateType {
+  UPDATE,
+  DELETE
+}
+
+export class PendingUpdate {
+  constructor(
+    public student: Student,
+    public updateType: PendingUpdateType,
+    public commitAction: (update: PendingUpdate) => Observable<void>
+  ) {}
+
+  private committed = false;
+
+  commit(): Observable<void> {
+    if(this.committed) {
+      return throwError(() => new Error("Attempt to commit already-committed update"));
+    }
+    this.committed = true;
+    return this.commitAction(this);
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class StudentsService {
+  private backendStudents = new Subject<Array<Student>>();
 
-  constructor(private httpClient: HttpClient) {
-  }
+  private pendingUpdates = new BehaviorSubject(new Map<number, PendingUpdate>());
+  private nextUpdateId = 1;
 
   private students = new ReplaySubject<Array<Student>>(1);
+
   private lastRefresh: Date|null = null;
 
-  private hiddenStudents = new Set<number>();
+  constructor(private httpClient: HttpClient) {
+    // Apply the current pending updates to the backendStudents and save it in students
+    combineLatest({
+      students: this.backendStudents,
+      updates: this.pendingUpdates
+    }).pipe(
+      map(({students, updates}) => {
+        let updated = students;
+        updates.forEach( update => {
+          switch(update.updateType) {
+            case PendingUpdateType.DELETE:
+              updated = updated.filter(it => it.id != update.student.id);
+              break;
+            case PendingUpdateType.UPDATE:
+              updated = updated.map(it => {
+                if(it.id == update.student.id) {
+                  return update.student;
+                } else {
+                  return it;
+                }
+              });
+              break;
+          }
+        });
+        return updated;
+      })
+    ).subscribe(this.students);
+  }
 
   getAllStudents(): Observable<Array<Student>> {
     const now = new Date();
@@ -32,22 +84,48 @@ export class StudentsService {
     return this.students;
   }
 
-  hideStudent(studentId: number) {
-    this.hiddenStudents.add(studentId);
-    this.refreshStudents();
+  addPendingUpdate(update: PendingUpdate): number {
+    let id = this.nextUpdateId;
+    this.nextUpdateId += 1;
+
+    let updates = this.pendingUpdates.getValue();
+    updates.set(id, update);
+
+    this.pendingUpdates.next(updates);
+
+    return id;
   }
 
-  unhideStudent(studentId: number) {
-    this.hiddenStudents.delete(studentId);
-    this.refreshStudents();
+  clearPendingUpdate(id: number): PendingUpdate|undefined {
+    let updates = this.pendingUpdates.getValue();
+    let update = updates.get(id);
+    updates.delete(id);
+    this.pendingUpdates.next(updates);
+    return update;
   }
 
-  refreshStudents(): void {
-    this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').subscribe(students => {
-      const filtered = students.filter(it => !this.hiddenStudents.has(it.id));
-      this.students.next(filtered);
+  commitPendingUpdate(id: number): void {
+    let update = this.pendingUpdates.getValue().get(id);
+    if(update) {
+      update.commit().subscribe(() => {
+        this.refreshStudents().subscribe(() => {
+          this.clearPendingUpdate(id);
+        })
+      })
+    }
+  }
+
+  isUpdatePending(): boolean {
+    return this.pendingUpdates.getValue().size > 0;
+  }
+
+  refreshStudents(): Observable<void> {
+    const request = this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').pipe(share());
+    request.subscribe(students => {
+      this.backendStudents.next(students);
       this.lastRefresh = new Date();
     })
+    return request.pipe(map(it => void 0));
   }
 
   getStudent(studentId: number): Observable<Student> {

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirective } from '@angular/forms';
 import { ActivatedRoute, Router, UrlSegment } from '@angular/router';
-import { StudentsService } from 'src/app/services/students.service';
+import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AsyncSubject, BehaviorSubject, combineLatest, forkJoin, map, Observable, of, ReplaySubject, Subscription, take, tap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -129,20 +129,24 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   }
 
   doDelete(student: Student) {
-    this.studentsService.hideStudent(student.id);
+    let pendingDelete = new PendingUpdate(student, PendingUpdateType.DELETE,
+      (update) => {
+        return this.studentsService.deleteStudent(student.id).pipe(map(it => void 0));
+      }
+    );
+
+    const updateId = this.studentsService.addPendingUpdate(pendingDelete);
+
     const snackBarRef = this.snackBar.open("Student " + student.name + " deleted!", 'Undo', {
       duration: 4000
     });
 
     const deletionExecutor = snackBarRef.afterDismissed().subscribe(() => {
-      this.studentsService.deleteStudent(student.id).subscribe(() => {
-        this.studentsService.unhideStudent(student.id);
-      });
+      this.studentsService.commitPendingUpdate(updateId);
     });
 
     snackBarRef.onAction().subscribe(() => {
-      deletionExecutor.unsubscribe();
-      this.studentsService.unhideStudent(student.id);
+      this.studentsService.clearPendingUpdate(updateId);
     });
 
     this.router.navigate(['/', 'students']);

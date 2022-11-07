@@ -1,14 +1,15 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, forkJoin, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
-import { StudentsService } from 'src/app/services/students.service';
+import { combineLatest, forkJoin, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
+import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { AttendanceAction, AttendanceConfirmDialogComponent } from '../attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
-import { AttendanceEventType } from 'src/app/models/attendance-event.model';
+import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-event.model';
 import { ActivatedRoute } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -31,7 +32,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   constructor(
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
+    private authService : AuthService,
     private dialog: MatDialog,
+    private snackbar: MatSnackBar,
     route: ActivatedRoute
   ) {
     if(route.snapshot.url[0].path == 'check-in') {
@@ -120,7 +123,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     this.studentsSub.unsubscribe();
   }
 
-  private updateStudent(student: Student, action: AttendanceAction) : void {
+  private postEventToBackend(student: Student, action: AttendanceAction) : void {
     // FIXME: It would be better to remove AttendanceAction entirely and just use
     //        AttendanceEventType for everything
     const eventType = {
@@ -128,21 +131,60 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       [AttendanceAction.CheckOut]: AttendanceEventType.CHECK_OUT
     }[action];
 
-    forkJoin({
-      response: this.attendanceService.registerEvent(student.id, eventType),
-      cachedStudents: this.allStudents.pipe(take(1))
-    }).pipe(map(({response, cachedStudents}) => {
-      let modIdx = cachedStudents.findIndex(student => student.id == response.student_id);
-      switch(response.type) {
+    this.authService.getUser().pipe(map(user => {
+      if(!user) {
+        throw new Error("Not authenticated");
+      }
+      return user;
+    })).subscribe(user => {
+      let now = new Date();
+      let dummyEvent : AttendanceEvent = {
+        id: -1,
+        student_id: student.id,
+        registered_by: user.id,
+        type: eventType,
+        created_at: now,
+        updated_at: now
+      };
+
+      let updatedStudent = structuredClone(student);
+
+      switch(eventType){
         case AttendanceEventType.CHECK_IN:
-          cachedStudents[modIdx].last_check_in = response;
+          updatedStudent.last_check_in = dummyEvent;
           break;
         case AttendanceEventType.CHECK_OUT:
-          cachedStudents[modIdx].last_check_out = response;
+          updatedStudent.last_check_out = dummyEvent;
           break;
-      }
-      return cachedStudents;
-    })).subscribe((students) => this.allStudents.next(students));
+      };
+
+        const eventStr = {
+          [AttendanceEventType.CHECK_IN]: "checked in",
+          [AttendanceEventType.CHECK_OUT]: "checked out"
+        }[eventType];
+
+        const snackBarHandle = this.snackbar.open(
+          "Student " + student.name + " " + eventStr,
+          "Undo",
+          { duration: 4000 }
+        );
+
+        const pendingUpdate = new PendingUpdate(updatedStudent, PendingUpdateType.UPDATE,
+          (update) => {
+            return this.attendanceService.registerEvent(student.id, eventType).pipe(map(it => void 0));
+          }
+        );
+        const updateId = this.studentsService.addPendingUpdate(pendingUpdate);
+
+        const updateExecutor = snackBarHandle.afterDismissed().subscribe(() => {
+          this.studentsService.commitPendingUpdate(updateId);
+        });
+
+        snackBarHandle.onAction().subscribe(() => {
+          updateExecutor.unsubscribe();
+          this.studentsService.clearPendingUpdate(updateId);
+        });
+    });
   }
 
   private attendance(
@@ -159,10 +201,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         if(!confirmed) {
           return;
         }
-        this.updateStudent(student, action);
+        this.postEventToBackend(student, action);
       })
     } else {
-      this.updateStudent(student, action);
+      this.postEventToBackend(student, action);
     }
   }
 
