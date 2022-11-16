@@ -2,10 +2,10 @@
 <div class="userItem">
     <div class="userName">{{user.name}}</div>
     <ng-container *ngIf="(loggedInUser | async)?.id != user.id; else selfButton">
-        <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">Role</button>
+        <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">{{getRoleFromRoles(user.role_names)}}</button>
     </ng-container>
     <ng-template #selfButton>
-        <button mat-stroked-button matTooltip="Cannot modify self" disabled>Role</button>
+        <button mat-stroked-button matTooltip="Cannot modify self" disabled>{{getRoleFromRoles(user.role_names)}}</button>
     </ng-template>
     <mat-menu #roleMenu="matMenu" (closed)="menuClosed()">
         <mat-radio-group (click)="$event.stopPropagation()" [formControl]="selectedRole" class="roleGroup">
