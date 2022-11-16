@@ -24,4 +24,8 @@ class Student extends Model
         return $this->hasMany(AttendanceEvent::class);
     }
 
+    public function attendanceSessions() {
+        return $this->hasMany(attendanceSessions::class, 'student_id');
+    }
+
 }

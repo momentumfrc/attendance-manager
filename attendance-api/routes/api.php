@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AttendanceEventController;
+use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\UserController;
 
 use Spatie\Permission\Models\Role;
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
         'index', 'show', 'store'
     ]);
 
+    Route::apiResource('attendance/sessions', AttendanceSessionController::class)->only([
+        'index'
+    ]);
 
     Route::get('user', function (Request $request) {
         return $request->user();
