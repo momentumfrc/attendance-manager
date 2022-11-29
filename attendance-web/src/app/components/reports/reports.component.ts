@@ -8,12 +8,12 @@ import { Component, OnInit } from '@angular/core';
 export class ReportsComponent implements OnInit {
   tabs = [
     {
-      path: './export',
-      name: 'Export CSV',
-    },
-    {
       path: './event-log',
       name: 'Event Log'
+    },
+    {
+      path: './export',
+      name: 'Export CSV',
     }
   ]
   constructor() { }

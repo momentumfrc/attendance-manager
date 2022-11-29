@@ -33,9 +33,9 @@ const routes: Routes = [
     canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor', 'student-lead']},
     children: [
-      {path: '', redirectTo: 'export', pathMatch: 'full'},
-      {path: 'export', component: CsvExportComponent},
-      {path: 'event-log', component: EventLogComponent}
+      {path: '', redirectTo: 'event-log', pathMatch: 'full'},
+      {path: 'event-log', component: EventLogComponent},
+      {path: 'export', component: CsvExportComponent}
     ]
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
