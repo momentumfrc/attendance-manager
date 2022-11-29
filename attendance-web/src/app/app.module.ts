@@ -23,6 +23,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -44,6 +46,7 @@ import { UpdateOrCreateStudentComponent } from './components/students/update-or-
 import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
+import { EventLogComponent } from './components/reports/event-log/event-log.component';
 
 
 @NgModule({
@@ -63,7 +66,8 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
     ShowStudentComponent,
     SpinnerComponent,
     ReportsComponent,
-    CsvExportComponent
+    CsvExportComponent,
+    EventLogComponent
   ],
   imports: [
     BrowserModule,
@@ -89,7 +93,9 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
     MatProgressBarModule,
     MatTooltipModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatTableModule,
+    MatPaginatorModule
   ],
   providers: [
     httpInterceptorProviders

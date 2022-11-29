@@ -43,7 +43,8 @@ class RolesSeeder extends Seeder
                 'add students',
                 'modify students',
                 'remove students',
-                'take attendance'
+                'take attendance',
+                'list users'
             ]);
 
         if(config('app.debug', false)) {

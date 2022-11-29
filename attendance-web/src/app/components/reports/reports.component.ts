@@ -10,6 +10,10 @@ export class ReportsComponent implements OnInit {
     {
       path: './export',
       name: 'Export CSV',
+    },
+    {
+      path: './event-log',
+      name: 'Event Log'
     }
   ]
   constructor() { }

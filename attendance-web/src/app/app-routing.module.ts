@@ -14,6 +14,7 @@ import { ShowStudentComponent } from './components/students/show-student/show-st
 import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
+import { EventLogComponent } from './components/reports/event-log/event-log.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -33,7 +34,8 @@ const routes: Routes = [
     data: { roleOptions: ['mentor', 'student-lead']},
     children: [
       {path: '', redirectTo: 'export', pathMatch: 'full'},
-      {path: 'export', component: CsvExportComponent}
+      {path: 'export', component: CsvExportComponent},
+      {path: 'event-log', component: EventLogComponent}
     ]
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
