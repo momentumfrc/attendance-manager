@@ -1,13 +1,40 @@
-<div id="mainDiv" *ngIf="student|async as student; else notFound">
-    <h1>{{ student.name }}</h1>
-    <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
-    <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
-</div>
-<ng-template #notFound>
-    <div *ngIf="invalidStudent|async; else loading">
+<ng-container *ngIf="state|async as state">
+    <ng-container *ngIf="state == stateType.STUDENT_NOT_FOUND">
         <h1>Student not found!</h1>
-    </div>
-    <ng-template #loading>
+    </ng-container>
+    <ng-container *ngIf="state == stateType.STUDENT_LOADING">
         <app-spinner></app-spinner>
-    </ng-template>
-</ng-template>
+    </ng-container>
+    <ng-container *ngIf="state == stateType.STUDENT_FOUND">
+        <div id="mainDiv" *ngIf="student|async as student">
+            <h1>{{ student.name }}</h1>
+            <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
+            <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
+
+            <mat-card id="sessionsCard">
+                <table mat-table [dataSource]="attendanceSessions" id="sessionTable">
+                    <ng-container matColumnDef="checkInDate">
+                        <th mat-header-cell *matHeaderCellDef>Check In</th>
+                        <td mat-cell *matCellDef="let session">{{session.session.checkin_date.toLocaleString()}}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="checkOutDate">
+                        <th mat-header-cell *matHeaderCellDef>Check Out</th>
+                        <td mat-cell *matCellDef="let session">{{session.session.checkout_date?.toLocaleString() ?? "-"}}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="duration">
+                        <th mat-header-cell *matHeaderCellDef>Duration</th>
+                        <td mat-cell *matCellDef="let session">{{session.getDurationStr()}}</td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="sessionColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: sessionColumns;"></tr>
+                </table>
+                <mat-paginator [pageSizeOptions]="[25, 50, 100]"
+                    showFirstLastButtons
+                    aria-label="Select page of attendance sessions">
+                </mat-paginator>
+            </mat-card>
+
+        </div>
+    </ng-container>
+</ng-container>

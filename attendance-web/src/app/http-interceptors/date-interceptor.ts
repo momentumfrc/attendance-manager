@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpEvent, HttpEventType, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 
+const date_keys = ['created_at', 'updated_at', 'checkin_date', 'checkout_date'];
 
 @Injectable()
 export class DateInterceptor implements HttpInterceptor {
@@ -36,13 +37,14 @@ export class DateInterceptor implements HttpInterceptor {
             }
         }
 
-        if('created_at' in object) {
-            object.created_at = new Date(object.created_at);
-        }
-
-        if('updated_at' in object) {
-            object.updated_at = new Date(object.updated_at);
-        }
+        date_keys.forEach(key => {
+            if(key in object) {
+                const value = object[key];
+                if(value) {
+                    object[key] = new Date(value);
+                }
+            }
+        });
 
     }
 }

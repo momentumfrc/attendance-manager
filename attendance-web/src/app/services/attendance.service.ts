@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
 
 import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-event.model';
+import { AttendanceSession } from '../models/attendance-session.model';
 
 
 @Injectable({
@@ -46,5 +47,32 @@ export class AttendanceService {
     }
 
     return this.httpClient.get<Array<AttendanceEvent>>(environment.apiRoot + '/attendance/events', {params});
+  }
+
+  getSessions(options: {
+    since?: Date,
+    until?: Date,
+    forStudentId?: number,
+    limit?: number,
+    excludePartial?: boolean
+  }) {
+    let params = new HttpParams();
+    if(options.since) {
+      params = params.set('since', Math.floor(options.since.getTime() / 1000));
+    }
+    if(options.until) {
+      params = params.set('until', Math.floor(options.until.getTime() / 1000));
+    }
+    if(options.forStudentId) {
+      params = params.set('student_id', options.forStudentId);
+    }
+    if(options.limit) {
+      params = params.set('limit', options.limit);
+    }
+    if(options.excludePartial) {
+      params = params.set('exclude_partial', 1);
+    }
+
+    return this.httpClient.get<Array<AttendanceSession>>(environment.apiRoot + '/attendance/sessions', {params});
   }
 }
