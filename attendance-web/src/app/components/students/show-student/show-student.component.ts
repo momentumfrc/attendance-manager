@@ -72,7 +72,6 @@ export class ShowStudentComponent implements OnInit {
   protected state = new BehaviorSubject<PageState>(PageState.STUDENT_LOADING);
 
   protected student = new AsyncSubject<Student>()
-  protected invalidStudent = new AsyncSubject<boolean>()
   protected registeredBy = new AsyncSubject<User>()
   protected attendanceSessions = new MatTableDataSource<RichAttendanceSession>()
   protected attendanceStats = new AsyncSubject<AttendanceStats>()
@@ -102,22 +101,21 @@ export class ShowStudentComponent implements OnInit {
       studentRequest = of(null);
     }
 
-    const [student, invalidStudent] = partition(studentRequest.pipe(share()), it => it != null);
-    (student as Observable<Student>).subscribe(this.student);
-    (invalidStudent as Observable<null>).pipe( map(it => it == null) ).subscribe(this.invalidStudent);
-  }
-
-  ngOnInit(): void {
-    this.student.subscribe((student) => {
+    const sharedStudentRequest = studentRequest.pipe(share());
+    sharedStudentRequest.subscribe((student) => {
       if(student) {
         this.state.next(PageState.STUDENT_FOUND);
       } else {
         this.state.next(PageState.STUDENT_NOT_FOUND);
       }
     })
+    sharedStudentRequest.pipe(
+      filter((it): it is Student => !!it)
+    ).subscribe(this.student);
+  }
 
+  ngOnInit(): void {
     this.student.pipe(
-      filter(it => !!it),
       switchMap(it => this.usersService.getUser(it.registered_by))
     ).subscribe(this.registeredBy);
 

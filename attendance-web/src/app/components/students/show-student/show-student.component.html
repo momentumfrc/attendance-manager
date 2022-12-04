@@ -1,6 +1,6 @@
 <ng-container *ngIf="state|async as state">
     <ng-container *ngIf="state == stateType.STUDENT_NOT_FOUND">
-        <h1>Student not found!</h1>
+        <h1 id="studentNotFound">404: Student not found</h1>
     </ng-container>
     <ng-container *ngIf="state == stateType.STUDENT_LOADING">
         <app-spinner></app-spinner>
