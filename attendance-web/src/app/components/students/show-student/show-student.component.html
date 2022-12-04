@@ -7,10 +7,40 @@
     </ng-container>
     <ng-container *ngIf="state == stateType.STUDENT_FOUND">
         <div id="mainDiv" *ngIf="student|async as student">
-            <h1>{{ student.name }}</h1>
-            <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
-            <a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a>
+            <div class="nameRow">
+                <h1>{{ student.name }}</h1>
+                <div><a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a></div>
+            </div>
 
+            <ng-container *ngIf="attendanceStats|async as stats">
+                <h2>Statistics</h2>
+                <mat-card id="statsCard">
+                    <mat-list>
+                        <mat-list-item>
+                            <div class="statRow">
+                                <div class="statName">Time Spent at Meetings</div>
+                                <div class="statValue">{{stats.getTotalDuration()}}</div>
+                            </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                        <mat-list-item>
+                            <div class="statRow">
+                                <div class="statName">Meetings Attended</div>
+                                <div class="statValue">{{stats.sessions.length}}</div>
+                            </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                        <mat-list-item>
+                            <div class="statRow">
+                                <div class="statName">Missed Checkouts</div>
+                                <div class="statValue">{{stats.getMissedCheckouts()}}</div>
+                            </div>
+                        </mat-list-item>
+                    </mat-list>
+                </mat-card>
+            </ng-container>
+
+            <h2>Attendance Sessions</h2>
             <mat-card id="sessionsCard">
                 <table mat-table [dataSource]="attendanceSessions" id="sessionTable">
                     <ng-container matColumnDef="checkInDate">
@@ -35,6 +65,7 @@
                 </mat-paginator>
             </mat-card>
 
+            <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
         </div>
     </ng-container>
 </ng-container>

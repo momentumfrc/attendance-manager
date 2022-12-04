@@ -17,6 +17,15 @@ enum PageState {
   STUDENT_FOUND
 };
 
+function formatTimeDiff(diffSeconds: number) {
+  const hours = Math.floor(diffSeconds / (60 * 60));
+  const minutes = Math.floor((diffSeconds % (60 * 60)) / 60);
+  const seconds = diffSeconds % 60;
+  return hours.toString()
+    + ":" + minutes.toString().padStart(2, '0')
+    + ":" + seconds.toString().padStart(2, '0');
+}
+
 class RichAttendanceSession {
   constructor(
     public session: AttendanceSession
@@ -28,9 +37,28 @@ class RichAttendanceSession {
     }
     const diff = this.session.checkout_date.getTime() - this.session.checkin_date.getTime();
     const diffSeconds = Math.floor(diff / 1000);
-    const hours = Math.floor(diffSeconds / (60 * 60));
-    const minutes = Math.floor((diffSeconds % (60 * 60)) / 60);
-    return hours.toString() + ":" + minutes.toString().padStart(2, '0');
+    return formatTimeDiff(diffSeconds);
+  }
+}
+
+class AttendanceStats {
+  constructor(
+    public sessions: Array<AttendanceSession>
+  ) {}
+
+  public getTotalDuration(): string {
+    const totalMs = this.sessions.reduce((accumulator, current) => {
+      if(!current.checkout_date) {
+        return accumulator;
+      }
+      const diff = current.checkout_date.getTime() - current.checkin_date.getTime();
+      return accumulator + diff;
+    }, 0);
+    return formatTimeDiff(Math.floor(totalMs / 1000));
+  }
+
+  public getMissedCheckouts(): number {
+    return this.sessions.filter(it => !it.checkout_id).length;
   }
 }
 
@@ -47,6 +75,7 @@ export class ShowStudentComponent implements OnInit {
   protected invalidStudent = new AsyncSubject<boolean>()
   protected registeredBy = new AsyncSubject<User>()
   protected attendanceSessions = new MatTableDataSource<RichAttendanceSession>()
+  protected attendanceStats = new AsyncSubject<AttendanceStats>()
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -92,14 +121,22 @@ export class ShowStudentComponent implements OnInit {
       switchMap(it => this.usersService.getUser(it.registered_by))
     ).subscribe(this.registeredBy);
 
-    this.student.pipe(
+    const sessions = this.student.pipe(
       filter(it => !!it),
-      switchMap(it => this.attendanceService.getSessions({forStudentId: (it as Student).id})),
+      switchMap(it => this.attendanceService.getSessions({forStudentId: it.id})),
+      share()
+    );
+
+    sessions.pipe(
       map(sessions => sessions.map(session => new RichAttendanceSession(session))),
     ).subscribe((sessions) => {
       this.attendanceSessions.paginator = this.paginator;
       this.attendanceSessions.data = sessions;
     });
+
+    sessions.pipe(
+      map(sessions => new AttendanceStats(sessions))
+    ).subscribe(this.attendanceStats);
   }
 
 }
