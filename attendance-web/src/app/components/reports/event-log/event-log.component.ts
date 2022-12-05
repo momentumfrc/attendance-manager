@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { combineLatest, debounceTime, filter, map, ReplaySubject, startWith, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, map, ReplaySubject, startWith, tap, withLatestFrom } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -16,12 +16,20 @@ interface RichAttendanceEvent {
   registrar: User
 };
 
+enum PageState {
+  LOADING = 1,
+  LOADED
+}
+
 @Component({
   selector: 'app-event-log',
   templateUrl: './event-log.component.html',
   styleUrls: ['./event-log.component.scss']
 })
 export class EventLogComponent implements OnInit, AfterViewInit {
+
+  state = new BehaviorSubject<PageState>(PageState.LOADING);
+  stateType = PageState;
 
   listOptions: FormGroup
 
@@ -54,10 +62,13 @@ export class EventLogComponent implements OnInit, AfterViewInit {
         return {since: dates.since, until: endDate};
       })
     ).subscribe(dates => {
+      this.state.next(PageState.LOADING);
       this.attendanceService.getEvents(dates).subscribe(events => {
         this.events.next(events);
       })
     })
+
+    this.events.subscribe(events => this.state.next(PageState.LOADED));
   }
 
   ngOnInit(): void {
