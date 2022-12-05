@@ -1,9 +1,9 @@
+import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
+import { Component, OnInit } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute } from '@angular/router';
-import { AsyncSubject, BehaviorSubject, catchError, filter, map, Observable, of, partition, share, switchMap, tap, throwError } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, catchError, filter, map, Observable, of, ReplaySubject, share, switchMap, tap, throwError } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -62,6 +62,40 @@ class AttendanceStats {
   }
 }
 
+class SessionDataSource implements DataSource<RichAttendanceSession> {
+  private data: Array<RichAttendanceSession> = [];
+
+  public readonly pageSizeOptions = [25, 50, 100];
+
+  private paginatedData = new ReplaySubject<Array<RichAttendanceSession>>(1);
+
+  private lastPageSize = this.pageSizeOptions[0];
+
+  public setData(data: Array<RichAttendanceSession>): void {
+    this.data = data;
+    this.updateSlice(0, this.lastPageSize);
+  }
+
+  public paginate(event: PageEvent) {
+    this.lastPageSize = event.pageSize;
+    this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
+  }
+
+  public getDataSize(): number {
+    return this.data.length;
+  }
+
+  private updateSlice(startIdx: number, endIdx: number) {
+    this.paginatedData.next(this.data.slice(startIdx, endIdx));
+  }
+
+  connect(collectionViewer: CollectionViewer): Observable<readonly RichAttendanceSession[]> {
+    return this.paginatedData;
+  }
+
+  disconnect(collectionViewer: CollectionViewer): void {}
+}
+
 @Component({
   selector: 'app-show-student',
   templateUrl: './show-student.component.html',
@@ -73,10 +107,8 @@ export class ShowStudentComponent implements OnInit {
 
   protected student = new AsyncSubject<Student>()
   protected registeredBy = new AsyncSubject<User>()
-  protected attendanceSessions = new MatTableDataSource<RichAttendanceSession>()
+  protected attendanceSessions = new SessionDataSource()
   protected attendanceStats = new AsyncSubject<AttendanceStats>()
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   protected sessionColumns = ["checkInDate", "checkOutDate", "duration"]
 
@@ -128,8 +160,7 @@ export class ShowStudentComponent implements OnInit {
     sessions.pipe(
       map(sessions => sessions.map(session => new RichAttendanceSession(session))),
     ).subscribe((sessions) => {
-      this.attendanceSessions.paginator = this.paginator;
-      this.attendanceSessions.data = sessions;
+      this.attendanceSessions.setData(sessions);
     });
 
     sessions.pipe(

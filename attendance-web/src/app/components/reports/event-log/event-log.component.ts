@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { CollectionViewer, DataSource } from '@angular/cdk/collections';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
-import { BehaviorSubject, combineLatest, debounceTime, filter, map, ReplaySubject, startWith, tap, withLatestFrom } from 'rxjs';
+import { PageEvent } from '@angular/material/paginator';
+import { BehaviorSubject, combineLatest, filter, map, Observable, ReplaySubject, startWith } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -21,12 +21,46 @@ enum PageState {
   LOADED
 }
 
+class EventDataSource implements DataSource<RichAttendanceEvent> {
+  private data: Array<RichAttendanceEvent> = [];
+
+  public readonly pageSizeOptions = [25, 50, 100];
+
+  private paginatedData = new ReplaySubject<Array<RichAttendanceEvent>>(1);
+
+  private lastPageSize = this.pageSizeOptions[0];
+
+  public setData(data: Array<RichAttendanceEvent>): void {
+    this.data = data;
+    this.updateSlice(0, this.lastPageSize);
+  }
+
+  public paginate(event: PageEvent) {
+    this.lastPageSize = event.pageSize;
+    this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
+  }
+
+  public getDataSize(): number {
+    return this.data.length;
+  }
+
+  private updateSlice(startIdx: number, endIdx: number) {
+    this.paginatedData.next(this.data.slice(startIdx, endIdx));
+  }
+
+  connect(collectionViewer: CollectionViewer): Observable<readonly RichAttendanceEvent[]> {
+    return this.paginatedData;
+  }
+
+  disconnect(collectionViewer: CollectionViewer): void {}
+}
+
 @Component({
   selector: 'app-event-log',
   templateUrl: './event-log.component.html',
   styleUrls: ['./event-log.component.scss']
 })
-export class EventLogComponent implements OnInit, AfterViewInit {
+export class EventLogComponent implements OnInit {
 
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState;
@@ -36,8 +70,7 @@ export class EventLogComponent implements OnInit, AfterViewInit {
   eventColumns = ["eventId", "studentId", "registrarId", "eventType", "eventDate"];
 
   events = new ReplaySubject<Array<AttendanceEvent>>(1);
-  richEvents = new MatTableDataSource<RichAttendanceEvent>();
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  richEvents = new EventDataSource();
 
   constructor(
     private attendanceService: AttendanceService,
@@ -57,7 +90,7 @@ export class EventLogComponent implements OnInit, AfterViewInit {
       map(it => ({since: this.listOptions.controls['since'].value, until: it})),
       startWith(this.listOptions.value),
       map(dates => {
-        let endDate : Date = dates.until;
+        let endDate : Date = structuredClone(dates.until);
         endDate.setDate(endDate.getDate() + 1);
         return {since: dates.since, until: endDate};
       })
@@ -88,12 +121,8 @@ export class EventLogComponent implements OnInit, AfterViewInit {
         } as RichAttendanceEvent))
       )
     ).subscribe((events) => {
-      this.richEvents.data = events;
+      this.richEvents.setData(events);
     })
-  }
-
-  ngAfterViewInit(): void {
-    this.richEvents.paginator = this.paginator;
   }
 
 }

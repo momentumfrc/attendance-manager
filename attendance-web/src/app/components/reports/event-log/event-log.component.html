@@ -46,9 +46,12 @@
             <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
 
         </table>
-        <mat-paginator [pageSizeOptions]="[25, 50, 100]"
+        <mat-paginator [pageSizeOptions]="richEvents.pageSizeOptions"
+            [length]="richEvents.getDataSize()"
+            (page)="richEvents.paginate($event)"
             showFirstLastButtons
-            aria-label="Select page of attendance events">
+            aria-label="Select page of attendance events"
+            #eventsPaginator>
         </mat-paginator>
     </mat-card>
     </ng-container>

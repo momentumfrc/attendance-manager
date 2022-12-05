@@ -59,7 +59,9 @@
                     <tr mat-header-row *matHeaderRowDef="sessionColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: sessionColumns;"></tr>
                 </table>
-                <mat-paginator [pageSizeOptions]="[25, 50, 100]"
+                <mat-paginator [pageSizeOptions]="attendanceSessions.pageSizeOptions"
+                    [length]="attendanceSessions.getDataSize()"
+                    (page)="attendanceSessions.paginate($event)"
                     showFirstLastButtons
                     aria-label="Select page of attendance sessions">
                 </mat-paginator>
