@@ -3,10 +3,13 @@
     <ng-container *ngFor="let student of filteredStudents; last as isLast">
     <div class="studentRow">
     <div class="studentName">{{ student.name }}</div>
-        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_IN && !isCheckedIn(student)" mat-raised-button color="primary" (click)="checkIn(student)">Check In</button>
-        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_IN && isCheckedIn(student)" mat-button (click)="checkIn(student, true)">Check In</button>
-        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_OUT && isCheckedIn(student)" mat-raised-button color="accent" (click)="checkOut(student)">Check Out</button>
-        <button class="studentActionButton" *ngIf="mode == eventTypes.CHECK_OUT && !isCheckedIn(student)" mat-button (click)="checkOut(student, true)">Check Out</button>
+        <button class="studentActionButton"
+                mat-raised-button
+                color="{{actionColor()}}"
+                [disabled]="canPerformAction(student)|async"
+                (click)="performAction(student)">
+                    {{actionText()}}
+        </button>
     </div>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
