@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class MeetingEvent extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'registered_by' => 'integer'
+    ];
 }
