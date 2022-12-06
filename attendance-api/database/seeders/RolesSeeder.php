@@ -43,6 +43,7 @@ class RolesSeeder extends Seeder
                 'list users',
                 'list roles',
                 'elevate users',
+                'list meeting events',
                 'add meeting events',
                 'remove meeting events'
             ]);
@@ -54,6 +55,7 @@ class RolesSeeder extends Seeder
                 'remove students',
                 'take attendance',
                 'list users',
+                'list meeting events',
                 'add meeting events'
             ]);
 
