@@ -1,5 +1,13 @@
+<h1>Meetings</h1>
 
-<form [formGroup]="listOptions" id="listOptionsForm">
+<h2>Actions</h2>
+<mat-card id="actions">
+    <button mat-raised-button color="primary" class="meetingAction" (click)="registerEndOfMeeting()">End Meeting</button>
+</mat-card>
+
+<div id="listTitleWrapper">
+<h2>Event Log</h2>
+<form [formGroup]="meetingEventListOptions" id="listOptionsForm">
     <mat-form-field appearance="outline">
         <mat-label>Enter a date range</mat-label>
         <mat-date-range-input [rangePicker]="picker">
@@ -11,22 +19,16 @@
         <mat-date-range-picker #picker></mat-date-range-picker>
     </mat-form-field>
 </form>
-
-<ng-container *ngIf="state|async as state">
-    <ng-container *ngIf="state == stateType.LOADED">
-    <mat-card>
-        <table mat-table [dataSource]="richEvents">
+</div>
+<mat-card id="logCard">
+    <ng-container *ngIf="!loadingEvents; else loadingLog">
+        <table mat-table [dataSource]="richMeetingEvents" id="logTable">
             <ng-container matColumnDef="eventId">
                 <th mat-header-cell *matHeaderCellDef>Id</th>
                 <td mat-cell *matCellDef="let event">{{event.event.id}}</td>
             </ng-container>
 
-            <ng-container matColumnDef="studentId">
-                <th mat-header-cell *matHeaderCellDef>Student</th>
-                <td mat-cell *matCellDef="let event"><a routerLink="/students/detail/{{event.student.id}}">{{event.student.name}}</a></td>
-            </ng-container>
-
-            <ng-container matColumnDef="registrarId">
+            <ng-container matColumnDef="registrar">
                 <th mat-header-cell *matHeaderCellDef>Registered By</th>
                 <td mat-cell *matCellDef="let event">{{event.registrar.name}}</td>
             </ng-container>
@@ -35,26 +37,26 @@
                 <th mat-header-cell *matHeaderCellDef>Event Type</th>
                 <td mat-cell *matCellDef="let event">{{event.event.type}}</td>
             </ng-container>
-
             <ng-container matColumnDef="eventDate">
                 <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let event">{{ event.event.created_at.toLocaleString() }}</td>
+                <td mat-cell *matCellDef="let event">{{event.event.created_at.toLocaleString()}}</td>
             </ng-container>
-
+            <ng-container matColumnDef="removeAction">
+                <th mat-header-cell *matHeaderCellDef>Remove</th>
+                <td mat-cell *matCellDef="let event"><button mat-flat-button color="warn" (click)="removeEvent(event)">Remove</button></td>
+            </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
-
         </table>
-        <mat-paginator [pageSizeOptions]="richEvents.pageSizeOptions"
-            [length]="richEvents.getDataSize()"
-            (page)="richEvents.paginate($event)"
+        <mat-paginator [pageSizeOptions]="richMeetingEvents.pageSizeOptions"
+            [length]="richMeetingEvents.getDataSize()"
+            (page)="richMeetingEvents.paginate($event)"
             showFirstLastButtons
-            aria-label="Select page of attendance events">
+            aria-label="Select page of meeting events">
         </mat-paginator>
-    </mat-card>
     </ng-container>
-    <ng-container *ngIf="state == stateType.LOADING">
+    <ng-template #loadingLog>
         <app-spinner></app-spinner>
-    </ng-container>
-</ng-container>
+    </ng-template>
+</mat-card>

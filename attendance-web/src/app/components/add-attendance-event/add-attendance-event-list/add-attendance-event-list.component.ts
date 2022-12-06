@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, forkJoin, interval, map, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
+import { combineLatest, forkJoin, interval, map, Observable, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
 import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -10,6 +10,8 @@ import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-
 import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
+import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
+import { MeetingsService } from 'src/app/services/meetings.service';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -22,7 +24,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   filteredStudents = new ReplaySubject<Array<Student>>(1);
   searchValue = new Subject<string>();
 
-  polling: Subscription|null = null;
+  lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
+
+  polling!: Subscription;
+  meetingPolling!: Subscription;
 
   private studentsSub!: Subscription;
 
@@ -32,6 +37,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   constructor(
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
+    private meetingsService : MeetingsService,
     private authService : AuthService,
     private dialog: MatDialog,
     private snackbar: MatSnackBar,
@@ -50,6 +56,16 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     // to complete when the request finishes, but I want allStudents to be long-lived so it can
     // respond to updates
     this.studentsSub = this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+
+    const updateMeetingEvent : (event: Array<MeetingEvent>) => void = events => {
+      if(events.length > 0) {
+        this.lastEndOfMeeting.next(events[0]);
+      } else {
+        this.lastEndOfMeeting.next(null);
+      }
+    };
+
+    this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}).subscribe(updateMeetingEvent);
 
     // Set up polling for new check-ins/check-outs
     this.polling = interval(environment.pollInterval).pipe(
@@ -80,12 +96,17 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       })
     ).subscribe((students) => this.allStudents.next(students));
 
+    this.meetingPolling = interval(environment.pollInterval).pipe(
+      switchMap(() => this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}))
+    ).subscribe(updateMeetingEvent);
+
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
-    combineLatest([
-      this.allStudents,
-      this.searchValue.pipe(startWith(""))
-    ]).pipe(map(([students, search]) => {
+    combineLatest({
+      students: this.allStudents,
+      search: this.searchValue.pipe(startWith("")),
+      meeting: this.lastEndOfMeeting
+    }).pipe(map(({students, search, meeting}) => {
       let searchLc = (search ?? "").toLocaleLowerCase();
 
       let value = students;
@@ -97,8 +118,8 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
       // implement sort
       value.sort((a: Student, b: Student) => {
-        const aCheckedIn = this.isCheckedIn(a);
-        const bCheckedIn = this.isCheckedIn(b);
+        const aCheckedIn = this.shouldConsiderStudentCheckedIn(a, meeting);
+        const bCheckedIn = this.shouldConsiderStudentCheckedIn(b, meeting);
 
         if(aCheckedIn != bCheckedIn) {
           if(aCheckedIn) {
@@ -119,18 +140,12 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   ngOnDestroy(): void {
-    this.polling?.unsubscribe();
+    this.polling.unsubscribe();
     this.studentsSub.unsubscribe();
+    this.meetingPolling.unsubscribe();
   }
 
-  private postEventToBackend(student: Student, action: AttendanceAction) : void {
-    // FIXME: It would be better to remove AttendanceAction entirely and just use
-    //        AttendanceEventType for everything
-    const eventType = {
-      [AttendanceAction.CheckIn]: AttendanceEventType.CHECK_IN,
-      [AttendanceAction.CheckOut]: AttendanceEventType.CHECK_OUT
-    }[action];
-
+  private attendance(student: Student, action: AttendanceEventType) : void {
     this.authService.getUser().pipe(map(user => {
       if(!user) {
         throw new Error("Not authenticated");
@@ -142,14 +157,14 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         id: -1,
         student_id: student.id,
         registered_by: user.id,
-        type: eventType,
+        type: action,
         created_at: now,
         updated_at: now
       };
 
       let updatedStudent = structuredClone(student);
 
-      switch(eventType){
+      switch(action){
         case AttendanceEventType.CHECK_IN:
           updatedStudent.last_check_in = dummyEvent;
           break;
@@ -161,7 +176,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         const eventStr = {
           [AttendanceEventType.CHECK_IN]: "checked in",
           [AttendanceEventType.CHECK_OUT]: "checked out"
-        }[eventType];
+        }[action];
 
         const snackBarHandle = this.snackbar.open(
           "Student " + student.name + " " + eventStr,
@@ -171,7 +186,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
         const pendingUpdate = new PendingUpdate(updatedStudent, PendingUpdateType.UPDATE,
           (update) => {
-            return this.attendanceService.registerEvent(student.id, eventType).pipe(map(it => void 0));
+            return this.attendanceService.registerEvent(student.id, action).pipe(map(it => void 0));
           }
         );
         const updateId = this.studentsService.addPendingUpdate(pendingUpdate);
@@ -187,45 +202,54 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     });
   }
 
-  private attendance(
-    student: Student,
-    shouldConfirm: boolean,
-    action: AttendanceAction
-  ) {
-    if(shouldConfirm) {
-      let dialogref = this.dialog.open(AttendanceConfirmDialogComponent, {
-        width: '320px',
-        data: {student: student, action: action}
-      });
-      dialogref.afterClosed().subscribe((confirmed: boolean) => {
-        if(!confirmed) {
-          return;
+  private shouldConsiderStudentCheckedIn(student: Student, meeting: MeetingEvent|null) {
+    const check_in: Date|null = student.last_check_in?.updated_at ?? null;
+    let check_out: Date|null = student.last_check_out?.updated_at ?? null;
+
+    if(meeting != null) {
+      if(check_out != null) {
+        if(meeting.updated_at > check_out) {
+          check_out = meeting.updated_at;
         }
-        this.postEventToBackend(student, action);
-      })
-    } else {
-      this.postEventToBackend(student, action);
+      } else {
+        check_out = meeting.updated_at;
+      }
     }
-  }
-
-  protected checkIn(student: Student, shouldConfirm: boolean = false): void {
-    this.attendance(student, shouldConfirm, AttendanceAction.CheckIn);
-  }
-
-  protected checkOut(student: Student, shouldConfirm: boolean = false): void {
-    this.attendance(student, shouldConfirm, AttendanceAction.CheckOut);
-  }
 
 
-  protected isCheckedIn(student: Student): boolean {
-    if(student.last_check_in == null) {
+    if(check_in == null) {
       return false;
     }
 
-    if(student.last_check_out == null) {
+    if(check_out == null) {
       return true;
     }
 
-    return student.last_check_out.updated_at < student.last_check_in.updated_at;
+    return check_out < check_in;
+  }
+
+  protected canPerformAction(student: Student): Observable<boolean> {
+    return this.lastEndOfMeeting.pipe(
+      map(meeting => this.shouldConsiderStudentCheckedIn(student, meeting)),
+      map(isCheckedIn => (this.mode == AttendanceEventType.CHECK_IN) == isCheckedIn)
+    );
+  }
+
+  protected actionText(): string {
+    return {
+      [AttendanceEventType.CHECK_IN]: "Check In",
+      [AttendanceEventType.CHECK_OUT]: "Check Out"
+    }[this.mode];
+  }
+
+  protected actionColor(): string {
+    return {
+      [AttendanceEventType.CHECK_IN]: "primary",
+      [AttendanceEventType.CHECK_OUT]: "accent"
+    }[this.mode];
+  }
+
+  protected performAction(student: Student) {
+    this.attendance(student, this.mode);
   }
 }

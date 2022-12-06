@@ -26,6 +26,10 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'remove students']);
         Permission::create(['name' => 'take attendance']);
 
+        Permission::create(['name' => 'list meeting events']);
+        Permission::create(['name' => 'add meeting events']);
+        Permission::create(['name' => 'remove meeting events']);
+
         Permission::create(['name' => 'list users']);
         Permission::create(['name' => 'list roles']);
         Permission::create(['name' => 'elevate users']);
@@ -38,7 +42,9 @@ class RolesSeeder extends Seeder
                 'take attendance',
                 'list users',
                 'list roles',
-                'elevate users'
+                'elevate users',
+                'add meeting events',
+                'remove meeting events'
             ]);
 
         Role::create(['name' => 'student-lead'])
@@ -47,7 +53,8 @@ class RolesSeeder extends Seeder
                 'modify students',
                 'remove students',
                 'take attendance',
-                'list users'
+                'list users',
+                'add meeting events'
             ]);
 
         if(config('app.debug', false)) {
