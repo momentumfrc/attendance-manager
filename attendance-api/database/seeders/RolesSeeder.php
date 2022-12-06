@@ -16,6 +16,9 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
+        Role::query()->delete();
+        Permission::query()->delete();
+
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         Permission::create(['name' => 'add students']);
