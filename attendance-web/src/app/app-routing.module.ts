@@ -15,6 +15,7 @@ import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
+import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -37,6 +38,10 @@ const routes: Routes = [
       {path: 'event-log', component: EventLogComponent},
       {path: 'export', component: CsvExportComponent}
     ]
+  },
+  { path: 'meetings', component: MeetingEventsComponent,
+    canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
+    data: { roleOptions: ['mentor', 'student-lead']}
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor'] }},

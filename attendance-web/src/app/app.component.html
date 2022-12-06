@@ -8,6 +8,7 @@
             </button>
             <mat-menu #navMenu="matMenu">
                 <a mat-menu-item routerLink="/check-in">Home</a>
+                <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/meetings">Meetings</a>
                 <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/reports">Reports</a>
                 <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/students">Students</a>
                 <a *ngIf="authService.checkHasAnyRole(['mentor']) | async" mat-menu-item routerLink="/users">Users</a>

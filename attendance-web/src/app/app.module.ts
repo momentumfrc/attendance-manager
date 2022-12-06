@@ -47,6 +47,8 @@ import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
+import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
+import { MeetingConfirmDialogComponent } from './components/meeting-events/meeting-confirm-dialog/meeting-confirm-dialog.component';
 
 
 @NgModule({
@@ -67,7 +69,9 @@ import { EventLogComponent } from './components/reports/event-log/event-log.comp
     SpinnerComponent,
     ReportsComponent,
     CsvExportComponent,
-    EventLogComponent
+    EventLogComponent,
+    MeetingEventsComponent,
+    MeetingConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
