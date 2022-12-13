@@ -6,7 +6,9 @@
 	],
 	"service": "angular.test",
 	"workspaceFolder": "/var/www/html",
-	"settings": {},
+	"settings": {
+		"remote.autoForwardPorts": false
+	},
 	"extensions": [
 		"dbaeumer.vscode-eslint",
 		"Angular.ng-template"
