@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json
 {
-	"name": "Angular Web",
+	"name": "Attendance-Manager Web (Angular)",
 	"dockerComposeFile": [
-		"../docker-compose.yml"
+		"../../docker-compose.yml"
 	],
 	"service": "angular.test",
 	"workspaceFolder": "/var/www/html",
@@ -12,5 +12,5 @@
 		"Angular.ng-template"
 	],
 	"remoteUser": "node",
-	"postCreateCommand": "chown -R 1000:1000 /var/www/html"
+	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2> /dev/null || true"
 }

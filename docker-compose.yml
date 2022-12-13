@@ -19,7 +19,7 @@ services:
     volumes:
       - './attendance-api/:/var/www/html'
     networks:
-      sail:
+      - attendance
     depends_on:
       - mariadb
   mariadb:
@@ -34,9 +34,31 @@ services:
     volumes:
       - 'sail-mariadb:/var/lib/mysql'
     networks:
-      - sail
+      - attendance
+  angular.test:
+    build:
+      context: ./attendance-web/.devcontainer
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    user: node
+    command: sh -c "npm install && ng serve --host 0.0.0.0 --public-host 'localhost:8000'"
+    expose:
+      - '4200'
+    volumes:
+      - './attendance-web/:/var/www/html'
+    networks:
+      - attendance
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./dev-proxy/data/conf.d:/etc/nginx/conf.d
+    networks:
+      - attendance
 networks:
-  sail:
+  attendance:
 volumes:
   sail-mariadb:
     driver: local
