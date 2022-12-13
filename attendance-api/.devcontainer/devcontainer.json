@@ -1,8 +1,8 @@
 // https://aka.ms/devcontainer.json
 {
-	"name": "Existing Docker Compose (Extend)",
+	"name": "Attendance-Manager API (Laravel)",
 	"dockerComposeFile": [
-		"../docker-compose.yml"
+		"../../docker-compose.yml"
 	],
 	"service": "laravel.test",
 	"workspaceFolder": "/var/www/html",
@@ -15,7 +15,7 @@
 		// "onecentlin.laravel-blade"
 	],
 	"remoteUser": "sail",
-	"postCreateCommand": "chown -R 1000:1000 /var/www/html"
+	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2> /dev/null || true"
 	// "forwardPorts": [],
 	// "runServices": [],
 	// "shutdownAction": "none",

@@ -1,0 +1,42 @@
+version: '3'
+services:
+  laravel.test:
+    build:
+      context: ./attendance-api/.devcontainer/docker
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: 1000
+    image: sail-8.1/app
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    expose:
+      - 80
+    environment:
+      WWWUSER: 1000
+      LARAVEL_SAIL: 1
+      XDEBUG_MODE: 'off'
+      XDEBUG_CONFIG: 'client_host=host.docker.internal'
+    volumes:
+      - './attendance-api/:/var/www/html'
+    networks:
+      sail:
+    depends_on:
+      - mariadb
+  mariadb:
+    image: 'mariadb:10.9'
+    ports:
+      - '3306'
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
+      MARIADB_DATABASE: 'attendance_api'
+      MARIADB_USER: 'attendance_user'
+      MARIADB_PASSWORD: 'password'
+    volumes:
+      - 'sail-mariadb:/var/lib/mysql'
+    networks:
+      - sail
+networks:
+  sail:
+volumes:
+  sail-mariadb:
+    driver: local
