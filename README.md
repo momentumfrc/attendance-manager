@@ -1,31 +1,35 @@
 # attendance-manager
-Keep track of the attendence of our team members by allowing mentors to check students in and out.
+Keep track of the attendance of our team members by allowing mentors to check students in and out.
 
-# Developing
+# Setting up a development environment
 
 ## Prerequisites
-You will need an installation of docker. If using Windows, I recommend installing docker in [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+- [Docker](https://docs.docker.com/get-docker/)
+- [Visual Studio Code](https://code.visualstudio.com/), with the [Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
 
-You will also need [Visual Studio Code](https://code.visualstudio.com/), with the [Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
+## Steps
+1. Clone the repo and cd into the clone.
+```
+git clone git@github.com:momentumfrc/attendance-manager.git && cd attendance-manager
+```
+2. Open the attendance-api folder in vscode.
+```
+code attendance-api
+```
+3. When prompted, choose to reopen in container.
+![Reopen in container prompt](docs/assets/reopen-in-container.png)
 
-## Installation
-1. Ensure the docker daemon is running. If using WSL, open a WSL terminal and run `sudo dockerd`.
-2. Clone the repo and cd into the clone.
-3. Run the start-network script.
+4. Wait for vscode to finish setting up the container.
+![Starting container prompt](docs/assets/starting-container.png)
+
+5. You may be prompted to install recommended extensions. You should do so.
+
+6. Open the attendance-web folder in a separate vscode window.
 ```
-./start-network.sh
-```
-4. Run the script at `attendance-api/setup.sh`
-```
-cd attendance-api && ./setup.sh
+code attendance-api
 ```
 
-## Running
-1. Start the development proxy
-```
-cd dev-proxy && docker-compose up
-```
-2. In a separate terminal, `cd` to the clone and open the attendance-api in Visual Studio Code (`code ./attendance-api`).
-When prompted, select the option to **Reopen in container**.
-3. Similarly, open the attendance-web in Visual Studio Code (`code ./attendance-web`) and select the option to **Reopen in container**.
-4. Open a web browser and navigate to `http://localhost/`. You should see a development version of the attendance application.
+7. Again, when prompted, choose to reopen in container.
+
+8. Open a web browser and navigate to <http://localhost/>. Note: it might take a while for the
+application to start up. If the page fails to load, try again in a few minutes.
