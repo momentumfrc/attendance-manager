@@ -21,7 +21,7 @@ class CreateAttendanceEventsTable extends Migration
             $table->string('type', 16);
         });
 
-        if(config('app.debug', false)) {
+        if(config('app.env', 'production') == 'local') {
             // This integrity check adds overhead to registering new attendance events, so only add it for debugging
             DB::statement("ALTER TABLE attendance_events ADD CONSTRAINT chk_type CHECK (type IN ('check-in', 'check-out'));");
         }

@@ -20,7 +20,7 @@ class CreateMeetingEventsTable extends Migration
             $table->string('type', 24);
         });
 
-        if(config('app.debug', false)) {
+        if(config('app.env', 'production') == 'local') {
             // This integrity check adds overhead to registering new meeting events, so only add it for debugging
             DB::statement("ALTER TABLE meeting_events ADD CONSTRAINT chk_type CHECK (type IN ('end-of-meeting'));");
         }
