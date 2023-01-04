@@ -6,6 +6,10 @@
 	],
 	"service": "angular.test",
 	"workspaceFolder": "/var/www/html",
+
+	// Forward the port for running tests
+	"forwardPorts": [ 9876 ],
+
 	"settings": {
 		"remote.autoForwardPorts": false
 	},

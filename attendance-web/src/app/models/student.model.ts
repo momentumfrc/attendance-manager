@@ -6,6 +6,6 @@ export interface Student {
     registered_by: number,
     created_at: Date,
     updated_at: Date,
-    last_check_in: AttendanceEvent,
-    last_check_out: AttendanceEvent
+    last_check_in?: AttendanceEvent,
+    last_check_out?: AttendanceEvent
 }
