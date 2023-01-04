@@ -32,6 +32,15 @@ jobs:
       with:
         php-version: '7.4'
     - uses: actions/checkout@v3
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     - name: Install Dependencies
@@ -61,6 +70,8 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 16.x
+        cache: 'npm'
+        cache-dependency-path: attendance-web/package-lock.json
     - name: Install Dependencies
       run: npm ci
     - name: Execute tests
