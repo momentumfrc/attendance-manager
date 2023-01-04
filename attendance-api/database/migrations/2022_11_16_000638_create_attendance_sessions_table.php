@@ -14,7 +14,7 @@ class CreateAttendanceSessionsTable extends Migration
     public function up()
     {
         $query = <<<'EOD'
-            CREATE VIEW attendance_sessions AS
+            CREATE OR REPLACE VIEW attendance_sessions AS
             SELECT
                 check_in.student_id AS student_id,
                 check_in.id AS checkin_id,
