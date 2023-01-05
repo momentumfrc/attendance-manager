@@ -13,7 +13,7 @@ import { ImportStudentsComponent } from './components/students/import-students/i
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
-import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
+import { AddAttendanceEventListComponent } from './components/add-attendance-event-list/add-attendance-event-list.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 

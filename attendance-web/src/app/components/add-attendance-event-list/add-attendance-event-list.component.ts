@@ -3,7 +3,6 @@ import { combineLatest, forkJoin, interval, map, Observable, ReplaySubject, star
 import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
-import { AttendanceAction, AttendanceConfirmDialogComponent } from '../attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
 import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-event.model';

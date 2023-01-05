@@ -29,14 +29,13 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { AddAttendanceEventListComponent } from './components/add-attendance-event/add-attendance-event-list/add-attendance-event-list.component';
+import { AddAttendanceEventListComponent } from './components/add-attendance-event-list/add-attendance-event-list.component';
 
 import { httpInterceptorProviders } from './http-interceptors';
 import { LoginComponent } from './components/login/login.component';
 import { ElevateUsersComponent } from './components/elevate-users/elevate-users.component';
 import { UserComponent } from './components/elevate-users/user/user.component';
 import { HomeComponent } from './components/home/home.component';
-import { AttendanceConfirmDialogComponent } from './components/add-attendance-event/attendance-confirm-dialog/attendance-confirm-dialog.component';
 import { StudentsComponent } from './components/students/students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
@@ -60,7 +59,6 @@ import { MeetingConfirmDialogComponent } from './components/meeting-events/meeti
     ElevateUsersComponent,
     UserComponent,
     HomeComponent,
-    AttendanceConfirmDialogComponent,
     StudentsComponent,
     ListStudentsComponent,
     ImportStudentsComponent,
