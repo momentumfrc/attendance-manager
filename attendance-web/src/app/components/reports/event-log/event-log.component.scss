@@ -10,3 +10,7 @@ table {
 mat-card {
     margin-bottom: 10px;
 }
+
+th.mat-header-cell, td.mat-cell {
+    padding: 0px 3px;
+}
