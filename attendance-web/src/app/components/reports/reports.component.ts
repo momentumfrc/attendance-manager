@@ -8,6 +8,10 @@ import { Component, OnInit } from '@angular/core';
 export class ReportsComponent implements OnInit {
   tabs = [
     {
+      path: './meetings',
+      name: 'Meetings'
+    },
+    {
       path: './event-log',
       name: 'Event Log'
     },

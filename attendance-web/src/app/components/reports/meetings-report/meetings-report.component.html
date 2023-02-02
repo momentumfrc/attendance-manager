@@ -1,0 +1,36 @@
+<form [formGroup]="dataDateRange" id="dateRangeForm">
+    <mat-form-field appearance="outline">
+        <mat-label>Enter a date range</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate formControlName="since" placeholder="Start date">
+            <input matEndDate formControlName="until" placeholder="End date">
+        </mat-date-range-input>
+        <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
+</form>
+
+<ng-container *ngIf="state|async as state">
+<div [style.display]="state == stateType.LOADED">
+<mat-card>
+    <canvas id="lineChart">{{chart}}</canvas>
+</mat-card>
+<mat-card>
+    <table mat-table [dataSource]="meetingData">
+        <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let element">{{element.meeting_date.toLocaleDateString(undefined, {dateStyle: 'short'})}}</td>
+        </ng-container>
+        <ng-container matColumnDef="student-count">
+            <th mat-header-cell *matHeaderCellDef>Student Count</th>
+            <td mat-cell *matCellDef="let element">{{element.student_count}}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="meetingStatsColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: meetingStatsColumns;"></tr>
+    </table>
+</mat-card>
+</div>
+<app-spinner *ngIf="state == stateType.LOADING"></app-spinner>
+</ng-container>

@@ -49,6 +49,7 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 import { MeetingConfirmDialogComponent } from './components/meeting-events/meeting-confirm-dialog/meeting-confirm-dialog.component';
+import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 
 
 @NgModule({
@@ -70,7 +71,8 @@ import { MeetingConfirmDialogComponent } from './components/meeting-events/meeti
     CsvExportComponent,
     EventLogComponent,
     MeetingEventsComponent,
-    MeetingConfirmDialogComponent
+    MeetingConfirmDialogComponent,
+    MeetingsReportComponent
   ],
   imports: [
     BrowserModule,

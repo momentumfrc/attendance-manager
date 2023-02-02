@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpEvent, HttpEventType, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 
-const date_keys = ['created_at', 'updated_at', 'checkin_date', 'checkout_date'];
+const date_keys = ['created_at', 'updated_at', 'checkin_date', 'checkout_date', 'meeting_date'];
 
 @Injectable()
 export class DateInterceptor implements HttpInterceptor {
