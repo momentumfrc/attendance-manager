@@ -1,8 +1,10 @@
 <h1>Meetings</h1>
 
 <h2>Actions</h2>
-<mat-card id="actions">
+<mat-card>
+    <mat-card-content id="actions">
     <button mat-raised-button color="primary" class="meetingAction" (click)="registerEndOfMeeting()">End Meeting</button>
+    </mat-card-content>
 </mat-card>
 
 <div id="listTitleWrapper">
@@ -21,6 +23,7 @@
 </form>
 </div>
 <mat-card id="logCard">
+    <mat-card-content>
     <ng-container *ngIf="!loadingEvents; else loadingLog">
         <table mat-table [dataSource]="richMeetingEvents" id="logTable">
             <ng-container matColumnDef="eventId">
@@ -59,4 +62,5 @@
     <ng-template #loadingLog>
         <app-spinner></app-spinner>
     </ng-template>
+</mat-card-content>
 </mat-card>

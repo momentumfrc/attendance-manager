@@ -15,6 +15,7 @@
 <ng-container *ngIf="state|async as state">
     <ng-container *ngIf="state == stateType.LOADED">
     <mat-card>
+    <mat-card-content>
         <table mat-table [dataSource]="richEvents">
             <ng-container matColumnDef="eventId">
                 <th mat-header-cell *matHeaderCellDef>Id</th>
@@ -52,6 +53,7 @@
             showFirstLastButtons
             aria-label="Select page of attendance events">
         </mat-paginator>
+    </mat-card-content>
     </mat-card>
     </ng-container>
     <ng-container *ngIf="state == stateType.LOADING">

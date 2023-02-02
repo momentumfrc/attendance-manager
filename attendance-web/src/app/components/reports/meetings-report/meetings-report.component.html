@@ -14,9 +14,12 @@
 <ng-container *ngIf="state|async as state">
 <div [style.display]="state == stateType.LOADED">
 <mat-card>
+<mat-card-content>
     <canvas id="lineChart">{{chart}}</canvas>
+</mat-card-content>
 </mat-card>
 <mat-card>
+<mat-card-content>
     <table mat-table [dataSource]="meetingData">
         <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
@@ -30,6 +33,7 @@
         <tr mat-header-row *matHeaderRowDef="meetingStatsColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: meetingStatsColumns;"></tr>
     </table>
+</mat-card-content>
 </mat-card>
 </div>
 <app-spinner *ngIf="state == stateType.LOADING"></app-spinner>

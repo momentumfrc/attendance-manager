@@ -1,9 +1,10 @@
-<nav mat-tab-nav-bar [tabPanel]="reportTabPanel">
+<nav mat-tab-nav-bar [tabPanel]="reportTabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
     <a mat-tab-link *ngFor="let tab of tabs"
         [routerLink]="tab.path"
         routerLinkActive #rla="routerLinkActive"
         [active]="rla.isActive">{{tab.name}}</a>
   </nav>
   <mat-tab-nav-panel #reportTabPanel>
+    <mat-divider></mat-divider>
     <router-outlet></router-outlet>
   </mat-tab-nav-panel>

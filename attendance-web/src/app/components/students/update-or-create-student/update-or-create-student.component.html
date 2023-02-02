@@ -7,6 +7,7 @@
 </ng-container>
 <ng-container *ngIf="(context.state == stateType.NO_STUDENT_PROVIDED) || (context.state == stateType.LOADED)">
     <mat-card id="registerCard">
+    <mat-card-content id="registerCardContent">
         <form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm">
             <div class="formRow">
                 <mat-icon aria-hidden="true" fontIcon="person"></mat-icon>
@@ -23,6 +24,7 @@
                 <button mat-raised-button color="primary" type="submit" [disabled]="!mainForm.valid" id="submitButton">Save</button>
             </div>
         </form>
-        </mat-card>
+    </mat-card-content>
+    </mat-card>
 </ng-container>
 </ng-container>
