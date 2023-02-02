@@ -1,22 +1,60 @@
-<mat-toolbar color="primary" class="mainToolBar" id="mainToolBar">
-    <div id="mainToolBarContainer">
-        <a routerLink="/check-in" id="title">Attendance Manager</a>
-        <div id="toolBarRightContainer">
+<div id="rootContainer">
+    <mat-toolbar color="primary" class="mainToolBar" id="mainToolBar">
+        <div id="mainToolBarContainer">
+            <div id="toolBarLeftContainer">
+                <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" (click)="sidenav.toggle()">
+                    <mat-icon>menu</mat-icon>
+                </button>
+                <a routerLink="/check-in" id="title">Attendance Manager</a>
+            </div>
             <span id="userName" *ngIf="getFirstName() | async as name">Welcome, {{name}}</span>
-            <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" [matMenuTriggerFor]="navMenu">
-                <mat-icon>menu</mat-icon>
-            </button>
-            <mat-menu #navMenu="matMenu">
-                <a mat-menu-item routerLink="/check-in">Home</a>
-                <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/meetings">Meetings</a>
-                <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/reports">Reports</a>
-                <a *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" mat-menu-item routerLink="/students">Students</a>
-                <a *ngIf="authService.checkHasAnyRole(['mentor']) | async" mat-menu-item routerLink="/users">Users</a>
-                <a mat-menu-item href="{{logoutUrl}}">Log out</a>
-            </mat-menu>
-        </div>
-        </div>
-</mat-toolbar>
-<div id="mainPage">
-    <router-outlet></router-outlet>
+            </div>
+    </mat-toolbar>
+    <mat-sidenav-container>
+        <mat-sidenav #sidenav mode="over">
+            <mat-action-list>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/check-in">
+                        <mat-icon class="nav-icon">home</mat-icon>
+                        <p class="nav-label">Home</p>
+                    </a>
+                </mat-list-item>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" routerLink="/meetings">
+                        <mat-icon class="nav-icon">date_range</mat-icon>
+                        <p class="nav-label">Meetings</p>
+                    </a>
+                </mat-list-item>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" routerLink="/reports">
+                        <mat-icon class="nav-icon">description</mat-icon>
+                        <p class="nav-label">Reports</p>
+                    </a>
+                </mat-list-item>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" routerLink="/students">
+                        <mat-icon class="nav-icon">groups</mat-icon>
+                        <p class="nav-label">Students</p>
+                    </a>
+                </mat-list-item>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" *ngIf="authService.checkHasAnyRole(['mentor']) | async" routerLink="/users">
+                        <mat-icon class="nav-icon">person</mat-icon>
+                        <p class="nav-label">Users</p>
+                    </a>
+                </mat-list-item>
+                <mat-list-item>
+                    <a class="nav-list-item" (click)="sidenav.close()" href="{{logoutUrl}}">
+                        <mat-icon class="nav-icon">logout</mat-icon>
+                        <p class="nav-label">Log out</p>
+                    </a>
+                </mat-list-item>
+            </mat-action-list>
+        </mat-sidenav>
+        <mat-sidenav-content>
+            <div id="mainPage">
+                <router-outlet></router-outlet>
+            </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
 </div>
