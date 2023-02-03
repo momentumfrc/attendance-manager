@@ -6,6 +6,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Validation\Rule;
 
@@ -47,6 +48,8 @@ class StudentController extends Controller
 
         $student->save();
 
+        Log::channel('admin')->notice('student '.$student->id.' registered by user '.Auth::id());
+
         return $student;
     }
 
@@ -74,7 +77,9 @@ class StudentController extends Controller
                 'required',
                 Rule::unique('students', 'name')->ignore($student)
             ]
-        ]);
+            ]);
+
+        Log::channel('admin')->notice('student '.$student->id.' updated by user '.Auth::id().' (renamed from "'.$student->name.'" to "'.$request->name.'")');
 
         $student->update(['name' => $request->name]);
 
@@ -89,6 +94,7 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
+        Log::channel('admin')->notice('student '.$student->id.' deleted by user '.Auth::id());
         $student->delete();
     }
 }

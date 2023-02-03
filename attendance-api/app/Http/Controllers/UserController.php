@@ -58,7 +58,8 @@ class UserController extends Controller
             ], 422);
         }
 
-        Log::notice("User ".Auth::id()." set roles for user ".$user->id." to ".json_encode($request->roles));
+        Log::channel('admin')->notice('user '.$user->id.' roles updated by user '.Auth::id().' to '.json_encode($request->roles));
+
         $user->syncRoles($request->roles);
 
         return $user;
