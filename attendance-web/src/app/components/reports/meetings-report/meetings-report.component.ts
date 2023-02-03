@@ -77,7 +77,7 @@ export class MeetingsReportComponent {
         this.chart.update();
       } else {
         this.chart = new Chart('lineChart', {
-          type: 'line',
+          type: 'bar',
           data: data,
           options: {
             scales: {
