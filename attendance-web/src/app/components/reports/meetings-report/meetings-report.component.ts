@@ -1,14 +1,23 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Chart } from 'chart.js/auto';
-import { DateTime } from 'luxon';
-import { BehaviorSubject, filter, map, ReplaySubject, startWith } from 'rxjs';
+import 'chartjs-adapter-luxon';
+import { DateTime, Interval } from 'luxon';
+import { BehaviorSubject, combineLatest, filter, map, ReplaySubject, share, startWith, tap } from 'rxjs';
 import { MeetingStatistic } from 'src/app/models/meeting-statistic.model';
 import { ReportsService } from 'src/app/services/reports.service';
 
 enum PageState {
   LOADING = 1,
   LOADED
+}
+
+function* daysFromInterval(interval: Interval) {
+  let cursor = interval.start.startOf("day");
+  while (cursor < interval.end) {
+    yield cursor;
+    cursor = cursor.plus({ days: 1 });
+  }
 }
 
 @Component({
@@ -29,6 +38,7 @@ export class MeetingsReportComponent {
     until: new FormControl(DateTime.now())
   });
 
+  selectedInterval = new ReplaySubject<Interval>(1);
   meetingData = new ReplaySubject<Array<MeetingStatistic>>(1);
 
   chart?: Chart = undefined
@@ -39,21 +49,27 @@ export class MeetingsReportComponent {
       map(it => ({since: this.dataDateRange.controls['since'].value, until: it})),
       startWith(this.dataDateRange.value),
       map(dates => ({since: dates.since, until: dates.until.plus({days: 1})}))
-    ).subscribe(dates => {
+    ).subscribe(({since, until}) => this.selectedInterval.next(Interval.fromDateTimes(since, until)));
+
+    this.selectedInterval.subscribe(interval => {
       this.state.next(PageState.LOADING);
-      this.reportsService.getMeetingStats(dates).subscribe(stats => {
+      this.reportsService.getMeetingStats({since: interval.start, until: interval.end}).subscribe(stats => {
         this.meetingData.next(stats);
       })
     })
 
     this.meetingData.subscribe(_ => this.state.next(PageState.LOADED));
 
-    this.meetingData.subscribe(stats => {
+    combineLatest({
+      dates: this.selectedInterval,
+      stats: this.meetingData
+    }).subscribe(({dates, stats}) => {
+      const statsByDate = new Map(stats.map(it => [it.meeting_date.toMillis(), it]));
+      const datesInInterval = Array.from(daysFromInterval(dates))
       const data = {
-        labels: stats.map(it => it.meeting_date.toLocaleString(DateTime.DATE_SHORT)),
         datasets: [{
           label: 'Student Count',
-          data: stats.map(it => it.student_count)
+          data: datesInInterval.map(day => ({x: day.toMillis(), y:statsByDate.get(day.toMillis())?.student_count ?? 0}))
         }]
       };
       if(this.chart) {
@@ -65,6 +81,12 @@ export class MeetingsReportComponent {
           data: data,
           options: {
             scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'week'
+                }
+              },
               y: {
                 min: 0
               }
