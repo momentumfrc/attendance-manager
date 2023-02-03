@@ -19,12 +19,16 @@
         <table mat-table [dataSource]="richEvents">
             <ng-container matColumnDef="eventId">
                 <th mat-header-cell *matHeaderCellDef>Id</th>
-                <td mat-cell *matCellDef="let event">{{event.event.id}}</td>
+                <td mat-cell *matCellDef="let event">{{event.eventId}}</td>
             </ng-container>
 
             <ng-container matColumnDef="studentId">
                 <th mat-header-cell *matHeaderCellDef>Student</th>
-                <td mat-cell *matCellDef="let event"><a routerLink="/students/detail/{{event.student.id}}">{{event.student.name}}</a></td>
+                <td mat-cell *matCellDef="let event">
+                    <ng-container *ngIf="event.student as student">
+                        <a routerLink="/students/detail/{{student.id}}">{{student.name}}</a>
+                    </ng-container>
+                </td>
             </ng-container>
 
             <ng-container matColumnDef="registrarId">
@@ -34,12 +38,12 @@
 
             <ng-container matColumnDef="eventType">
                 <th mat-header-cell *matHeaderCellDef>Event Type</th>
-                <td mat-cell *matCellDef="let event">{{event.event.type}}</td>
+                <td mat-cell *matCellDef="let event">{{event.event_type}}</td>
             </ng-container>
 
             <ng-container matColumnDef="eventDate">
                 <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let event">{{ event.event.created_at.toLocaleString(dateTimeShort) }}</td>
+                <td mat-cell *matCellDef="let event">{{ event.date.toLocaleString(dateTimeShort) }}</td>
             </ng-container>
 
 
