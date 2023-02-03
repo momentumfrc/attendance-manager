@@ -39,7 +39,7 @@
 
             <ng-container matColumnDef="eventDate">
                 <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let event">{{ event.event.created_at.toLocaleString() }}</td>
+                <td mat-cell *matCellDef="let event">{{ event.event.created_at.toLocaleString(dateTimeShort) }}</td>
             </ng-container>
 
 

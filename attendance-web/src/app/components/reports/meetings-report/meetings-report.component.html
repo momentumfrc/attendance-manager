@@ -23,7 +23,7 @@
     <table mat-table [dataSource]="meetingData">
         <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let element">{{element.meeting_date.toLocaleDateString(undefined, {dateStyle: 'short'})}}</td>
+            <td mat-cell *matCellDef="let element">{{element.meeting_date.toLocaleString(dateFormat)}}</td>
         </ng-container>
         <ng-container matColumnDef="student-count">
             <th mat-header-cell *matHeaderCellDef>Student Count</th>

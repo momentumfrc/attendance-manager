@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Chart } from 'chart.js/auto';
+import { DateTime } from 'luxon';
 import { BehaviorSubject, filter, map, ReplaySubject, startWith } from 'rxjs';
 import { MeetingStatistic } from 'src/app/models/meeting-statistic.model';
 import { ReportsService } from 'src/app/services/reports.service';
@@ -16,35 +17,28 @@ enum PageState {
   styleUrls: ['./meetings-report.component.scss']
 })
 export class MeetingsReportComponent {
+  readonly dateFormat = DateTime.DATE_SHORT;
+
   meetingStatsColumns = ['date', 'student-count'];
 
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState
 
-  dataDateRange: FormGroup
+  dataDateRange: FormGroup = new FormGroup({
+    since: new FormControl(DateTime.now().minus({months: 1})),
+    until: new FormControl(DateTime.now())
+  });
 
   meetingData = new ReplaySubject<Array<MeetingStatistic>>(1);
 
   chart?: Chart = undefined
 
   constructor(private reportsService: ReportsService) {
-    let startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-
-    this.dataDateRange = new FormGroup({
-      since: new FormControl(startDate),
-      until: new FormControl(new Date())
-    });
-
     this.dataDateRange.controls['until'].valueChanges.pipe(
       filter(it => it),
       map(it => ({since: this.dataDateRange.controls['since'].value, until: it})),
       startWith(this.dataDateRange.value),
-      map(dates => {
-        let endDate : Date = structuredClone(dates.until);
-        endDate.setDate(endDate.getDate() + 1);
-        return {since: dates.since as Date, until: endDate};
-      })
+      map(dates => ({since: dates.since, until: dates.until.plus({days: 1})}))
     ).subscribe(dates => {
       this.state.next(PageState.LOADING);
       this.reportsService.getMeetingStats(dates).subscribe(stats => {
@@ -56,7 +50,7 @@ export class MeetingsReportComponent {
 
     this.meetingData.subscribe(stats => {
       const data = {
-        labels: stats.map(it => it.meeting_date.toLocaleDateString(undefined, {dateStyle: 'short'})),
+        labels: stats.map(it => it.meeting_date.toLocaleString(DateTime.DATE_SHORT)),
         datasets: [{
           label: 'Student Count',
           data: stats.map(it => it.student_count)

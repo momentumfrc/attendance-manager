@@ -1,4 +1,5 @@
 import { HttpClient } from "@angular/common/http";
+import { DateTime } from "luxon";
 import { of } from "rxjs";
 import { AttendanceEventType } from "../models/attendance-event.model";
 import { Student } from "../models/student.model";
@@ -14,7 +15,7 @@ describe('StudentsService', () => {
     })
 
     it('should return all students', (done: DoneFn) => {
-        const now = new Date();
+        const now = DateTime.now();
         const expectedStudents: Array<Student> = [
             {
                 id: 1,

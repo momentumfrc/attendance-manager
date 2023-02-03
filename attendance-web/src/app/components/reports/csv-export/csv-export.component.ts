@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { DateTime } from 'luxon';
 import { Papa } from 'ngx-papaparse';
 import { MapObject } from 'ngx-papaparse/lib/interfaces/unparse-data';
 import { forkJoin, map, take } from 'rxjs';
@@ -14,35 +15,26 @@ import { UsersService } from 'src/app/services/users.service';
 })
 export class CsvExportComponent implements OnInit {
 
-  exportOptions: FormGroup
+  exportOptions: FormGroup = new FormGroup({
+    since: new FormControl(DateTime.now().minus({months: 6})),
+    until: new FormControl(DateTime.now())
+  });
 
   constructor(
     private attendanceService: AttendanceService,
     private studentsService: StudentsService,
     private usersService: UsersService,
     private papa: Papa
-  ) {
-    let startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 6);
-
-    this.exportOptions = new FormGroup({
-      since: new FormControl(startDate),
-      until: new FormControl(new Date())
-    });
-
-  }
+  ) {}
 
   ngOnInit(): void {
   }
 
   onSubmit(value: any) {
-    let endDate : Date = value.until;
-    endDate.setDate(endDate.getDate() + 1);
-
     forkJoin([
       this.attendanceService.getEvents({
         since: value.since,
-        until: endDate
+        until: value.until.plus({days: 1})
       }),
       this.studentsService.getAllStudents().pipe(take(1)),
       this.usersService.getAllUsers()
@@ -62,7 +54,7 @@ export class CsvExportComponent implements OnInit {
             event.registered_by,
             userNameMap.get(event.registered_by) ?? "UNDEFINED",
             event.type as string,
-            event.created_at.toISOString()
+            event.created_at.toISO()
           ]);
         const unparseData : MapObject = {
           fields: keys,

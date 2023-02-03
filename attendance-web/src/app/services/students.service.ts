@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http'
 
-import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, share, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, share, Subject, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
+import { DateTime } from 'luxon';
 
 export interface StudentUpdate {
   id: number,
@@ -45,7 +46,7 @@ export class StudentsService {
 
   private students = new ReplaySubject<Array<Student>>(1);
 
-  private lastRefresh: Date|null = null;
+  private lastRefresh: DateTime|null = null;
 
   constructor(private httpClient: HttpClient) {
     // Apply the current pending updates to the backendStudents and save it in students
@@ -77,8 +78,8 @@ export class StudentsService {
   }
 
   getAllStudents(): Observable<Array<Student>> {
-    const now = new Date();
-    if(this.lastRefresh == null || (now.getTime() - this.lastRefresh.getTime()) > environment.pollInterval) {
+    const now = DateTime.now();
+    if(this.lastRefresh == null || (now.toMillis() - this.lastRefresh.toMillis()) > environment.pollInterval) {
       this.refreshStudents();
     }
     return this.students;
@@ -123,7 +124,7 @@ export class StudentsService {
     const request = this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').pipe(share());
     request.subscribe(students => {
       this.backendStudents.next(students);
-      this.lastRefresh = new Date();
+      this.lastRefresh = DateTime.now();
     })
     return request.pipe(map(it => void 0));
   }
