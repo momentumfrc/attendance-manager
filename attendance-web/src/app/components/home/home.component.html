@@ -1,11 +1,12 @@
 <ng-container *ngIf="authService.checkHasAnyRole(allowedRoles) | async; else notMentorHome">
-    <nav mat-tab-nav-bar [tabPanel]="eventOptionsTabPanel">
+    <nav mat-tab-nav-bar [tabPanel]="eventOptionsTabPanel" mat-stretch-tabs="false" mat-align-tabs="start" id="navTabs">
         <a mat-tab-link *ngFor="let tab of tabs"
             [routerLink]="tab.path"
             routerLinkActive #rla="routerLinkActive"
             [active]="rla.isActive">{{tab.name}}</a>
       </nav>
       <mat-tab-nav-panel #eventOptionsTabPanel>
+        <mat-divider></mat-divider>
         <router-outlet></router-outlet>
       </mat-tab-nav-panel>
 </ng-container>

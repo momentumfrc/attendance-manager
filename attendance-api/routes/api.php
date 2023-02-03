@@ -8,6 +8,7 @@ use App\Http\Controllers\AttendanceEventController;
 use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeetingEventController;
+use App\Http\Controllers\StatsController;
 
 use Spatie\Permission\Models\Role;
 
@@ -46,6 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('can:list roles')->get('roles', function() {
         return Role::all()->pluck('name');
     });
+
+    Route::get('stats/meetings', [StatsController::class, 'meetings']);
 });
 
 

@@ -1,7 +1,8 @@
 <mat-card id="exportCard">
+<mat-card-content id="exportCardContent">
 <form [formGroup]="exportOptions" (ngSubmit)="onSubmit(exportOptions.value)">
     <div class="formRow">
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="outline">
             <mat-label>Enter a date range</mat-label>
             <mat-date-range-input [rangePicker]="picker">
                 <input matStartDate formControlName="since" placeholder="Start date">
@@ -15,4 +16,5 @@
 
     <button mat-raised-button color="primary" type="submit" [disabled]="!exportOptions.valid" id="submitButton">Export</button>
 </form>
+</mat-card-content>
 </mat-card>

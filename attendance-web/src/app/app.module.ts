@@ -22,7 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatLuxonDateModule } from '@angular/material-luxon-adapter';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -49,6 +49,7 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 import { MeetingConfirmDialogComponent } from './components/meeting-events/meeting-confirm-dialog/meeting-confirm-dialog.component';
+import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 
 
 @NgModule({
@@ -70,7 +71,8 @@ import { MeetingConfirmDialogComponent } from './components/meeting-events/meeti
     CsvExportComponent,
     EventLogComponent,
     MeetingEventsComponent,
-    MeetingConfirmDialogComponent
+    MeetingConfirmDialogComponent,
+    MeetingsReportComponent
   ],
   imports: [
     BrowserModule,
@@ -96,7 +98,7 @@ import { MeetingConfirmDialogComponent } from './components/meeting-events/meeti
     MatProgressBarModule,
     MatTooltipModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    MatLuxonDateModule,
     MatTableModule,
     MatPaginatorModule,
     MatSidenavModule

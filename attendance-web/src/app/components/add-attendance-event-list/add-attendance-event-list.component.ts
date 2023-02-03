@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
 import { MeetingsService } from 'src/app/services/meetings.service';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -69,15 +70,14 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     // Set up polling for new check-ins/check-outs
     this.polling = interval(environment.pollInterval).pipe(
       switchMap(() => {
-        const since = new Date();
-        since.setSeconds(since.getSeconds() - (1 + (environment.pollInterval / 1000)));
+        const since = DateTime.now().minus({milliseconds: (1000 + environment.pollInterval)});
         return forkJoin({
           updates: this.attendanceService.getEvents({since: since}),
           currentValue: this.allStudents.pipe(take(1))
         });
       }),
       map(({updates, currentValue}) => {
-        updates.sort((a, b) => a.created_at.getTime() - b.created_at.getTime());
+        updates.sort((a, b) => a.created_at.toMillis() - b.created_at.toMillis());
         const checkIns = updates.filter(it => it.type == AttendanceEventType.CHECK_IN);
         const checkOuts = updates.filter(it => it.type == AttendanceEventType.CHECK_OUT);
         return currentValue.map(student => {
@@ -151,7 +151,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       }
       return user;
     })).subscribe(user => {
-      let now = new Date();
+      let now = DateTime.now()
       let dummyEvent : AttendanceEvent = {
         id: -1,
         student_id: student.id,
@@ -161,7 +161,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         updated_at: now
       };
 
-      let updatedStudent = structuredClone(student);
+      let updatedStudent = {
+        ...student
+      };
 
       switch(action){
         case AttendanceEventType.CHECK_IN:
@@ -202,8 +204,11 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   private shouldConsiderStudentCheckedIn(student: Student, meeting: MeetingEvent|null) {
-    const check_in: Date|null = student.last_check_in?.updated_at ?? null;
-    let check_out: Date|null = student.last_check_out?.updated_at ?? null;
+    const check_in: DateTime|null = student.last_check_in?.updated_at ?? null;
+    let check_out: DateTime|null = student.last_check_out?.updated_at ?? null;
+
+    if(student.id == 1)
+      console.log({check_in: check_in?.toLocaleString(), check_out: check_out?.toLocaleString()});
 
     if(meeting != null) {
       if(check_out != null) {

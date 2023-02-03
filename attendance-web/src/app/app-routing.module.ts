@@ -16,6 +16,7 @@ import { CsvExportComponent } from './components/reports/csv-export/csv-export.c
 import { AddAttendanceEventListComponent } from './components/add-attendance-event-list/add-attendance-event-list.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
+import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -34,7 +35,8 @@ const routes: Routes = [
     canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor', 'student-lead']},
     children: [
-      {path: '', redirectTo: 'event-log', pathMatch: 'full'},
+      {path: '', redirectTo: 'meetings', pathMatch: 'full'},
+      {path: 'meetings', component: MeetingsReportComponent},
       {path: 'event-log', component: EventLogComponent},
       {path: 'export', component: CsvExportComponent}
     ]

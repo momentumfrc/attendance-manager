@@ -2,6 +2,7 @@ import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
+import { DateTime } from 'luxon';
 import { BehaviorSubject, combineLatest, filter, map, Observable, ReplaySubject, startWith } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
 import { Student } from 'src/app/models/student.model';
@@ -61,11 +62,15 @@ class EventDataSource implements DataSource<RichAttendanceEvent> {
   styleUrls: ['./event-log.component.scss']
 })
 export class EventLogComponent implements OnInit {
+  readonly dateTimeShort = DateTime.DATETIME_SHORT;
 
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState;
 
-  listOptions: FormGroup
+  listOptions: FormGroup = new FormGroup({
+    since: new FormControl(DateTime.now().minus({months: 1})),
+    until: new FormControl(DateTime.now())
+  });
 
   eventColumns = ["eventId", "studentId", "registrarId", "eventType", "eventDate"];
 
@@ -77,23 +82,11 @@ export class EventLogComponent implements OnInit {
     private studentsService: StudentsService,
     private usersService: UsersService
   ) {
-    let startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-
-    this.listOptions = new FormGroup({
-      since: new FormControl(startDate),
-      until: new FormControl(new Date())
-    });
-
     this.listOptions.controls['until'].valueChanges.pipe(
       filter(it => it),
       map(it => ({since: this.listOptions.controls['since'].value, until: it})),
       startWith(this.listOptions.value),
-      map(dates => {
-        let endDate : Date = structuredClone(dates.until);
-        endDate.setDate(endDate.getDate() + 1);
-        return {since: dates.since, until: endDate};
-      })
+      map(dates =>({since: dates.since, until: dates.until.plus({days: 1})}))
     ).subscribe(dates => {
       this.state.next(PageState.LOADING);
       this.attendanceService.getEvents(dates).subscribe(events => {

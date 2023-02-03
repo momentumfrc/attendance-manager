@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute } from '@angular/router';
+import { DateTime } from 'luxon';
 import { AsyncSubject, BehaviorSubject, catchError, filter, map, Observable, of, ReplaySubject, share, switchMap, tap, throwError } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
@@ -35,7 +36,7 @@ class RichAttendanceSession {
     if(!this.session.checkout_date) {
       return "-";
     }
-    const diff = this.session.checkout_date.getTime() - this.session.checkin_date.getTime();
+    const diff = this.session.checkout_date.toMillis() - this.session.checkin_date.toMillis();
     const diffSeconds = Math.floor(diff / 1000);
     return formatTimeDiff(diffSeconds);
   }
@@ -51,7 +52,7 @@ class AttendanceStats {
       if(!current.checkout_date) {
         return accumulator;
       }
-      const diff = current.checkout_date.getTime() - current.checkin_date.getTime();
+      const diff = current.checkout_date.toMillis() - current.checkin_date.toMillis();
       return accumulator + diff;
     }, 0);
     return formatTimeDiff(Math.floor(totalMs / 1000));
@@ -102,6 +103,8 @@ class SessionDataSource implements DataSource<RichAttendanceSession> {
   styleUrls: ['./show-student.component.scss']
 })
 export class ShowStudentComponent implements OnInit {
+  readonly dateTimeShort = DateTime.DATETIME_SHORT;
+
   protected stateType = PageState;
   protected state = new BehaviorSubject<PageState>(PageState.STUDENT_LOADING);
 

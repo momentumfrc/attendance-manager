@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
+import { DateTime } from 'luxon';
 import { combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, take } from 'rxjs';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
 import { User } from 'src/app/models/user.model';
@@ -56,9 +57,14 @@ class MeetingDataSource implements DataSource<RichMeetingEvent> {
   styleUrls: ['./meeting-events.component.scss']
 })
 export class MeetingEventsComponent implements OnInit {
+  readonly dateTimeFormatShort = DateTime.DATETIME_SHORT;
+
   eventColumns = ["eventId", "registrar", "eventType", "eventDate"];
 
-  meetingEventListOptions: FormGroup
+  meetingEventListOptions: FormGroup = new FormGroup({
+    since: new FormControl(DateTime.now().minus({months: 1})),
+    until: new FormControl(DateTime.now())
+  });
 
   loadingEvents = true;
   events = new ReplaySubject<Array<MeetingEvent>>(1);
@@ -70,23 +76,11 @@ export class MeetingEventsComponent implements OnInit {
     private usersService: UsersService,
     private dialog: MatDialog,
   ) {
-    let startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 1);
-
-    this.meetingEventListOptions = new FormGroup({
-      since: new FormControl(startDate),
-      until: new FormControl(new Date())
-    });
-
     this.meetingEventListOptions.controls['until'].valueChanges.pipe(
       filter(it => it),
       map(it => ({since: this.meetingEventListOptions.controls['since'].value, until: it})),
       startWith(this.meetingEventListOptions.value),
-      map(dates => {
-        let endDate : Date = structuredClone(dates.until);
-        endDate.setDate(endDate.getDate() + 1);
-        return {since: dates.since, until: endDate};
-      })
+      map(dates => ({since: dates.since, until: dates.until.plus({days: 1})}))
     ).subscribe(dates => {
       this.loadingEvents = true;
       this.meetingsService.getEvents(dates).subscribe(events => {
@@ -130,16 +124,16 @@ export class MeetingEventsComponent implements OnInit {
     };
 
     this.events.pipe(take(1)).subscribe(events => {
-      const now = new Date();
+      const now = DateTime.now();
       // Prompt the user to confirm if an attempt is made to end a meeting within 6 hours of the
       // last end-of-meeting event.
       // FIXME: Abstract this magic number into a variable
-      if(events.length > 0 && now.getTime() - events[0].created_at.getTime() < (6 * 60 * 60 * 1000)) {
+      if(events.length > 0 && now.toMillis() - events[0].created_at.toMillis() < (6 * 60 * 60 * 1000)) {
         let dialogref = this.dialog.open(MeetingConfirmDialogComponent, {
           width: '320px',
           data: {
             action: 'End Meeting',
-            message: 'Another meeting was recently ended at ' + events[0].created_at.toLocaleString(),
+            message: 'Another meeting was recently ended at ' + events[0].created_at.toLocaleString(DateTime.DATETIME_SHORT),
             closeColor: 'primary'
           }
         });

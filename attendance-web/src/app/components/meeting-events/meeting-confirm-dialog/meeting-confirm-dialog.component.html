@@ -1,3 +1,4 @@
+<div id="mainBody">
 <h1 mat-dialog-title>Confirm {{data.action}}</h1>
 <div mat-dialog-content>
     <p>{{data.message}}</p>
@@ -5,4 +6,5 @@
 <div mat-dialog-options id="dialogOptions">
     <button mat-stroked-button [mat-dialog-close]="false">Cancel</button>
     <button mat-stroked-button color="{{data.closeColor}}" [mat-dialog-close]="true">Confirm</button>
+</div>
 </div>

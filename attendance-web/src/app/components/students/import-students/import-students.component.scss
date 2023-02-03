@@ -2,6 +2,10 @@
 
 $valid-indicator-width: 60px;
 
+#mainPage {
+    padding: 20px 0px;
+}
+
 #fileReqs {
     @include media.desktop {
         font-size: 1.4em;
@@ -21,11 +25,6 @@ $valid-indicator-width: 60px;
 #validationError {
     color: red;
     font-weight: 500;
-}
-
-
-#mainPage {
-    margin-top: 20px;
 }
 
 #uploadElement > * {
