@@ -12,14 +12,6 @@ enum PageState {
   LOADED
 }
 
-function* daysFromInterval(interval: Interval) {
-  let cursor = interval.start.startOf("day");
-  while (cursor < interval.end) {
-    yield cursor;
-    cursor = cursor.plus({ days: 1 });
-  }
-}
-
 @Component({
   selector: 'app-meetings',
   templateUrl: './meetings-report.component.html',
@@ -65,32 +57,35 @@ export class MeetingsReportComponent {
       stats: this.meetingData
     }).subscribe(({dates, stats}) => {
       const statsByDate = new Map(stats.map(it => [it.meeting_date.toMillis(), it]));
-      const datesInInterval = Array.from(daysFromInterval(dates))
       const data = {
         datasets: [{
           label: 'Student Count',
-          data: datesInInterval.map(day => ({x: day.toMillis(), y:statsByDate.get(day.toMillis())?.student_count ?? 0}))
+          data: stats.map(stat => ({x: stat.meeting_date.toMillis(), y:stat.student_count}))
         }]
       };
+      const scales: any = {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'week'
+          },
+          min: dates.start.toMillis(),
+          max: dates.end.toMillis()
+        },
+        y: {
+          min: 0
+        }
+      }
       if(this.chart) {
         this.chart.data = data;
+        this.chart.options.scales = scales;
         this.chart.update();
       } else {
         this.chart = new Chart('lineChart', {
           type: 'bar',
           data: data,
           options: {
-            scales: {
-              x: {
-                type: 'time',
-                time: {
-                  unit: 'week'
-                }
-              },
-              y: {
-                min: 0
-              }
-            }
+            scales: scales
           }
         });
       }
