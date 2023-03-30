@@ -108,4 +108,14 @@ return [
 
     'password_timeout' => 10800,
 
+    /*
+    |--------------------------------------------------------------------------
+    | System User Id
+    |--------------------------------------------------------------------------
+    |
+    | The "slack_id" of the System user used when executing console commands.
+    |
+    */
+    'system_slack_id' => 'SYSTEM-1'
+
 ];
