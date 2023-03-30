@@ -11,13 +11,10 @@ use App\Models\Student;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class AttendanceEventController extends Controller
 {
-    public function __construct() {
-        $this->middleware('can:take attendance')->only('store');
-    }
-
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',
@@ -61,6 +58,13 @@ class AttendanceEventController extends Controller
             'student_id' => 'required|exists:students,id',
             'type' => 'required|string|in:'.join(',', config('enums.attendance_event_types'))
         ]);
+
+        $permission = [
+            config('enums.attendance_event_types')['CHECK_IN'] => 'student check in',
+            config('enums.attendance_event_types')['CHECK_OUT'] => 'student check out'
+        ][$request->type];
+
+        Gate::authorize($permission);
 
         $student = Student::find($request->student_id);
 
