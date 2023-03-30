@@ -166,4 +166,8 @@ export class MeetingEventsComponent implements OnInit {
       });
     });
   }
+
+  notAllowedToEndMeetings(): Observable<boolean> {
+    return this.authService.checkHasAnyRole(['mentor']).pipe(map(it => !it));
+  }
 }

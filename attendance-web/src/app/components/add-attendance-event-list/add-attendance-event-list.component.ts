@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, forkJoin, interval, map, Observable, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
+import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
 import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -144,6 +144,14 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     this.meetingPolling.unsubscribe();
   }
 
+  private getValidRoles(): string[] {
+    let validRoles = ['mentor'];
+    if(this.mode == AttendanceEventType.CHECK_IN) {
+      validRoles.push('student-lead');
+    }
+    return validRoles;
+  }
+
   private attendance(student: Student, action: AttendanceEventType) : void {
     this.authService.getUser().pipe(map(user => {
       if(!user) {
@@ -151,6 +159,17 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       }
       return user;
     })).subscribe(user => {
+      let validRoles = this.getValidRoles();
+      let authorized = user.role_names.find(it => validRoles.includes(it)) != undefined;
+      if(!authorized) {
+        this.snackbar.open(
+          "You are not authorized to perform this action",
+          undefined,
+          { duration: 4000 }
+        );
+        return;
+      }
+
       let now = DateTime.now()
       let dummyEvent : AttendanceEvent = {
         id: -1,
@@ -207,9 +226,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     const check_in: DateTime|null = student.last_check_in?.updated_at ?? null;
     let check_out: DateTime|null = student.last_check_out?.updated_at ?? null;
 
-    if(student.id == 1)
-      console.log({check_in: check_in?.toLocaleString(), check_out: check_out?.toLocaleString()});
-
     if(meeting != null) {
       if(check_out != null) {
         if(meeting.updated_at > check_out) {
@@ -255,5 +271,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
   protected performAction(student: Student) {
     this.attendance(student, this.mode);
+  }
+
+  protected notAuthorized(): Observable<boolean> {
+    return this.authService.checkHasAnyRole(this.getValidRoles()).pipe(map(it => !it));
   }
 }
