@@ -60,6 +60,7 @@ class RolesSeeder extends Seeder
                 'student check in',
                 'list users',
                 'list meeting events',
+                'add meeting events',
                 'view stats'
             ]);
 

@@ -168,6 +168,8 @@ export class MeetingEventsComponent implements OnInit {
   }
 
   notAllowedToEndMeetings(): Observable<boolean> {
-    return this.authService.checkHasAnyRole(['mentor']).pipe(map(it => !it));
+    // At the moment this feature isn't doing anything, but if we should decide that only
+    // mentors may mark end-of-meeting events, then this makes the change easy.
+    return this.authService.checkHasAnyRole(['mentor', 'student-lead']).pipe(map(it => !it));
   }
 }
