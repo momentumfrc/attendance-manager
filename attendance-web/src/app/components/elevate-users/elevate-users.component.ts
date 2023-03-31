@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, startWith } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, ReplaySubject, startWith } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { UsersService } from 'src/app/services/users.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -21,7 +21,9 @@ export class ElevateUsersComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     combineLatest([
-      this.usersService.getAllUsers(),
+      this.usersService.getAllUsers().pipe(
+        map(users => users.filter(user => user.slack_id != 'SYSTEM-1'))
+      ),
       this.searchBox.searchUpdatedEvent.pipe(startWith(""))
     ]).pipe(map(([users, search]) => {
       let retval = users;
