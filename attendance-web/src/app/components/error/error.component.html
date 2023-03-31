@@ -1,0 +1,6 @@
+<p class="error-text title">An error occurred</p>
+<p class="error-text" *ngIf="errorMessage|async as message">{{message}}</p>
+<button mat-stroked-button routerLink="/" id="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    Return to Home
+</button>
