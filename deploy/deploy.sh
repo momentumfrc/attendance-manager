@@ -94,7 +94,10 @@ chmod +x attendance/install.sh
 # -z   compress files during transfer
 rsync -rlptvz --progress --delete \
     -e 'ssh -i ~/.ssh/id_rsa_win' \
-    ./attendance/ momentu2@momentum4999.com:~/public_html/attendance
+    ./attendance/attendance-api momentu2@momentum4999.com:~/public_html/attendance/attendance-api
+rsync -rlptvz --progress --delete \
+    -e 'ssh -i ~/.ssh/id_rsa_win' \
+    ./attendance/attendance-web momentu2@momentum4999.com:~/public_html/attendance/attendance-web
 
 ssh -i ~/.ssh/id_rsa_win momentu2@momentum4999.com 'bash -l -c "~/public_html/attendance/install.sh"'
 
