@@ -17,6 +17,7 @@ import { AddAttendanceEventListComponent } from './components/add-attendance-eve
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
+import { ErrorComponent } from './components/error/error.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -57,6 +58,7 @@ const routes: Routes = [
         canActivate: [MustHaveRoleGuard], data: { roleOptions: [ 'mentor', 'student-lead' ]}}
     ]
   },
+  { path: 'error', component: ErrorComponent },
   { path: '**', redirectTo: '/'}
 ];
 
