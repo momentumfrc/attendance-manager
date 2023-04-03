@@ -1,10 +1,9 @@
-import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { PageEvent } from '@angular/material/paginator';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
-import { AsyncSubject, BehaviorSubject, catchError, filter, map, Observable, of, ReplaySubject, share, switchMap, tap, throwError } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, ReplaySubject, share, startWith, switchMap, tap, throwError } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -12,6 +11,7 @@ import { AttendanceService } from 'src/app/services/attendance.service';
 import { ErrorService } from 'src/app/services/error.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
+import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 
 enum PageState {
   STUDENT_LOADING = 1,
@@ -64,40 +64,6 @@ class AttendanceStats {
   }
 }
 
-class SessionDataSource implements DataSource<RichAttendanceSession> {
-  private data: Array<RichAttendanceSession> = [];
-
-  public readonly pageSizeOptions = [25, 50, 100];
-
-  private paginatedData = new ReplaySubject<Array<RichAttendanceSession>>(1);
-
-  private lastPageSize = this.pageSizeOptions[0];
-
-  public setData(data: Array<RichAttendanceSession>): void {
-    this.data = data;
-    this.updateSlice(0, this.lastPageSize);
-  }
-
-  public paginate(event: PageEvent) {
-    this.lastPageSize = event.pageSize;
-    this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
-  }
-
-  public getDataSize(): number {
-    return this.data.length;
-  }
-
-  private updateSlice(startIdx: number, endIdx: number) {
-    this.paginatedData.next(this.data.slice(startIdx, endIdx));
-  }
-
-  connect(collectionViewer: CollectionViewer): Observable<readonly RichAttendanceSession[]> {
-    return this.paginatedData;
-  }
-
-  disconnect(collectionViewer: CollectionViewer): void {}
-}
-
 @Component({
   selector: 'app-show-student',
   templateUrl: './show-student.component.html',
@@ -111,10 +77,18 @@ export class ShowStudentComponent implements OnInit {
 
   protected student = new AsyncSubject<Student>()
   protected registeredBy = new AsyncSubject<User>()
-  protected attendanceSessions = new SessionDataSource()
-  protected attendanceStats = new AsyncSubject<AttendanceStats>()
 
-  protected sessionColumns = ["checkInDate", "checkOutDate", "duration"]
+  protected sessionsSubject = new ReplaySubject<AttendanceSession[]>(1);
+
+  protected attendanceSessions = new PaginatedDataSource<RichAttendanceSession>()
+  protected attendanceStats = new ReplaySubject<AttendanceStats>(1)
+
+  protected sessionColumns = ["checkInDate", "checkOutDate", "duration"];
+
+  protected studentStatsOptions: FormGroup = new FormGroup({
+    since: new FormControl(DateTime.now().minus({months: 6})),
+    until: new FormControl(DateTime.now())
+  });
 
   constructor(
     studentService: StudentsService,
@@ -157,19 +131,30 @@ export class ShowStudentComponent implements OnInit {
       switchMap(it => this.usersService.getUser(it.registered_by))
     ).subscribe(this.registeredBy);
 
-    const sessions = this.student.pipe(
-      filter(it => !!it),
-      switchMap(it => this.attendanceService.getSessions({forStudentId: it.id})),
-      share()
+    let dateRangeChanges = this.studentStatsOptions.controls['until'].valueChanges.pipe(
+      filter(it => it),
+      map(it => ({since: this.studentStatsOptions.controls['since'].value, until: it})),
+      startWith(this.studentStatsOptions.value)
     );
 
-    sessions.pipe(
+    combineLatest({
+      dateRange: dateRangeChanges,
+      student: this.student
+    }).pipe(
+      switchMap(({dateRange, student}) => this.attendanceService.getSessions({
+        forStudentId: student.id,
+        since: dateRange.since,
+        until: dateRange.until
+      }))
+    ).subscribe(sessions => this.sessionsSubject.next(sessions));
+
+    this.sessionsSubject.pipe(
       map(sessions => sessions.map(session => new RichAttendanceSession(session))),
     ).subscribe((sessions) => {
       this.attendanceSessions.setData(sessions);
     });
 
-    sessions.pipe(
+    this.sessionsSubject.pipe(
       map(sessions => new AttendanceStats(sessions))
     ).subscribe(this.attendanceStats);
   }

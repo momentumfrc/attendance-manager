@@ -1,8 +1,6 @@
-import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { PageEvent } from '@angular/material/paginator';
 import { DateTime } from 'luxon';
 import { combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, take } from 'rxjs';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
@@ -10,45 +8,12 @@ import { User } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { UsersService } from 'src/app/services/users.service';
+import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { MeetingConfirmDialogComponent } from './meeting-confirm-dialog/meeting-confirm-dialog.component';
 
 interface RichMeetingEvent {
   event: MeetingEvent,
   registrar: User
-}
-
-class MeetingDataSource implements DataSource<RichMeetingEvent> {
-  private data: Array<RichMeetingEvent> = [];
-
-  public readonly pageSizeOptions = [25, 50, 100];
-
-  private paginatedData = new ReplaySubject<Array<RichMeetingEvent>>(1);
-
-  private lastPageSize = this.pageSizeOptions[0];
-
-  public setData(data: Array<RichMeetingEvent>): void {
-    this.data = data;
-    this.updateSlice(0, this.lastPageSize);
-  }
-
-  public paginate(event: PageEvent) {
-    this.lastPageSize = event.pageSize;
-    this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
-  }
-
-  public getDataSize(): number {
-    return this.data.length;
-  }
-
-  private updateSlice(startIdx: number, endIdx: number) {
-    this.paginatedData.next(this.data.slice(startIdx, endIdx));
-  }
-
-  connect(collectionViewer: CollectionViewer): Observable<readonly RichMeetingEvent[]> {
-    return this.paginatedData;
-  }
-
-  disconnect(collectionViewer: CollectionViewer): void {}
 }
 
 @Component({
@@ -68,7 +33,7 @@ export class MeetingEventsComponent implements OnInit {
 
   loadingEvents = true;
   events = new ReplaySubject<Array<MeetingEvent>>(1);
-  richMeetingEvents = new MeetingDataSource();
+  richMeetingEvents = new PaginatedDataSource<RichMeetingEvent>();
 
   constructor(
     private meetingsService: MeetingsService,

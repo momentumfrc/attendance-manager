@@ -12,6 +12,19 @@
                 <div><a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a></div>
             </div>
 
+            <form [formGroup]="studentStatsOptions" id="statsOptionForm">
+                <mat-form-field appearance="outline" id="dateInputField">
+                    <mat-label>Enter a date range</mat-label>
+                    <mat-date-range-input [rangePicker]="picker">
+                        <input matStartDate formControlName="since" placeholder="Start date">
+                        <input matEndDate formControlName="until" placeholder="End date">
+                    </mat-date-range-input>
+                    <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-date-range-picker #picker></mat-date-range-picker>
+                </mat-form-field>
+            </form>
+
             <ng-container *ngIf="attendanceStats|async as stats">
                 <h2>Statistics</h2>
                 <mat-card id="statsCard">
