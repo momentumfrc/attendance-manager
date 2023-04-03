@@ -5,17 +5,15 @@
 		"../../docker-compose.yml"
 	],
 	"service": "laravel.test",
-	"workspaceFolder": "/var/www/html",
-	"settings": {
-		"remote.autoForwardPorts": false
+	"workspaceFolder": "/var/www/html/attendance-api",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"remote.autoForwardPorts": false
+			},
+			"extensions": []
+		}
 	},
-	"extensions": [
-		// "mikestead.dotenv",
-		// "amiralizadeh9480.laravel-extra-intellisense",
-		// "ryannaddy.laravel-artisan",
-		// "onecentlin.laravel5-snippets",
-		// "onecentlin.laravel-blade"
-	],
 	"remoteUser": "sail",
 	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2> /dev/null || true"
 	// "forwardPorts": [],

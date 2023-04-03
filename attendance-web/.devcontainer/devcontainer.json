@@ -5,18 +5,22 @@
 		"../../docker-compose.yml"
 	],
 	"service": "angular.test",
-	"workspaceFolder": "/var/www/html",
+	"workspaceFolder": "/var/www/html/attendance-web",
 
 	// Forward the port for running tests
 	"forwardPorts": [ 9876 ],
 
-	"settings": {
-		"remote.autoForwardPorts": false
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"remote.autoForwardPorts": false
+			},
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"Angular.ng-template"
+			]
+		}
 	},
-	"extensions": [
-		"dbaeumer.vscode-eslint",
-		"Angular.ng-template"
-	],
 	"remoteUser": "node",
 	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2> /dev/null || true"
 }
