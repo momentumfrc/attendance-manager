@@ -9,6 +9,7 @@ import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
+import { ErrorService } from 'src/app/services/error.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
 
@@ -119,18 +120,20 @@ export class ShowStudentComponent implements OnInit {
     studentService: StudentsService,
     route: ActivatedRoute,
     private usersService: UsersService,
-    private attendanceService: AttendanceService
+    private attendanceService: AttendanceService,
+    private errorService: ErrorService
   ) {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
     if(studentId) {
-      studentRequest = studentService.getStudent(studentId).pipe(
+      studentRequest = studentService.getStudent(studentId, false).pipe(
         catchError((error: HttpErrorResponse) => {
           if(error.status == 404) {
             return of(null);
           }
-          return throwError(() => error);
-        })
+          throw error;
+        }),
+        errorService.interceptErrors()
       );
     } else {
       studentRequest = of(null);

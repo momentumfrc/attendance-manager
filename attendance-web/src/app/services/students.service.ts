@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http'
+import { HttpClient, HttpContext, HttpResponse } from '@angular/common/http'
 
 import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, share, Subject, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
+import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 
 export interface StudentUpdate {
   id: number,
@@ -55,7 +56,7 @@ export class StudentsService {
       updates: this.pendingUpdates
     }).pipe(
       map(({students, updates}) => {
-        let updated = students;
+        let updated: Student[] = students;
         updates.forEach( update => {
           switch(update.updateType) {
             case PendingUpdateType.DELETE:
@@ -129,8 +130,10 @@ export class StudentsService {
     return request.pipe(map(it => void 0));
   }
 
-  getStudent(studentId: number): Observable<Student> {
-    return this.httpClient.get<Student>(environment.apiRoot + '/students/' + studentId);
+  getStudent(studentId: number, catchErrors = true): Observable<Student> {
+    return this.httpClient.get<Student>(environment.apiRoot + '/students/' + studentId, {
+      context: new HttpContext().set(CATCH_ERRORS, catchErrors)
+    });
   }
 
   updateStudent(student: StudentUpdate): Observable<Student> {
