@@ -1,7 +1,5 @@
-import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { PageEvent } from '@angular/material/paginator';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
@@ -12,6 +10,7 @@ import { AttendanceService } from 'src/app/services/attendance.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
+import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 
 interface EventLogEvent {
   eventId: string,
@@ -24,40 +23,6 @@ interface EventLogEvent {
 enum PageState {
   LOADING = 1,
   LOADED
-}
-
-class EventDataSource implements DataSource<EventLogEvent> {
-  private data: Array<EventLogEvent> = [];
-
-  public readonly pageSizeOptions = [25, 50, 100];
-
-  private paginatedData = new ReplaySubject<Array<EventLogEvent>>(1);
-
-  private lastPageSize = this.pageSizeOptions[0];
-
-  public setData(data: Array<EventLogEvent>): void {
-    this.data = data;
-    this.updateSlice(0, this.lastPageSize);
-  }
-
-  public paginate(event: PageEvent) {
-    this.lastPageSize = event.pageSize;
-    this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
-  }
-
-  public getDataSize(): number {
-    return this.data.length;
-  }
-
-  private updateSlice(startIdx: number, endIdx: number) {
-    this.paginatedData.next(this.data.slice(startIdx, endIdx));
-  }
-
-  connect(collectionViewer: CollectionViewer): Observable<readonly EventLogEvent[]> {
-    return this.paginatedData;
-  }
-
-  disconnect(collectionViewer: CollectionViewer): void {}
 }
 
 interface AttendanceAndMeetingData {
@@ -84,7 +49,7 @@ export class EventLogComponent implements OnInit {
   eventColumns = ["eventId", "studentId", "registrarId", "eventType", "eventDate"];
 
   events = new ReplaySubject<AttendanceAndMeetingData>(1);
-  richEvents = new EventDataSource();
+  richEvents = new PaginatedDataSource<EventLogEvent>();
 
   constructor(
     private attendanceService: AttendanceService,
