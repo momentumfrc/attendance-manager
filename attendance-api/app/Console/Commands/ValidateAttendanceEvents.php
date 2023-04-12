@@ -73,6 +73,40 @@ class ValidateAttendanceEvents extends Command
         return AttendanceSession::whereRaw('TIMESTAMPDIFF(SECOND, checkin_date, checkout_date) / 3600 > ?', [$max_session_length])->get()->pluck('checkout_id');
     }
 
+    private function get_simultaneous_events() {
+        $query = <<<'EOF'
+            SELECT e.id AS curr_id,
+                e.created_at AS curr_date,
+                e.type AS curr_type,
+                e2.id AS prev_id,
+                e2.created_at AS prev_date,
+                e2.type AS prev_type
+            FROM attendance_events AS e
+            JOIN attendance_events AS e2
+            ON e2.student_id = e.student_id
+            AND e2.created_at = (
+                SELECT MAX(created_at)
+                FROM attendance_events
+                WHERE student_id = e.student_id AND created_at < e.created_at
+            )
+            WHERE TIMESTAMPDIFF(SECOND, e2.created_at, e.created_at) <= ?;
+            EOF;
+
+        $events = collect(DB::select($query, [config('config.simultaneous_interval')]));
+
+        [$sametype, $difftype] = $events->partition(fn($val) => $val->curr_type == $val->prev_type);
+
+        // If the two events have the same type, the newer event is removed as it is likely a
+        // duplicate of the other event
+        $sametype_ids = $sametype->pluck('curr_id');
+
+        // If the two events have different type, the both events are removed as the new event is
+        // likely an attempt to "undo" the old event
+        $difftype_ids = $difftype->flatMap(fn($val) => [$val->curr_id, $val->prev_id]);
+
+        return $sametype_ids->concat($difftype_ids);
+    }
+
     /**
      * Execute the console command.
      *
@@ -80,10 +114,22 @@ class ValidateAttendanceEvents extends Command
      */
     public function handle()
     {
-        $repeated_checkouts = $this->get_repeated_checkouts();
-        $long_session_checkouts = $this->get_checkouts_from_long_sessions($this->option('max-session-length'));
+        $reasons = [
+            'repeated_checkouts' => $this->get_repeated_checkouts(),
+            'long_sessions' => $this->get_checkouts_from_long_sessions($this->option('max-session-length')),
+            'simultaneous_events' => $this->get_simultaneous_events()
+        ];
 
-        $invalid_entries = $repeated_checkouts->concat($long_session_checkouts);
+        $invalid_entries = null;
+        foreach($reasons as $reason => $items) {
+            if($invalid_entries == null) {
+                $invalid_entries = $items;
+            } else {
+                $invalid_entries = $invalid_entries->concat($items);
+            }
+        }
+
+        $invalid_entries = $invalid_entries->unique()->values();
         $invalid_entry_count = $invalid_entries->count();
 
         $this->info("There are $invalid_entry_count invalid attendance records.");
@@ -93,17 +139,28 @@ class ValidateAttendanceEvents extends Command
         }
 
         if($this->option('detail')) {
+            $get_reasons = function($model) use ($reasons) {
+                $applicable_reasons = [];
+                foreach($reasons as $reason => $items) {
+                    if($items->contains($model->id)) {
+                        $applicable_reasons[] = $reason;
+                    }
+                }
+                return join(", ", $applicable_reasons);
+            };
+
             $models = AttendanceEvent::findMany($invalid_entries);
             $this->line("");
             $this->table(
-                ['id', 'created_at', 'updated_at', 'student_id', 'registered_by', 'type'],
+                ['id', 'created_at', 'updated_at', 'student_id', 'registered_by', 'type', 'reason'],
                 $models->map(fn ($model) => [
                     $model->id,
                     $model->created_at->toDateTimeString(),
                     $model->updated_at->toDateTimeString(),
                     $model->student_id,
                     $model->registered_by,
-                    $model->type
+                    $model->type,
+                    $get_reasons($model)
                 ])
             );
             $this->line("");
