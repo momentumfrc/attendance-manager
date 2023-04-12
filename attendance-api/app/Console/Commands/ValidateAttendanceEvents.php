@@ -80,10 +80,21 @@ class ValidateAttendanceEvents extends Command
      */
     public function handle()
     {
-        $repeated_checkouts = $this->get_repeated_checkouts();
-        $long_session_checkouts = $this->get_checkouts_from_long_sessions($this->option('max-session-length'));
+        $reasons = [
+            'repeated_checkouts' => $this->get_repeated_checkouts(),
+            'long_sessions' => $this->get_checkouts_from_long_sessions($this->option('max-session-length')),
+        ];
 
-        $invalid_entries = $repeated_checkouts->concat($long_session_checkouts);
+        $invalid_entries = null;
+        foreach($reasons as $reason => $items) {
+            if($invalid_entries == null) {
+                $invalid_entries = $items;
+            } else {
+                $invalid_entries = $invalid_entries->concat($items);
+            }
+        }
+
+        $invalid_entries = $invalid_entries->unique()->values();
         $invalid_entry_count = $invalid_entries->count();
 
         $this->info("There are $invalid_entry_count invalid attendance records.");
@@ -93,17 +104,28 @@ class ValidateAttendanceEvents extends Command
         }
 
         if($this->option('detail')) {
+            $get_reasons = function($model) use ($reasons) {
+                $applicable_reasons = [];
+                foreach($reasons as $reason => $items) {
+                    if($items->contains($model->id)) {
+                        $applicable_reasons[] = $reason;
+                    }
+                }
+                return join(", ", $applicable_reasons);
+            };
+
             $models = AttendanceEvent::findMany($invalid_entries);
             $this->line("");
             $this->table(
-                ['id', 'created_at', 'updated_at', 'student_id', 'registered_by', 'type'],
+                ['id', 'created_at', 'updated_at', 'student_id', 'registered_by', 'type', 'reason'],
                 $models->map(fn ($model) => [
                     $model->id,
                     $model->created_at->toDateTimeString(),
                     $model->updated_at->toDateTimeString(),
                     $model->student_id,
                     $model->registered_by,
-                    $model->type
+                    $model->type,
+                    $get_reasons($model)
                 ])
             );
             $this->line("");
