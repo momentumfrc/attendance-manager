@@ -34,7 +34,8 @@ class ValidateAttendanceEvents extends Command
     protected $signature = 'validate:attendance
         {--fix : Attempt to fix invalid events}
         {--detail : Show invalid events in detail}
-        {--max-session-length=12 : The maximum duration (in hours) an attendance session may last before it is considered invalid}';
+        {--max-session-length=12 : The maximum duration (in hours) an attendance session may last before it is considered invalid}
+        {--simultaneous-interval= : The maximum time interval between two attendance events that are considered to have occured simultaneously}';
 
     /**
      * The console command description.
@@ -73,7 +74,7 @@ class ValidateAttendanceEvents extends Command
         return AttendanceSession::whereRaw('TIMESTAMPDIFF(SECOND, checkin_date, checkout_date) / 3600 > ?', [$max_session_length])->get()->pluck('checkout_id');
     }
 
-    private function get_simultaneous_events() {
+    private function get_simultaneous_events(float $simultaneous_interval) {
         $query = <<<'EOF'
             SELECT e.id AS curr_id,
                 e.created_at AS curr_date,
@@ -92,7 +93,7 @@ class ValidateAttendanceEvents extends Command
             WHERE TIMESTAMPDIFF(SECOND, e2.created_at, e.created_at) <= ?;
             EOF;
 
-        $events = collect(DB::select($query, [config('config.simultaneous_interval')]));
+        $events = collect(DB::select($query, [$simultaneous_interval]));
 
         [$sametype, $difftype] = $events->partition(fn($val) => $val->curr_type == $val->prev_type);
 
@@ -117,7 +118,7 @@ class ValidateAttendanceEvents extends Command
         $reasons = [
             'repeated_checkouts' => $this->get_repeated_checkouts(),
             'long_sessions' => $this->get_checkouts_from_long_sessions($this->option('max-session-length')),
-            'simultaneous_events' => $this->get_simultaneous_events()
+            'simultaneous_events' => $this->get_simultaneous_events($this->option('simultaneous-interval') ?: config('config.simultaneous_interval'))
         ];
 
         $invalid_entries = null;
