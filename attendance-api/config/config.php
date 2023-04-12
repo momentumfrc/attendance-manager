@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'simultaneous_interval' => 10
+    'simultaneous_interval' => 60
 ];
