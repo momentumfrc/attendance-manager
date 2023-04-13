@@ -12,6 +12,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { DateTime } from 'luxon';
+import { PollService } from 'src/app/services/poll.service';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -27,7 +28,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
 
   polling!: Subscription;
-  meetingPolling!: Subscription;
 
   private studentsSub!: Subscription;
 
@@ -35,6 +35,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected mode: AttendanceEventType
 
   constructor(
+    private pollService: PollService,
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
     private meetingsService : MeetingsService,
@@ -53,47 +54,22 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   ngOnInit(): void {
     this.studentsSub = this.studentsService.getAllStudents().subscribe(this.allStudents);
 
-    const updateMeetingEvent : (event: Array<MeetingEvent>) => void = events => {
+    this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}).subscribe(events => {
       if(events.length > 0) {
         this.lastEndOfMeeting.next(events[0]);
       } else {
         this.lastEndOfMeeting.next(null);
       }
-    };
-
-    this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}).subscribe(updateMeetingEvent);
+    });
 
     // Set up polling for new check-ins/check-outs
-    this.polling = interval(environment.pollInterval).pipe(
-      switchMap(() => {
-        const since = DateTime.now().minus({milliseconds: (1000 + environment.pollInterval)});
-        return forkJoin({
-          updates: this.attendanceService.getEvents({since: since}),
-          currentValue: this.allStudents.pipe(take(1))
-        });
-      }),
-      map(({updates, currentValue}) => {
-        updates.sort((a, b) => a.created_at.toMillis() - b.created_at.toMillis());
-        const checkIns = updates.filter(it => it.type == AttendanceEventType.CHECK_IN);
-        const checkOuts = updates.filter(it => it.type == AttendanceEventType.CHECK_OUT);
-        return currentValue.map(student => {
-          let newStudent : Student = {
-            id: student.id,
-            name: student.name,
-            registered_by: student.registered_by,
-            created_at: student.created_at,
-            updated_at: student.updated_at,
-            last_check_in: checkIns.find(item => item.student_id == student.id) ?? student.last_check_in,
-            last_check_out: checkOuts.find(item => item.student_id == student.id) ?? student.last_check_out
-          };
-          return newStudent;
-        });
-      })
-    ).subscribe((students) => this.allStudents.next(students));
-
-    this.meetingPolling = interval(environment.pollInterval).pipe(
-      switchMap(() => this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}))
-    ).subscribe(updateMeetingEvent);
+    this.polling = this.pollService.getPollingObservable().subscribe(pollData => {
+      this.studentsService.updateStudentsInCache(pollData.updated_students);
+      if(pollData.meeting_events.length > 0) {
+        // TODO: Verify that the 0th meeting event is always the most recent
+        this.lastEndOfMeeting.next(pollData.meeting_events[0]);
+      }
+    });
 
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
@@ -137,7 +113,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   ngOnDestroy(): void {
     this.polling.unsubscribe();
     this.studentsSub.unsubscribe();
-    this.meetingPolling.unsubscribe();
   }
 
   private getValidRoles(): string[] {

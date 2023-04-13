@@ -39,7 +39,7 @@ export class StudentsService {
       .subscribe(student => this.updateStudentsInCache([student]));
   }
 
-  private updateStudentsInCache(new_students: Student[]) {
+  public updateStudentsInCache(new_students: Student[]) {
     this.cachedStudents.pipe(
       take(1),
       map(student_map => {
