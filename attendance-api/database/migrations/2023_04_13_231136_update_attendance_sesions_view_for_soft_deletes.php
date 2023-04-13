@@ -2,9 +2,9 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-class CreateAttendanceSessionsTable extends Migration
+class UpdateAttendanceSesionsViewForSoftDeletes extends Migration
 {
     /**
      * Run the migrations.
@@ -26,14 +26,16 @@ class CreateAttendanceSessionsTable extends Migration
                     SELECT IF(type = 'check-out', id, NULL) FROM attendance_events AS check_out_id_subquery
                     WHERE check_out_id_subquery.student_id = check_in.student_id
                         AND check_out_id_subquery.created_at > check_in.created_at
+                        AND check_out_id_subquery.deleted_at IS NULL
                     ORDER BY check_out_id_subquery.created_at ASC
                     LIMIT 1
                 ) AS checkout_id
                 FROM attendance_events AS check_in
-                WHERE type = 'check-in'
+                WHERE type = 'check-in' AND deleted_at IS NULL
             ) AS check_in
             LEFT JOIN attendance_events AS check_out
                 ON check_in.checkout_id = check_out.id
+            WHERE check_out.deleted_at IS NULL
             ORDER BY student_id ASC, checkin_date DESC;
             EOD;
         DB::statement($query);
