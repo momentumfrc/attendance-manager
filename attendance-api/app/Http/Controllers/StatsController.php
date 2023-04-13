@@ -24,7 +24,7 @@ class StatsController extends Controller
 
         $query = DB::table('attendance_sessions')
             ->selectRaw(
-                'CAST(CONVERT_TZ(checkin_date, "UTC", ?) AS DATE) as meeting_date, COUNT(DISTINCT student_id) AS student_count',
+                'CAST(CONVERT_TZ(checkin_date, "+0:00", ?) AS DATE) as meeting_date, COUNT(DISTINCT student_id) AS student_count',
                 [$request->input('timezone', config('config.default_client_timezone'))]
             );
 
