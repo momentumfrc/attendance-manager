@@ -141,29 +141,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         return;
       }
 
-      let now = DateTime.now()
-      let dummyEvent : AttendanceEvent = {
-        id: -1,
-        student_id: student.id,
-        registered_by: user.id,
-        type: action,
-        created_at: now,
-        updated_at: now
-      };
-
-      let updatedStudent = {
-        ...student
-      };
-
-      switch(action){
-        case AttendanceEventType.CHECK_IN:
-          updatedStudent.last_check_in = dummyEvent;
-          break;
-        case AttendanceEventType.CHECK_OUT:
-          updatedStudent.last_check_out = dummyEvent;
-          break;
-      };
-
         const eventStr = {
           [AttendanceEventType.CHECK_IN]: "checked in",
           [AttendanceEventType.CHECK_OUT]: "checked out"
