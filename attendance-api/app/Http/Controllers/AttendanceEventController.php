@@ -101,4 +101,14 @@ class AttendanceEventController extends Controller
         return $event;
     }
 
+    public function destroy(AttendanceEvent $event) {
+        if(Carbon::now()->diffInSeconds($event->created_at) > config('config.undo_window')) {
+            throw ValidationException::withMessages([
+                'id' => ['The record cannot be removed as the undo window has elapsed.']
+            ]);
+        }
+
+        $event->delete();
+    }
+
 }
