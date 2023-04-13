@@ -18,11 +18,15 @@ class StatsController extends Controller
         $request->validate([
             'since' => 'date_format:U|lt:4294967295',
             'until' => 'date_format:U|lt:4294967295',
+            'timezone' => 'date_format:P',
             'limit' => 'integer|min:1'
         ]);
 
         $query = DB::table('attendance_sessions')
-            ->selectRaw('DATE(checkin_date) as meeting_date, COUNT(DISTINCT student_id) AS student_count');
+            ->selectRaw(
+                'CAST(CONVERT_TZ(checkin_date, "UTC", ?) AS DATE) as meeting_date, COUNT(DISTINCT student_id) AS student_count',
+                [$request->input('timezone', config('config.default_client_timezone'))]
+            );
 
         if($request->has('since')) {
             $query = $query->where('checkin_date', '>=', Carbon::createFromTimestamp($request->since)->setTime(0, 0, 0));

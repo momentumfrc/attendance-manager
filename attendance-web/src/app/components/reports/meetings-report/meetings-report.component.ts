@@ -56,7 +56,6 @@ export class MeetingsReportComponent {
       dates: this.selectedInterval,
       stats: this.meetingData
     }).subscribe(({dates, stats}) => {
-      const statsByDate = new Map(stats.map(it => [it.meeting_date.toMillis(), it]));
       const data = {
         datasets: [{
           label: 'Student Count',
