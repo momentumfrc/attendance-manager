@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
+import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -169,8 +169,8 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           [AttendanceEventType.CHECK_OUT]: "checked out"
         }[action];
 
-        this.attendanceService.registerEvent(student.id, action)
-          .subscribe(event => this.studentsService.refreshSingleStudent(event.student_id))
+        const registerResponse = this.attendanceService.registerEvent(student.id, action).pipe(shareReplay(1));
+        registerResponse.subscribe(event => this.studentsService.refreshSingleStudent(event.student_id))
 
         const snackBarHandle = this.snackbar.open(
           "Student " + student.name + " " + eventStr,
@@ -179,8 +179,13 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         );
 
         snackBarHandle.onAction().subscribe(() => {
-          // TODO
-          console.warn("Not yet implemented");
+          registerResponse.subscribe(event => {
+            this.attendanceService.deleteEvent(event.id).subscribe(deleted => {
+              if(deleted) {
+                this.studentsService.refreshSingleStudent(event.student_id);
+              }
+            })
+          });
         });
     });
   }
