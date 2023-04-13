@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
-import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
+import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -51,11 +51,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   ngOnInit(): void {
-    // Get students from database
-    // I can't directly just .subscribe(this.allStudents) because that will cause this.allStudents
-    // to complete when the request finishes, but I want allStudents to be long-lived so it can
-    // respond to updates
-    this.studentsSub = this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+    this.studentsSub = this.studentsService.getAllStudents().subscribe(this.allStudents);
 
     const updateMeetingEvent : (event: Array<MeetingEvent>) => void = events => {
       if(events.length > 0) {
@@ -198,26 +194,18 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           [AttendanceEventType.CHECK_OUT]: "checked out"
         }[action];
 
+        this.attendanceService.registerEvent(student.id, action)
+          .subscribe(event => this.studentsService.refreshSingleStudent(event.student_id))
+
         const snackBarHandle = this.snackbar.open(
           "Student " + student.name + " " + eventStr,
           "Undo",
           { duration: 4000 }
         );
 
-        const pendingUpdate = new PendingUpdate(updatedStudent, PendingUpdateType.UPDATE,
-          (update) => {
-            return this.attendanceService.registerEvent(student.id, action).pipe(map(it => void 0));
-          }
-        );
-        const updateId = this.studentsService.addPendingUpdate(pendingUpdate);
-
-        const updateExecutor = snackBarHandle.afterDismissed().subscribe(() => {
-          this.studentsService.commitPendingUpdate(updateId);
-        });
-
         snackBarHandle.onAction().subscribe(() => {
-          updateExecutor.unsubscribe();
-          this.studentsService.clearPendingUpdate(updateId);
+          // TODO
+          console.warn("Not yet implemented");
         });
     });
   }

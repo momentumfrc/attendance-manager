@@ -100,15 +100,11 @@ export class ShowStudentComponent implements OnInit {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
     if(studentId) {
-      studentRequest = studentService.getStudent(studentId, false).pipe(
-        catchError((error: HttpErrorResponse) => {
-          if(error.status == 404) {
-            return of(null);
-          }
-          throw error;
-        }),
-        errorService.interceptErrors()
-      );
+      studentRequest = studentService.getStudent(studentId).pipe(
+        // Stupid freaking javascript defining null and undefined as two different things!
+        // This converts the Observable<Student|undefined> => Observable<Student|null>
+        map(it => it ? it : null)
+      )
     } else {
       studentRequest = of(null);
     }

@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirective } from '@angular/forms';
-import { ActivatedRoute, Router, UrlSegment } from '@angular/router';
-import { PendingUpdate, PendingUpdateType, StudentsService } from 'src/app/services/students.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
-import { AsyncSubject, BehaviorSubject, combineLatest, forkJoin, map, Observable, of, ReplaySubject, Subscription, take, tap } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable, of, ReplaySubject, Subscription, take } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 enum ComponentState {
@@ -105,7 +105,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         if(student == null) {
           return;
         }
-        this.studentsService.updateStudent({id: student.id, name: studentName}).subscribe(
+        this.studentsService.updateStudent(student.id, {name: studentName}).subscribe(
           (student: Student) => {
             this.snackBar.open("Student " + student.name + " updated!", '', {
               duration: 4000
@@ -129,24 +129,15 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   }
 
   doDelete(student: Student) {
-    let pendingDelete = new PendingUpdate(student, PendingUpdateType.DELETE,
-      (update) => {
-        return this.studentsService.deleteStudent(student.id).pipe(map(it => void 0));
-      }
-    );
-
-    const updateId = this.studentsService.addPendingUpdate(pendingDelete);
+    this.studentsService.deleteStudent(student.id).subscribe();
 
     const snackBarRef = this.snackBar.open("Student " + student.name + " deleted!", 'Undo', {
       duration: 4000
     });
 
-    const deletionExecutor = snackBarRef.afterDismissed().subscribe(() => {
-      this.studentsService.commitPendingUpdate(updateId);
-    });
-
     snackBarRef.onAction().subscribe(() => {
-      this.studentsService.clearPendingUpdate(updateId);
+      // TODO
+      console.warn("Not yet implemented!");
     });
 
     this.router.navigate(['/', 'students']);

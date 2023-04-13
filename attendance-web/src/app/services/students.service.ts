@@ -1,155 +1,120 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpContext, HttpResponse } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http'
 
-import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, share, Subject, tap, throwError } from 'rxjs';
+import { map, Observable, ReplaySubject, shareReplay, take } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
-import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
-
-export interface StudentUpdate {
-  id: number,
-  name: string
-}
-
-export enum PendingUpdateType {
-  UPDATE,
-  DELETE
-}
-
-export class PendingUpdate {
-  constructor(
-    public student: Student,
-    public updateType: PendingUpdateType,
-    public commitAction: (update: PendingUpdate) => Observable<void>
-  ) {}
-
-  private committed = false;
-
-  commit(): Observable<void> {
-    if(this.committed) {
-      return throwError(() => new Error("Attempt to commit already-committed update"));
-    }
-    this.committed = true;
-    return this.commitAction(this);
-  }
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class StudentsService {
-  private backendStudents = new Subject<Array<Student>>();
+  private cachedStudents = new ReplaySubject<Map<number, Student>>(1);
 
-  private pendingUpdates = new BehaviorSubject(new Map<number, PendingUpdate>());
-  private nextUpdateId = 1;
-
-  private students = new ReplaySubject<Array<Student>>(1);
-
-  private lastRefresh: DateTime|null = null;
+  private lastRefresh: DateTime;
 
   constructor(private httpClient: HttpClient) {
-    // Apply the current pending updates to the backendStudents and save it in students
-    combineLatest({
-      students: this.backendStudents,
-      updates: this.pendingUpdates
-    }).pipe(
-      map(({students, updates}) => {
-        let updated: Student[] = students;
-        updates.forEach( update => {
-          switch(update.updateType) {
-            case PendingUpdateType.DELETE:
-              updated = updated.filter(it => it.id != update.student.id);
-              break;
-            case PendingUpdateType.UPDATE:
-              updated = updated.map(it => {
-                if(it.id == update.student.id) {
-                  return update.student;
-                } else {
-                  return it;
-                }
-              });
-              break;
-          }
-        });
-        return updated;
-      })
-    ).subscribe(this.students);
+    this.refreshStudents();
+    this.lastRefresh = DateTime.now();
   }
 
-  getAllStudents(): Observable<Array<Student>> {
+  private checkCacheAge() {
     const now = DateTime.now();
-    if(this.lastRefresh == null || (now.toMillis() - this.lastRefresh.toMillis()) > environment.pollInterval) {
+    if(now.diff(this.lastRefresh).toMillis() > environment.pollInterval) {
       this.refreshStudents();
     }
-    return this.students;
   }
 
-  addPendingUpdate(update: PendingUpdate): number {
-    let id = this.nextUpdateId;
-    this.nextUpdateId += 1;
-
-    let updates = this.pendingUpdates.getValue();
-    updates.set(id, update);
-
-    this.pendingUpdates.next(updates);
-
-    return id;
+  public refreshStudents() {
+    this.lastRefresh = DateTime.now();
+    this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').pipe(
+      map(students => new Map(students.map(student => [student.id, student])))
+    ).subscribe(students => this.cachedStudents.next(students));
   }
 
-  clearPendingUpdate(id: number): PendingUpdate|undefined {
-    let updates = this.pendingUpdates.getValue();
-    let update = updates.get(id);
-    updates.delete(id);
-    this.pendingUpdates.next(updates);
-    return update;
+  public refreshSingleStudent(id: number) {
+    const request = this.httpClient.get<Student>(environment.apiRoot + '/students/' + id)
+      .subscribe(student => this.updateStudentsInCache([student]));
   }
 
-  commitPendingUpdate(id: number): void {
-    let update = this.pendingUpdates.getValue().get(id);
-    if(update) {
-      update.commit().subscribe(() => {
-        this.refreshStudents().subscribe(() => {
-          this.clearPendingUpdate(id);
+  private updateStudentsInCache(new_students: Student[]) {
+    this.cachedStudents.pipe(
+      take(1),
+      map(student_map => {
+        const student_map_copy = new Map(student_map);
+        new_students.forEach(student => {
+          student_map_copy.set(student.id, student);
         })
+        return student_map_copy;
       })
-    }
+    ).subscribe(students => this.cachedStudents.next(students));
   }
 
-  isUpdatePending(): boolean {
-    return this.pendingUpdates.getValue().size > 0;
+  private deleteStudentsFromCache(deleted: number[]) {
+    this.cachedStudents.pipe(
+      take(1),
+      map(student_map => {
+        const student_map_copy = new Map(student_map);
+        deleted.forEach(id => {
+          student_map_copy.delete(id);
+        })
+        return student_map_copy;
+      })
+    ).subscribe(students => this.cachedStudents.next(students));
   }
 
-  refreshStudents(): Observable<void> {
-    const request = this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').pipe(share());
-    request.subscribe(students => {
-      this.backendStudents.next(students);
-      this.lastRefresh = DateTime.now();
-    })
-    return request.pipe(map(it => void 0));
+  public getStudentMap(): Observable<Map<number, Student>> {
+    this.checkCacheAge();
+    return this.cachedStudents;
   }
 
-  getStudent(studentId: number, catchErrors = true): Observable<Student> {
-    return this.httpClient.get<Student>(environment.apiRoot + '/students/' + studentId, {
-      context: new HttpContext().set(CATCH_ERRORS, catchErrors)
-    });
+  public getAllStudents(): Observable<Array<Student>> {
+    this.checkCacheAge();
+    return this.cachedStudents.pipe(map(student_map => Array.from(student_map.values())));
   }
 
-  updateStudent(student: StudentUpdate): Observable<Student> {
-    return this.httpClient.put<Student>(environment.apiRoot + '/students/' + student.id, student);
+  public getStudent(studentId: number): Observable<Student|undefined> {
+    this.checkCacheAge();
+    return this.cachedStudents.pipe(map(students => students.get(studentId)));
   }
 
-  deleteStudent(studentId: number): Observable<HttpResponse<any>> {
-    return this.httpClient.delete(environment.apiRoot + '/students/' + studentId, {
+  public updateStudent(id: number, update: {name: string}): Observable<Student> {
+    const request = this.httpClient.put<Student>(environment.apiRoot + '/students/' + id, update)
+      .pipe(shareReplay(1));
+
+    request.subscribe(updatedStudent => this.updateStudentsInCache([updatedStudent]));
+
+    return request;
+  }
+
+  public deleteStudent(studentId: number): Observable<boolean> {
+    const request = this.httpClient.delete(environment.apiRoot + '/students/' + studentId, {
       observe: 'response'
-    });
+    }).pipe(
+      map(response => response.status == 200),
+      shareReplay(1)
+    );
+
+    request.subscribe(success => {
+      if(success) {
+        this.deleteStudentsFromCache([studentId]);
+      }
+    })
+
+    return request;
   }
 
-  registerNewStudent(name: string): Observable<Student> {
-    let postBody = {
+  public registerNewStudent(name: string): Observable<Student> {
+    const postBody = {
       'name': name
     };
-    return this.httpClient.post<Student>(environment.apiRoot + '/students', postBody);
+    const request = this.httpClient.post<Student>(environment.apiRoot + '/students', postBody)
+      .pipe(shareReplay(1));
+
+    request.subscribe(newStudent => this.updateStudentsInCache([newStudent]));
+
+    return request;
   }
 }
