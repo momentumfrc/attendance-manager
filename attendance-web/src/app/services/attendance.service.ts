@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http'
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http'
 import { environment } from 'src/environments/environment';
 
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-event.model';
 import { AttendanceSession } from '../models/attendance-session.model';
@@ -21,6 +21,12 @@ export class AttendanceService {
       'student_id': studentId,
       'type': eventType
     });
+  }
+
+  deleteEvent(eventId: number): Observable<boolean> {
+    return this.httpClient.delete<HttpResponse<any>>(environment.apiRoot + '/attendance/events/' + eventId, {
+      observe: 'response'
+    }).pipe(map(response => response.status == 200));
   }
 
   getEvents(options: {

@@ -70,35 +70,44 @@ class AttendanceEventController extends Controller
 
         $student = Student::find($request->student_id);
 
-        $last_event = $student->attendanceEvents()->orderBy('created_at', 'desc')->first();
-        if(Carbon::now()->diffInSeconds($last_event->created_at) < config('config.simultaneous_interval')) {
-            if($request->type == $last_event->type) {
-                throw ValidationException::withMessages([
-                    'student_id' => ['A recent '.$request->type.' already exists for this student.']
-                ]);
-            }
-
-            // TODO: If two events have different type, the previous event is removed and the new
-            //       event is ignored as the new event is likely an attempt to "undo" the old event.
-            //
-            //       Since this involves deleting attendance records, we cannot implement it until
-            //       there is some mechanism in-place to notify polling clients that an event has
-            //       been deleted. This will need to wait until we have implemented the server-side
-            //       undo that is discussed in #40.
-        }
-
         $event = new AttendanceEvent;
         $event->type = $request->type;
         $event->registered_by = Auth::id();
 
-        $student->attendanceEvents()->save($event);
+        $last_event = $student->attendanceEvents()->orderBy('created_at', 'desc')->first();
+        if($last_event != null && Carbon::now()->diffInSeconds($last_event->created_at) < config('config.simultaneous_interval')) {
+            if($request->type == $last_event->type) {
+                throw ValidationException::withMessages([
+                    'student_id' => ['A recent '.$request->type.' already exists for this student.']
+                ]);
+            } else {
+                // If two events have different type, the new event is saved, but both the previous
+                // and current events are soft-deleted, since the new event is likely an attempt
+                // to "undo" the old event
+                $last_event->delete();
+                $student->attendanceEvents()->save($event)->delete();
 
+                return $event;
+            }
+        }
+
+        $student->attendanceEvents()->save($event);
         return $event;
     }
 
     public function show(AttendanceEvent $event)
     {
         return $event;
+    }
+
+    public function destroy(AttendanceEvent $event) {
+        if(Carbon::now()->diffInSeconds($event->created_at) > config('config.undo_window')) {
+            throw ValidationException::withMessages([
+                'id' => ['The record cannot be removed as the undo window has elapsed.']
+            ]);
+        }
+
+        $event->delete();
     }
 
 }

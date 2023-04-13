@@ -63,9 +63,11 @@ class ValidateAttendanceEvents extends Command
             AND e2.created_at = (
                 SELECT MAX(created_at)
                 FROM attendance_events
-                WHERE student_id = e.student_id AND created_at < e.created_at
+                WHERE student_id = e.student_id
+                    AND created_at < e.created_at
+                    AND deleted_at IS NULL
             )
-            WHERE e.type = 'check-out' AND e2.type = 'check-out'
+            WHERE e.deleted_at IS NULL AND e.type = 'check-out' AND e2.type = 'check-out'
             EOF;
         return collect(DB::select($query))->pluck('id');
     }
@@ -88,9 +90,9 @@ class ValidateAttendanceEvents extends Command
             AND e2.created_at = (
                 SELECT MAX(created_at)
                 FROM attendance_events
-                WHERE student_id = e.student_id AND created_at < e.created_at
+                WHERE deleted_at IS NULL AND student_id = e.student_id AND created_at < e.created_at
             )
-            WHERE TIMESTAMPDIFF(SECOND, e2.created_at, e.created_at) <= ?;
+            WHERE e.deleted_at IS NULL AND e2.deleted_at IS NULL AND TIMESTAMPDIFF(SECOND, e2.created_at, e.created_at) <= ?;
             EOF;
 
         $events = collect(DB::select($query, [$simultaneous_interval]));

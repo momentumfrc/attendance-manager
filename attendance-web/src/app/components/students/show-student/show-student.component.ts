@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
-import { AsyncSubject, BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, ReplaySubject, share, startWith, switchMap, tap, throwError } from 'rxjs';
+import { AsyncSubject, BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, ReplaySubject, share, shareReplay, startWith, switchMap, tap, throwError } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -75,8 +75,8 @@ export class ShowStudentComponent implements OnInit {
   protected stateType = PageState;
   protected state = new BehaviorSubject<PageState>(PageState.STUDENT_LOADING);
 
-  protected student = new AsyncSubject<Student>()
-  protected registeredBy = new AsyncSubject<User>()
+  protected student = new ReplaySubject<Student>(1)
+  protected registeredBy = new ReplaySubject<User>(1)
 
   protected sessionsSubject = new ReplaySubject<AttendanceSession[]>(1);
 
@@ -100,20 +100,16 @@ export class ShowStudentComponent implements OnInit {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
     if(studentId) {
-      studentRequest = studentService.getStudent(studentId, false).pipe(
-        catchError((error: HttpErrorResponse) => {
-          if(error.status == 404) {
-            return of(null);
-          }
-          throw error;
-        }),
-        errorService.interceptErrors()
-      );
+      studentRequest = studentService.getStudent(studentId).pipe(
+        // Stupid freaking javascript defining null and undefined as two different things!
+        // This converts the Observable<Student|undefined> => Observable<Student|null>
+        map(it => it ? it : null)
+      )
     } else {
       studentRequest = of(null);
     }
 
-    const sharedStudentRequest = studentRequest.pipe(share());
+    const sharedStudentRequest = studentRequest.pipe(shareReplay(1));
     sharedStudentRequest.subscribe((student) => {
       if(student) {
         this.state.next(PageState.STUDENT_FOUND);
@@ -122,7 +118,7 @@ export class ShowStudentComponent implements OnInit {
       }
     })
     sharedStudentRequest.pipe(
-      filter((it): it is Student => !!it)
+      filter((it): it is Student => !!it),
     ).subscribe(this.student);
   }
 

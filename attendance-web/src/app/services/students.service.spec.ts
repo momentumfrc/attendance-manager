@@ -6,15 +6,10 @@ import { Student } from "../models/student.model";
 import { StudentsService } from "./students.service";
 
 describe('StudentsService', () => {
-    let httpClientSpy: jasmine.SpyObj<HttpClient>;
-    let studentsService: StudentsService;
-
-    beforeEach(() => {
-        httpClientSpy = jasmine.createSpyObj('HttpClient', ['get']);
-        studentsService = new StudentsService(httpClientSpy);
-    })
-
     it('should return all students', (done: DoneFn) => {
+        let httpClientSpy: jasmine.SpyObj<HttpClient> = jasmine.createSpyObj('HttpClient', ['get']);
+        let studentsService: StudentsService;
+
         const now = DateTime.now();
         const expectedStudents: Array<Student> = [
             {
@@ -42,6 +37,7 @@ describe('StudentsService', () => {
         ];
 
         httpClientSpy.get.and.returnValue(of(expectedStudents));
+        studentsService = new StudentsService(httpClientSpy);
 
         studentsService.getAllStudents().subscribe({
             next: students => {

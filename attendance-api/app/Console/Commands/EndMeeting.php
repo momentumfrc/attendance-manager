@@ -39,6 +39,7 @@ class EndMeeting extends Command
                 (
                     SELECT MAX(created_at) as latest_date, student_id
                     FROM attendance_events
+                    WHERE deleted_at IS NULL
                     GROUP BY student_id
                     HAVING latest_date > (
                         SELECT MAX(created_at) as latest_eom
@@ -48,6 +49,7 @@ class EndMeeting extends Command
                 ) AS latest_table
                 ON attendance_events.student_id = latest_table.student_id
                 AND attendance_events.created_at = latest_table.latest_date
+                WHERE attendance_events.deleted_at IS NULL
             ) AS events
             ON students.id = events.student_id
             WHERE `type` = 'check-in';

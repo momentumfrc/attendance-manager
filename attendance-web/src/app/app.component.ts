@@ -26,10 +26,4 @@ export class AppComponent {
       user?.name.split(" ")[0] ?? null
     ));
   }
-
-  @HostListener('window:beforeunload')
-  noPendingChanges(): boolean {
-    this.snackbar.dismiss();
-    return !this.studentsService.isUpdatePending();
-  }
 }

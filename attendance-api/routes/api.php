@@ -9,6 +9,7 @@ use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeetingEventController;
 use App\Http\Controllers\StatsController;
+use App\Http\Controllers\PollController;
 
 use Spatie\Permission\Models\Role;
 
@@ -25,7 +26,7 @@ use Spatie\Permission\Models\Role;
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('students', StudentController::class);
     Route::apiResource('attendance/events', AttendanceEventController::class)->only([
-        'index', 'show', 'store'
+        'index', 'show', 'store', 'destroy'
     ]);
 
     Route::apiResource('attendance/sessions', AttendanceSessionController::class)->only([
@@ -49,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('stats/meetings', [StatsController::class, 'meetings']);
+    Route::get('poll', [PollController::class, 'poll']);
 });
 
 
