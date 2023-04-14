@@ -71,12 +71,16 @@ set -ex
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 cd ${SCRIPT_DIR}
 
+pushd backup
+./backup.sh
+popd
+
 cd attendance-api
 
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan config:cache
-php artisan migrate --force
+php artisan migrate
 #php artisan seed --class=RolesSeeder
 
 echo INSTALL FINISHED
