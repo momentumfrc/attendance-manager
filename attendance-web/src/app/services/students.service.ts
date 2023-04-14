@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http'
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http'
 
-import { map, Observable, ReplaySubject, shareReplay, take } from 'rxjs';
+import { catchError, map, Observable, of, ReplaySubject, shareReplay, take } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
+import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
+import { ErrorService } from './error.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +17,10 @@ export class StudentsService {
 
   private lastRefresh: DateTime;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(
+    private httpClient: HttpClient,
+    private errorService: ErrorService
+  ) {
     this.refreshStudents();
     this.lastRefresh = DateTime.now();
   }
@@ -29,7 +34,18 @@ export class StudentsService {
 
   public refreshStudents() {
     this.lastRefresh = DateTime.now();
-    this.httpClient.get<Array<Student>>(environment.apiRoot + '/students').pipe(
+    this.httpClient.get<Array<Student>>(environment.apiRoot + '/students', {
+      context: new HttpContext().set(CATCH_ERRORS, false)
+    }).pipe(
+      catchError(error => {
+        if(error instanceof HttpErrorResponse) {
+          if(error.status == 401) {
+            return of([]);
+          }
+        }
+        throw error;
+      }),
+      this.errorService.interceptErrors(),
       map(students => new Map(students.map(student => [student.id, student])))
     ).subscribe(students => this.cachedStudents.next(students));
   }
