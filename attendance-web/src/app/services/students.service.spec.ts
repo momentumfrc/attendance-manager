@@ -4,10 +4,12 @@ import { of } from "rxjs";
 import { AttendanceEventType } from "../models/attendance-event.model";
 import { Student } from "../models/student.model";
 import { StudentsService } from "./students.service";
+import { ErrorService } from "./error.service";
 
 describe('StudentsService', () => {
     it('should return all students', (done: DoneFn) => {
         let httpClientSpy: jasmine.SpyObj<HttpClient> = jasmine.createSpyObj('HttpClient', ['get']);
+        let errorServiceSpy: jasmine.SpyObj<ErrorService> = jasmine.createSpyObj('ErrorService', ['interceptErrors']);
         let studentsService: StudentsService;
 
         const now = DateTime.now();
@@ -37,7 +39,8 @@ describe('StudentsService', () => {
         ];
 
         httpClientSpy.get.and.returnValue(of(expectedStudents));
-        studentsService = new StudentsService(httpClientSpy);
+        errorServiceSpy.interceptErrors.and.returnValue((obs: any) => obs);
+        studentsService = new StudentsService(httpClientSpy, errorServiceSpy);
 
         studentsService.getAllStudents().subscribe({
             next: students => {
