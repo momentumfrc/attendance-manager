@@ -10,11 +10,26 @@ div.nameRow {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: top;
 }
 
-h1 {
+div.nameRow > h1 {
     font-size: 2.5em;
+    flex-grow: 1;
+    margin-top: 5px;
 }
+
+div.nameRow > div {
+    margin-top: 5px;
+}
+
+#deletedIndicator {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    margin-right: 5px;
+}
+
 
 h2 {
     margin-bottom: 10px;

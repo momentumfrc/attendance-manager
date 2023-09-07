@@ -1,10 +1,23 @@
-<app-search-box (searchUpdatedEvent)="studentSearch.next($event)"></app-search-box>
+<div id="searchbar">
+    <app-search-box (searchUpdatedEvent)="studentSearch.next($event)"></app-search-box>
+    <button mat-fab color="primary" [matMenuTriggerFor]="filterMenu" aria-label="Filters">
+        <mat-icon>tune</mat-icon>
+    </button>
+</div>
+
+<mat-menu #filterMenu="matMenu">
+    <form id="filterMenuContainer" [formGroup]="filterOptions" (click)="$event.stopPropagation()">
+        <mat-slide-toggle formControlName="showDeleted">Include deleted</mat-slide-toggle>
+    </form>
+</mat-menu>
+
 <mat-list *ngIf="filteredStudents | async as filteredStudents ; else loading">
     <ng-container *ngFor="let student of filteredStudents ; last as isLast">
         <a class="student-detail-link" [routerLink]="['..', 'detail', student.id]">
         <mat-list-item>
             <div class="student-list-item">
-                {{student.name}}
+                <div *ngIf="student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
+                <div>{{student.name}}</div>
             </div>
         </mat-list-item>
     </a>
