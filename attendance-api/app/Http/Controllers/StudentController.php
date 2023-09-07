@@ -53,6 +53,9 @@ class StudentController extends Controller
             $student->save();
 
             Log::channel('admin')->notice('student '.$student->id.' registered by user '.Auth::id());
+
+            $student->deleted_at = null;
+
         } else {
             assert($request->action == 'restore');
             $request->validate([
@@ -61,6 +64,8 @@ class StudentController extends Controller
 
             $student = Student::withTrashed()->find($request->id);
             $student->restore();
+
+            Log::channel('admin')->notice('student '.$student->id.' restored by user '.Auth::id());
         }
 
         return $student;
