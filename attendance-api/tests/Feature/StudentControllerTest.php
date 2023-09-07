@@ -60,7 +60,13 @@ class StudentControllerTest extends TestCase
         $response = $this->actingAs($user)->postJson('/api/students', [
             'name' => 'Foo Bar'
         ]);
+        $response->assertStatus(422);
+        $this->assertDatabaseCount('students', 0);
 
+        $response = $this->actingAs($user)->postJson('/api/students', [
+            'action' => 'create',
+            'name' => 'Foo Bar'
+        ]);
         $response->assertStatus(201);
 
         $this->assertDatabaseCount('students', 1);
@@ -69,6 +75,7 @@ class StudentControllerTest extends TestCase
         $response->assertExactJson($createdStudent->toArray());
 
         $response = $this->actingAs($user)->postJson('/api/students', [
+            'action' => 'create',
             'name' => 'Foo Bar'
         ]);
         $response->assertStatus(422);
@@ -157,7 +164,7 @@ class StudentControllerTest extends TestCase
 
         $response = $this->actingAs($user)->delete('/api/students/'.$student->id);
         $response->assertStatus(200);
-        $this->assertDatabaseCount('students', 4);
-        $this->assertDeleted($student);
+        $this->assertDatabaseCount('students', 5);
+        $this->assertSoftDeleted($student);
     }
 }
