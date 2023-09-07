@@ -24,12 +24,14 @@ code attendance-api
 
 5. You may be prompted to install recommended extensions. You should do so.
 
-6. Open the attendance-web folder in a separate vscode window.
+6. In the vscode console, run `php artsian migrate --seed` to set up the database.
+
+7. Open the attendance-web folder in a separate vscode window.
 ```
 code attendance-api
 ```
 
-7. Again, when prompted, choose to reopen in container.
+8. Again, when prompted, choose to reopen in container.
 
-8. Open a web browser and navigate to <http://localhost/>. Note: it might take a while for the
+9. Open a web browser and navigate to <http://localhost/>. Note: it might take a while for the
 application to start up. If the page fails to load, try again in a few minutes.
