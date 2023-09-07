@@ -7,6 +7,7 @@ export interface Student {
     registered_by: number,
     created_at: DateTime,
     updated_at: DateTime,
+    deleted_at?: DateTime,
     last_check_in?: AttendanceEvent,
     last_check_out?: AttendanceEvent
 }

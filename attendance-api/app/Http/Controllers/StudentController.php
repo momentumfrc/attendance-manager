@@ -25,7 +25,7 @@ class StudentController extends Controller
      */
     public function index()
     {
-        return Student::all();
+        return Student::withTrashed()->get();
     }
 
 
@@ -38,17 +38,30 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:students,name'
+            'action' => 'required|in:create,restore'
         ]);
 
-        $student = new Student;
+        if($request->action == 'create') {
+            $request->validate([
+                'name' => 'required|unique:students,name'
+            ]);
 
-        $student->name = $request->name;
-        $student->registered_by = Auth::id();
+            $student = new Student;
+            $student->name = $request->name;
+            $student->registered_by = Auth::id();
 
-        $student->save();
+            $student->save();
 
-        Log::channel('admin')->notice('student '.$student->id.' registered by user '.Auth::id());
+            Log::channel('admin')->notice('student '.$student->id.' registered by user '.Auth::id());
+        } else {
+            assert($request->action == 'restore');
+            $request->validate([
+                'id' => 'required|exists:students,id'
+            ]);
+
+            $student = Student::withTrashed()->find($request->id);
+            $student->restore();
+        }
 
         return $student;
     }
@@ -96,5 +109,7 @@ class StudentController extends Controller
     {
         Log::channel('admin')->notice('student '.$student->id.' deleted by user '.Auth::id());
         $student->delete();
+
+        return $student;
     }
 }

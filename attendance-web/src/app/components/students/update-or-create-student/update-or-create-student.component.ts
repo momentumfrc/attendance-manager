@@ -136,8 +136,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     });
 
     snackBarRef.onAction().subscribe(() => {
-      // TODO
-      console.warn("Not yet implemented!");
+      this.studentsService.undoDeleteStudent(student.id).subscribe();
     });
 
     this.router.navigate(['/', 'students']);
