@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, ReplaySubject, startWith, Subject, Subscription, takeUntil, tap } from 'rxjs';
 import { Student } from 'src/app/models/student.model';
 import { StudentsService } from 'src/app/services/students.service';
@@ -16,25 +17,34 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   private allStudentSubscription!: Subscription
 
+  filterOptions = new FormGroup({
+    showDeleted: new FormControl(false)
+  });
+
   constructor(
     private studentsService : StudentsService,
   ) { }
 
   ngOnInit(): void {
     // Get students from database
-    this.allStudentSubscription = this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
+    this.allStudentSubscription = this.studentsService.getAllStudents(true).subscribe((students) => this.allStudents.next(students));
 
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
-    combineLatest([
-      this.allStudents,
-      (this.studentSearch).pipe(startWith(""))
-    ]).pipe(
-      map((values : [Array<Student>, string]) => {
-      let students = (values[0] as Array<Student>);
-      let search = values[1].toLocaleLowerCase();
+    combineLatest({
+      students: this.allStudents,
+      search: this.studentSearch.pipe(startWith("")),
+      filters: this.filterOptions.valueChanges.pipe(startWith(this.filterOptions.value))
+    }).pipe(
+      map(({students, search, filters}) => {
+      search = search.toLocaleLowerCase();
 
       let value = students;
+
+      // implement filters
+      if(!filters.showDeleted) {
+        value = students.filter(it => it.deleted_at == null);
+      }
 
       // implement search
       if(search != "") {

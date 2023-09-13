@@ -8,6 +8,7 @@
     <ng-container *ngIf="state == stateType.STUDENT_FOUND">
         <div id="mainDiv" *ngIf="student|async as student">
             <div class="nameRow">
+                <mat-icon id="deletedIndicator" *ngIf="isDeleted()|async">delete</mat-icon>
                 <h1>{{ student.name }}</h1>
                 <div><a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a></div>
             </div>

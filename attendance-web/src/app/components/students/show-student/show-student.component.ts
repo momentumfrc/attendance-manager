@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
-import { AsyncSubject, BehaviorSubject, catchError, combineLatest, filter, map, Observable, of, ReplaySubject, share, shareReplay, startWith, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
@@ -69,7 +69,7 @@ class AttendanceStats {
   templateUrl: './show-student.component.html',
   styleUrls: ['./show-student.component.scss']
 })
-export class ShowStudentComponent implements OnInit {
+export class ShowStudentComponent implements OnInit, OnDestroy {
   readonly dateTimeShort = DateTime.DATETIME_SHORT;
 
   protected stateType = PageState;
@@ -84,6 +84,8 @@ export class ShowStudentComponent implements OnInit {
   protected attendanceStats = new ReplaySubject<AttendanceStats>(1)
 
   protected sessionColumns = ["checkInDate", "checkOutDate", "duration"];
+
+  protected destructNotifier = new Subject<void>();
 
   protected studentStatsOptions: FormGroup = new FormGroup({
     since: new FormControl(DateTime.now().minus({months: 6})),
@@ -101,6 +103,7 @@ export class ShowStudentComponent implements OnInit {
     let studentRequest: Observable<Student|null>;
     if(studentId) {
       studentRequest = studentService.getStudent(studentId).pipe(
+        takeUntil(this.destructNotifier),
         // Stupid freaking javascript defining null and undefined as two different things!
         // This converts the Observable<Student|undefined> => Observable<Student|null>
         map(it => it ? it : null)
@@ -153,6 +156,14 @@ export class ShowStudentComponent implements OnInit {
     this.sessionsSubject.pipe(
       map(sessions => new AttendanceStats(sessions))
     ).subscribe(this.attendanceStats);
+  }
+
+  ngOnDestroy(): void {
+    this.destructNotifier.next();
+  }
+
+  isDeleted(): Observable<boolean> {
+    return this.student.pipe(map(student => student.deleted_at != null));
   }
 
 }

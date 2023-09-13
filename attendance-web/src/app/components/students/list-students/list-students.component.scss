@@ -1,8 +1,18 @@
 @use 'media';
 
-app-search-box {
-    display: block;
+#searchbar {
     margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#filterMenuContainer {
+    padding: 10px;
+}
+
+app-search-box {
+    flex-grow: 1;
 }
 
 .student-detail-link {
@@ -11,6 +21,13 @@ app-search-box {
 
 .student-list-item {
     @include media.text;
+
+    display: flex;
+}
+
+.deletedIcon {
+    margin-top: 4px;
+    margin-right: 4px;
 }
 
 .mat-mdc-list-item {

@@ -68,27 +68,26 @@ export class StudentsService {
     ).subscribe(students => this.cachedStudents.next(students));
   }
 
-  private deleteStudentsFromCache(deleted: number[]) {
-    this.cachedStudents.pipe(
-      take(1),
-      map(student_map => {
-        const student_map_copy = new Map(student_map);
-        deleted.forEach(id => {
-          student_map_copy.delete(id);
-        })
-        return student_map_copy;
-      })
-    ).subscribe(students => this.cachedStudents.next(students));
+  public getStudentMap(includeDeleted: boolean = false): Observable<Map<number, Student>> {
+    this.checkCacheAge();
+    if(includeDeleted) {
+      return this.cachedStudents;
+    } else {
+      return this.cachedStudents.pipe(
+        map(students => new Map([...students].filter(([_, value]) => value.deleted_at == null)))
+      );
+    }
   }
 
-  public getStudentMap(): Observable<Map<number, Student>> {
+  public getAllStudents(includeDeleted: boolean = false): Observable<Array<Student>> {
     this.checkCacheAge();
-    return this.cachedStudents;
-  }
-
-  public getAllStudents(): Observable<Array<Student>> {
-    this.checkCacheAge();
-    return this.cachedStudents.pipe(map(student_map => Array.from(student_map.values())));
+    return this.cachedStudents.pipe(map(student_map => {
+      let student_arr = Array.from(student_map.values());
+      if(!includeDeleted) {
+        student_arr = student_arr.filter(student => student.deleted_at == null)
+      }
+      return student_arr;
+    }));
   }
 
   public getStudent(studentId: number): Observable<Student|undefined> {
@@ -105,25 +104,31 @@ export class StudentsService {
     return request;
   }
 
-  public deleteStudent(studentId: number): Observable<boolean> {
-    const request = this.httpClient.delete(environment.apiRoot + '/students/' + studentId, {
-      observe: 'response'
-    }).pipe(
-      map(response => response.status == 200),
-      shareReplay(1)
-    );
+  public deleteStudent(studentId: number): Observable<Student> {
+    const request = this.httpClient.delete<Student>(environment.apiRoot + '/students/' + studentId, {})
+      .pipe(shareReplay(1));
 
-    request.subscribe(success => {
-      if(success) {
-        this.deleteStudentsFromCache([studentId]);
-      }
-    })
+    request.subscribe(student => this.updateStudentsInCache([student]));
+
+    return request;
+  }
+
+  public undoDeleteStudent(studentId: number): Observable<Student> {
+    const postBody = {
+      'action': 'restore',
+      'id': studentId
+    };
+    const request = this.httpClient.post<Student>(environment.apiRoot + '/students', postBody)
+      .pipe(shareReplay(1));
+
+    request.subscribe(restoredStudent => this.updateStudentsInCache([restoredStudent]));
 
     return request;
   }
 
   public registerNewStudent(name: string): Observable<Student> {
     const postBody = {
+      'action': 'create',
       'name': name
     };
     const request = this.httpClient.post<Student>(environment.apiRoot + '/students', postBody)

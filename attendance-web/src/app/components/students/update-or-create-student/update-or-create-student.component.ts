@@ -3,7 +3,7 @@ import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirectiv
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
-import { BehaviorSubject, forkJoin, map, Observable, of, ReplaySubject, Subscription, take } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 enum ComponentState {
@@ -24,8 +24,11 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   private students : Observable<Array<Student>>
 
   editStudent = new ReplaySubject<Student|null>(1)
+  isDeleted: Observable<Boolean>
 
   private studentsSub!: Subscription
+
+  mainForm: FormGroup
 
   constructor(
     private studentsService : StudentsService,
@@ -33,7 +36,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     private router: Router,
     route: ActivatedRoute) {
       let id = route.snapshot.paramMap.get('studentId');
-      this.students = this.studentsService.getAllStudents();
+      this.students = this.studentsService.getAllStudents(true);
       if(route.snapshot.url[0].path == 'edit' && id != null) {
         let parsedId = parseInt(id);
         this.students.pipe(take(1), map( (students: Array<Student>) => {
@@ -52,13 +55,34 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         this.state = new BehaviorSubject<ComponentState>(ComponentState.NO_STUDENT_PROVIDED);
         this.editStudent.next(null);
       }
+
+      this.mainForm = new FormGroup({
+        name: new FormControl('', {
+          validators: [Validators.required],
+          asyncValidators: [this.nameTakenValidator]
+        })
+      });
+
+      this.isDeleted = this.editStudent.pipe(
+        filter(student => student != null),
+        map(student => student?.deleted_at != null)
+      );
+
+      this.isDeleted.subscribe(isDeleted => {
+        if(isDeleted) {
+          this.mainForm.disable();
+        } else {
+          this.mainForm.enable();
+        }
+      });
+
     }
 
   ngOnInit(): void {
     if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
       this.editStudent.subscribe((student) => {
         if(student != null) {
-          this.mainForm.controls.name.setValue(student.name);
+          this.mainForm.controls['name'].setValue(student.name);
         }
       })
     }
@@ -88,13 +112,6 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         }
     }));
   }
-
-  mainForm = new FormGroup({
-    name: new FormControl('', {
-      validators: [Validators.required],
-      asyncValidators: [this.nameTakenValidator]
-    })
-  });
 
   onSubmit(formData: any, formDirective: FormGroupDirective): void {
     this.mainForm.disable();
@@ -136,11 +153,24 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     });
 
     snackBarRef.onAction().subscribe(() => {
-      // TODO
-      console.warn("Not yet implemented!");
+      this.studentsService.undoDeleteStudent(student.id).subscribe();
     });
 
     this.router.navigate(['/', 'students']);
+  }
+
+  undoDelete(student: Student) {
+    this.studentsService.undoDeleteStudent(student.id).subscribe();
+
+    const snackBarRef = this.snackBar.open("Student " + student.name + " restored!", 'Undo', {
+      duration: 4000
+    });
+
+    snackBarRef.onAction().subscribe(() => {
+      this.studentsService.deleteStudent(student.id).subscribe()
+    });
+
+    this.router.navigate(['/', 'students', 'detail', student.id]);
   }
 
 }

@@ -20,7 +20,8 @@ class StudentFactory extends Factory
 
         return [
             'name' => $faker->name(),
-            'registered_by' => 1
+            'registered_by' => 1,
+            'deleted_at' => null
         ];
     }
 }
