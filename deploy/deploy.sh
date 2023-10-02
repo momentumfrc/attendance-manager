@@ -56,7 +56,7 @@ docker run --rm \
     --entrypoint "sh" \
     -u 1000:1000 \
     -v ${PWD}/:/mnt \
-    node:alpine \
+    node:18-alpine \
     -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
