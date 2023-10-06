@@ -8,6 +8,7 @@ import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { ErrorService } from 'src/app/services/error.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -97,7 +98,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     route: ActivatedRoute,
     private usersService: UsersService,
     private attendanceService: AttendanceService,
-    private errorService: ErrorService
+    private errorService: ErrorService,
+    private authService: AuthService
   ) {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
@@ -164,6 +166,10 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
 
   isDeleted(): Observable<boolean> {
     return this.student.pipe(map(student => student.deleted_at != null));
+  }
+
+  canDelete(): Observable<boolean> {
+    return this.authService.checkHasAnyRole(["mentor"]);
   }
 
 }

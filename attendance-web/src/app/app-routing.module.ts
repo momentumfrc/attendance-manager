@@ -26,9 +26,13 @@ const routes: Routes = [
     children: [
       {path: '', redirectTo: 'list', pathMatch: 'full'},
       {path: 'detail/:studentId', component: ShowStudentComponent},
-      {path: 'edit/:studentId', component: UpdateOrCreateStudentComponent},
+      { path: 'edit/:studentId', component: UpdateOrCreateStudentComponent,
+        canActivate: [MustHaveRoleGuard],
+        data: { roleOptions: ['mentor'] }},
       {path: 'list', component: ListStudentsComponent},
-      {path: 'add', component: UpdateOrCreateStudentComponent},
+      {path: 'add', component: UpdateOrCreateStudentComponent,
+        canActivate: [MustHaveRoleGuard],
+        data: { roleOptions: ['mentor'] }},
       {path: 'import', component: ImportStudentsComponent}
     ]
   },
