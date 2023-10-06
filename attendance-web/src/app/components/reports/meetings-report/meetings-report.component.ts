@@ -45,7 +45,7 @@ export class MeetingsReportComponent {
 
     this.selectedInterval.subscribe(interval => {
       this.state.next(PageState.LOADING);
-      this.reportsService.getMeetingStats({since: interval.start, until: interval.end}).subscribe(stats => {
+      this.reportsService.getMeetingStats({since: interval.start ?? undefined, until: interval.end ?? undefined}).subscribe(stats => {
         this.meetingData.next(stats);
       })
     })
@@ -68,8 +68,8 @@ export class MeetingsReportComponent {
           time: {
             unit: 'week'
           },
-          min: dates.start.toMillis(),
-          max: dates.end.toMillis()
+          min: dates.start?.toMillis(),
+          max: dates.end?.toMillis()
         },
         y: {
           min: 0

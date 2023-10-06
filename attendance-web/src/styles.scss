@@ -6,3 +6,7 @@ body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
     --mdc-typography-button-letter-spacing: 0;
 }
+
+.mdc-tab__text-label {
+    letter-spacing: normal;
+}

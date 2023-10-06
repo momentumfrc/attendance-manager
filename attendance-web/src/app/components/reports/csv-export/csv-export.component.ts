@@ -54,7 +54,7 @@ export class CsvExportComponent implements OnInit {
             event.registered_by,
             userNameMap.get(event.registered_by) ?? "UNDEFINED",
             event.type as string,
-            event.created_at.toISO()
+            event.created_at.toISO() ?? "UNKNOWN"
           ]);
         const unparseData : MapObject = {
           fields: keys,
