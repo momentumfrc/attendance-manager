@@ -80,7 +80,7 @@ cd attendance-api
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan config:cache
-php artisan migrate
+php artisan migrate --force
 #php artisan seed --class=RolesSeeder
 
 echo INSTALL FINISHED
