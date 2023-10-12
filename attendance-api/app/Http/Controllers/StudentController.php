@@ -84,9 +84,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function show(Student $student)
+    public function show(String $id)
     {
-        return $student;
+        return Student::withTrashed()->find($id);
     }
 
     /**
