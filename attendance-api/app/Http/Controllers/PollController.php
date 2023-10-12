@@ -24,26 +24,31 @@ class PollController extends Controller
             $until_dt = Carbon::createFromTimestamp($request->until);
         }
 
-        $query = AttendanceEvent::withTrashed()->where('created_at', '>=', $since_dt);
-        if($until_dt != null) {
-            $query->where('created_at', '<=',  $until_dt);
-        }
+        $whereGenerator = function($colname) use ($since_dt, $until_dt) {
+            return function($query) use ($colname, $since_dt, $until_dt) {
+                $query->where($colname, '>=', $since_dt);
+                if($until_dt != null) {
+                    $query->where($colname, '<=', $until_dt);
+                }
+            };
+        };
 
-        $query->orWhere(function($query) use ($since_dt, $until_dt) {
-            $query->where('deleted_at', '>=', $since_dt);
-            if($until_dt != null) {
-                $query->where('deleted_at', '<=',  $until_dt);
-            }
-        });
+        $updated_events = AttendanceEvent::withTrashed()
+            ->where($whereGenerator('created_at'))
+            ->orWhere($whereGenerator('updated_at'))
+            ->orWhere($whereGenerator('deleted_at'))
+            ->get();
 
-        $updated_events = $query->get();
-        $updated_students = Student::findMany($updated_events->pluck('student_id')->unique());
+        $updated_students = Student::withTrashed()
+            ->whereIn('id', $updated_events->pluck('student_id')->unique())
+            ->orWhere($whereGenerator('created_at'))
+            ->orWhere($whereGenerator('updated_at'))
+            ->orWhere($whereGenerator('deleted_at'))
+            ->get();
 
-        $query = MeetingEvent::where('created_at', '>=', $since_dt);
-        if($until_dt != null) {
-            $query = $query->where('created_at', '<=', $until_dt);
-        }
-        $meeting_events = $query->get();
+        $meeting_events = MeetingEvent::where($whereGenerator('created_at'))
+            ->orWhere($whereGenerator('updated_at'))
+            ->get();
 
         return [
             'updated_students' => $updated_students,

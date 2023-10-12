@@ -1,40 +1,55 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http'
+import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular/common/http'
 
-import { catchError, map, Observable, of, ReplaySubject, shareReplay, take } from 'rxjs';
+import { catchError, filter, map, Observable, of, OperatorFunction, ReplaySubject, shareReplay, switchMap, take, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
 import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 import { ErrorService } from './error.service';
+import { PollService } from './poll.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StudentsService {
   private cachedStudents = new ReplaySubject<Map<number, Student>>(1);
-
   private lastRefresh: DateTime;
+
+  private areDeletedStudentsCached: boolean = false;
 
   constructor(
     private httpClient: HttpClient,
+    private pollService: PollService,
     private errorService: ErrorService
   ) {
-    this.refreshStudents();
+    this.invalidateCache();
     this.lastRefresh = DateTime.now();
   }
 
-  private checkCacheAge() {
+  private checkForUpdates(retrieveDeletedStudents: boolean) {
     const now = DateTime.now();
+    if(retrieveDeletedStudents && !this.areDeletedStudentsCached) {
+      this.invalidateCache(true);
+      this.areDeletedStudentsCached = true;
+      return;
+    }
     if(now.diff(this.lastRefresh).toMillis() > environment.pollInterval) {
-      this.refreshStudents();
+      this.pollService.getUpdates({since: this.lastRefresh}).subscribe(response => {
+        this.lastRefresh = now;
+        this.updateStudentsInCache(response.updated_students);
+      })
     }
   }
 
-  public refreshStudents() {
+  public invalidateCache(retrieveDeletedStudents: boolean = false) {
+    let params = new HttpParams();
+    params = params.set('includeDeleted', retrieveDeletedStudents ? 1 : 0);
+
     this.lastRefresh = DateTime.now();
     this.httpClient.get<Array<Student>>(environment.apiRoot + '/students', {
+      params,
       context: new HttpContext().set(CATCH_ERRORS, false)
     }).pipe(
       catchError(error => {
@@ -50,9 +65,26 @@ export class StudentsService {
     ).subscribe(students => this.cachedStudents.next(students));
   }
 
+  private querySingleStudent(id: number): Observable<Student|undefined> {
+    return this.httpClient.get<Student>(environment.apiRoot + '/students/' + id, {
+      context: new HttpContext().set(CATCH_ERRORS, false)
+    }).pipe(
+      catchError(error => {
+        if(error instanceof HttpErrorResponse) {
+          if(error.status == 404) {
+            return of(undefined);
+          }
+        }
+        throw error;
+      }),
+      this.errorService.interceptErrors()
+    );
+  }
+
   public refreshSingleStudent(id: number) {
-    const request = this.httpClient.get<Student>(environment.apiRoot + '/students/' + id)
-      .subscribe(student => this.updateStudentsInCache([student]));
+    const request = this.querySingleStudent(id).pipe(
+      filter(it => it !== undefined) as OperatorFunction<Student|undefined, Student>
+    ).subscribe(student => this.updateStudentsInCache([student]));
   }
 
   public updateStudentsInCache(new_students: Student[]) {
@@ -68,8 +100,8 @@ export class StudentsService {
     ).subscribe(students => this.cachedStudents.next(students));
   }
 
-  public getStudentMap(includeDeleted: boolean = false): Observable<Map<number, Student>> {
-    this.checkCacheAge();
+  public getStudentMap(includeDeleted: boolean = true): Observable<Map<number, Student>> {
+    this.checkForUpdates(includeDeleted);
     if(includeDeleted) {
       return this.cachedStudents;
     } else {
@@ -79,8 +111,8 @@ export class StudentsService {
     }
   }
 
-  public getAllStudents(includeDeleted: boolean = false): Observable<Array<Student>> {
-    this.checkCacheAge();
+  public getAllStudents(includeDeleted: boolean = true): Observable<Array<Student>> {
+    this.checkForUpdates(includeDeleted);
     return this.cachedStudents.pipe(map(student_map => {
       let student_arr = Array.from(student_map.values());
       if(!includeDeleted) {
@@ -91,8 +123,26 @@ export class StudentsService {
   }
 
   public getStudent(studentId: number): Observable<Student|undefined> {
-    this.checkCacheAge();
-    return this.cachedStudents.pipe(map(students => students.get(studentId)));
+    this.checkForUpdates(false);
+    return this.cachedStudents.pipe(
+      map(students => students.get(studentId)),
+      // If we get undefined, it doesn't necessarily mean the student doesn't exist. It could be
+      // that the student is deleted and we haven't retrieved deleted students from the backend.
+      // So if we get undefined, we need to check with the backend.
+      switchMap(student => {
+        if(student) {
+          return of(student);
+        } else {
+          return this.querySingleStudent(studentId).pipe(
+            tap(student => {
+              if(student !== undefined) {
+                this.updateStudentsInCache([student]);
+              }
+            })
+          );
+        }
+      })
+    );
   }
 
   public updateStudent(id: number, update: {name: string}): Observable<Student> {

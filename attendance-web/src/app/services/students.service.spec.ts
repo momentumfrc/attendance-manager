@@ -5,11 +5,13 @@ import { AttendanceEventType } from "../models/attendance-event.model";
 import { Student } from "../models/student.model";
 import { StudentsService } from "./students.service";
 import { ErrorService } from "./error.service";
+import { PollService } from "./poll.service";
 
 describe('StudentsService', () => {
     it('should return all students', (done: DoneFn) => {
         let httpClientSpy: jasmine.SpyObj<HttpClient> = jasmine.createSpyObj('HttpClient', ['get']);
         let errorServiceSpy: jasmine.SpyObj<ErrorService> = jasmine.createSpyObj('ErrorService', ['interceptErrors']);
+        let pollServiceSpy: jasmine.SpyObj<PollService> = jasmine.createSpyObj('PollService', ['getUpdates']);
         let studentsService: StudentsService;
 
         const now = DateTime.now();
@@ -40,9 +42,13 @@ describe('StudentsService', () => {
 
         httpClientSpy.get.and.returnValue(of(expectedStudents));
         errorServiceSpy.interceptErrors.and.returnValue((obs: any) => obs);
-        studentsService = new StudentsService(httpClientSpy, errorServiceSpy);
+        pollServiceSpy.getUpdates.and.returnValue(of({
+            updated_students: [],
+            meeting_events:[]
+          }));
+        studentsService = new StudentsService(httpClientSpy, pollServiceSpy, errorServiceSpy);
 
-        studentsService.getAllStudents().subscribe({
+        studentsService.getAllStudents(false).subscribe({
             next: students => {
                 expect(students).toEqual(expectedStudents);
                 done();

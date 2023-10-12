@@ -104,7 +104,7 @@ export class ImportStudentsComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    this.studentsService.refreshStudents();
+    this.studentsService.invalidateCache();
     const reader = new FileReader();
     reader.onload = (e: any) => {
       let data: string = e.target.result;
@@ -133,7 +133,7 @@ export class ImportStudentsComponent implements OnInit {
           this.snackBar.open('Registered ' + items.length + ' new students', '', {
             duration: 4000
           });
-          this.studentsService.refreshStudents();
+          this.studentsService.invalidateCache();
           this.router.navigate(['/', 'students', 'list'])
         })
       )), // 10, 20, 30, ..., 100

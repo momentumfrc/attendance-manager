@@ -23,9 +23,16 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Student::withTrashed()->get();
+        $request->validate([
+            'includeDeleted' => 'boolean'
+        ]);
+
+        if($request->includeDeleted) {
+            return Student::withTrashed()->get();
+        }
+        return Student::all();
     }
 
 
@@ -77,9 +84,9 @@ class StudentController extends Controller
      * @param  \App\Models\Student  $student
      * @return \Illuminate\Http\Response
      */
-    public function show(Student $student)
+    public function show(String $id)
     {
-        return $student;
+        return Student::withTrashed()->find($id);
     }
 
     /**
