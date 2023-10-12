@@ -8,6 +8,7 @@ import { Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
 import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 import { ErrorService } from './error.service';
+import { PollService } from './poll.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,20 +20,24 @@ export class StudentsService {
 
   constructor(
     private httpClient: HttpClient,
+    private pollService: PollService,
     private errorService: ErrorService
   ) {
-    this.refreshStudents();
+    this.invalidateCache();
     this.lastRefresh = DateTime.now();
   }
 
-  private checkCacheAge() {
+  private checkForUpdates() {
     const now = DateTime.now();
     if(now.diff(this.lastRefresh).toMillis() > environment.pollInterval) {
-      this.refreshStudents();
+      this.pollService.getUpdates({since: this.lastRefresh}).subscribe(response => {
+        this.lastRefresh = now;
+        this.updateStudentsInCache(response.updated_students);
+      })
     }
   }
 
-  public refreshStudents() {
+  public invalidateCache() {
     this.lastRefresh = DateTime.now();
     this.httpClient.get<Array<Student>>(environment.apiRoot + '/students', {
       context: new HttpContext().set(CATCH_ERRORS, false)
@@ -69,7 +74,7 @@ export class StudentsService {
   }
 
   public getStudentMap(includeDeleted: boolean = false): Observable<Map<number, Student>> {
-    this.checkCacheAge();
+    this.checkForUpdates();
     if(includeDeleted) {
       return this.cachedStudents;
     } else {
@@ -80,7 +85,7 @@ export class StudentsService {
   }
 
   public getAllStudents(includeDeleted: boolean = false): Observable<Array<Student>> {
-    this.checkCacheAge();
+    this.checkForUpdates();
     return this.cachedStudents.pipe(map(student_map => {
       let student_arr = Array.from(student_map.values());
       if(!includeDeleted) {
@@ -91,7 +96,7 @@ export class StudentsService {
   }
 
   public getStudent(studentId: number): Observable<Student|undefined> {
-    this.checkCacheAge();
+    this.checkForUpdates();
     return this.cachedStudents.pipe(map(students => students.get(studentId)));
   }
 
