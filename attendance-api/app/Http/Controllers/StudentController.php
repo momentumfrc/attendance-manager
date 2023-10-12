@@ -23,9 +23,16 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Student::withTrashed()->get();
+        $request->validate([
+            'includeDeleted' => 'boolean'
+        ]);
+
+        if($request->includeDeleted) {
+            return Student::withTrashed()->get();
+        }
+        return Student::all();
     }
 
 
