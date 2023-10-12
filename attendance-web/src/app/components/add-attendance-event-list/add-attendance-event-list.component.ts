@@ -52,7 +52,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   ngOnInit(): void {
-    this.studentsSub = this.studentsService.getAllStudents().subscribe(this.allStudents);
+    this.studentsSub = this.studentsService.getAllStudents(false).subscribe(this.allStudents);
 
     this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}).subscribe(events => {
       if(events.length > 0) {
@@ -104,7 +104,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       });
 
       return value;
-      })).subscribe(this.filteredStudents)
+    })).subscribe(this.filteredStudents)
   }
 
   ngAfterViewInit(): void {
