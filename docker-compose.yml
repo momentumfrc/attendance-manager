@@ -14,7 +14,7 @@ services:
     environment:
       WWWUSER: 1000
       LARAVEL_SAIL: 1
-      XDEBUG_MODE: 'off'
+      XDEBUG_MODE: 'profile'
       XDEBUG_CONFIG: 'client_host=host.docker.internal'
     working_dir: /var/www/html/attendance-api
     volumes:
