@@ -86,7 +86,7 @@ class StudentController extends Controller
      */
     public function show(String $id)
     {
-        return Student::withTrashed()->find($id);
+        return Student::withTrashed()->findOrFail($id);
     }
 
     /**

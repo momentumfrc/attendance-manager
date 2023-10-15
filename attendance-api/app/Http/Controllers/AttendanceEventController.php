@@ -97,7 +97,7 @@ class AttendanceEventController extends Controller
 
     public function show(String $id)
     {
-        return AttendanceEvent::withTrashed()->find($id);
+        return AttendanceEvent::withTrashed()->findOrFail($id);
     }
 
     public function destroy(AttendanceEvent $event) {
