@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Validation\Rule;
 
+use Illuminate\Database\Query\Builder;
+
 class StudentController extends Controller
 {
     public function __construct() {
@@ -50,11 +52,25 @@ class StudentController extends Controller
 
         if($request->action == 'create') {
             $request->validate([
-                'name' => 'required|unique:students,name'
+                'name' => 'required',
+                'graduation_year' => 'date_format:Y'
+            ]);
+
+            $name = $request->name;
+            $graduation_year = $request->graduation_year;
+
+            $request->validate([
+                'name' => Rule::unique('students', 'name')->where(
+                    fn (Builder $query) => $query->where('graduation_year', $graduation_year)
+                ),
+                'graduation_year' => Rule::unique('students', 'graduation_year')->where(
+                    fn (Builder $query) => $query->where('name', $name)
+                )
             ]);
 
             $student = new Student;
             $student->name = $request->name;
+            $student->graduation_year = $request->graduation_year;
             $student->registered_by = Auth::id();
 
             $student->save();
@@ -98,15 +114,30 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student) {
         $request->validate([
-            'name'=> [
-                'required',
-                Rule::unique('students', 'name')->ignore($student)
-            ]
-            ]);
+            'name' => 'required',
+            'graduation_year' => 'date_format:Y'
+        ]);
 
-        Log::channel('admin')->notice('student '.$student->id.' updated by user '.Auth::id().' (renamed from "'.$student->name.'" to "'.$request->name.'")');
+        $name = $request->name;
+        $graduation_year = $request->graduation_year;
 
-        $student->update(['name' => $request->name]);
+        $request->validate([
+            'name' => Rule::unique('students', 'name')->ignore($student)->where(
+                fn (Builder $query) => $query->where('graduation_year', $graduation_year)
+            ),
+            'graduation_year' => Rule::unique('students', 'graduation_year')->ignore($student)->where(
+                fn (Builder $query) => $query->where('name', $name)
+            )
+        ]);
+
+        Log::channel('admin')->notice("student {$student->id} updated by user ".Auth::id()
+            ." -- updated from (\"{$student->name}\",{$student->graduation_year}) to"
+            ." (\"{$name}\",{$graduation_year})");
+
+        $student->update([
+            'name' => $request->name,
+            'graduation_year' => $request->graduation_year
+        ]);
 
         return $student;
     }

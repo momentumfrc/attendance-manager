@@ -13,7 +13,14 @@ class Student extends Model
     use SoftDeletes;
 
     protected $appends = ['last_check_in', 'last_check_out'];
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'graduation_year'];
+
+    protected $casts = [
+        'graduation_year' => 'integer'
+    ];
+
+    // TODO: Unhide this field once profile photos are enabled
+    protected $hidden = ['profile_photo'];
 
     public function getLastCheckInAttribute() {
         return $this->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
