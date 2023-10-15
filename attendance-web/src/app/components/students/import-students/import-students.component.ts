@@ -3,8 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 
 import { Papa } from 'ngx-papaparse';
-import { BehaviorSubject, combineLatest, concat, finalize, forkJoin, from, map, merge, mergeAll, mergeMap, Observable, ReplaySubject, share, startWith, Subject, switchMap, take, tap, throwError, toArray } from 'rxjs';
-import { Student } from 'src/app/models/student.model';
+import { BehaviorSubject, combineLatest, finalize, from, map, mergeMap, ReplaySubject, Subject, switchMap, take} from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 
 type Validator = (info: NewStudentInfo) => boolean;
@@ -18,7 +17,8 @@ class ValidatedInfo {
 
 class NewStudentInfo {
   constructor(
-    public readonly name: string
+    public readonly name: string,
+    public readonly graduation_year?: number
   ) {}
 
   validate(validators: Array<Validator>): ValidatedInfo {
@@ -72,28 +72,57 @@ export class ImportStudentsComponent implements OnInit {
         this.parsedData.next([]);
         return;
       }
+      if(!parsed.meta.fields.includes('Graduation Year')) {
+        this.parseError.next('Invalid CSV Format: missing "Graduation Year" field');
+        this.parsedData.next([]);
+        return;
+      }
 
       let cleaned: Array<NewStudentInfo> = parsed.data
         .filter((it: any) => (it.Name as string).length > 0)
-        .map((it: any) => new NewStudentInfo(it.Name));
+        .map((it: any) => {
+          const name: string = it['Name'];
+          let graduation_year: number|undefined = parseInt(it['Graduation Year']);
+          if(isNaN(graduation_year)) {
+            graduation_year = undefined;
+          }
+          return new NewStudentInfo(name, graduation_year);
+        });
 
       if(cleaned.length == 0) {
-        this.parseError.next('No data provided in input file');
+        this.parseError.next('No valid data provided in input file');
         this.parsedData.next([]);
         return;
       }
       this.parseError.next(null);
       this.parsedData.next(cleaned);
-
     })
 
     combineLatest({
-      'data': this.parsedData,
-      'students': this.studentsService.getAllStudents()
+      data: this.parsedData,
+      students: this.studentsService.getAllStudents()
     }).pipe(map(({data, students}) => {
-      const studentNames = new Set(students.map(it => it.name));
+      const studentKeys = new Set(students.map(student => JSON.stringify({
+        name: student.name,
+        graduation_year: student.graduation_year
+      })));
 
-      const validateNamesAreUnique: Validator = info => !studentNames.has(info.name);
+      const newStudentKeys: Set<string> = new Set();
+
+      const validateNamesAreUnique: Validator = newStudent => {
+        const key = JSON.stringify({
+          name: newStudent.name,
+          graduation_year: newStudent.graduation_year
+        });
+
+        const valid = !studentKeys.has(key) && !newStudentKeys.has(key);
+
+        if(valid) {
+          newStudentKeys.add(key);
+        }
+
+        return valid;
+      }
 
       return data.map(it => it.validate([validateNamesAreUnique]));
     })).subscribe(this.validatedData);
@@ -104,7 +133,6 @@ export class ImportStudentsComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    this.studentsService.invalidateCache();
     const reader = new FileReader();
     reader.onload = (e: any) => {
       let data: string = e.target.result;
@@ -127,7 +155,7 @@ export class ImportStudentsComponent implements OnInit {
       map(items => items.filter(it => it.valid)),
       switchMap(items => from(items).pipe(
         // ValidatedInfo, ValidatedInfo, ...
-        mergeMap(it => this.studentsService.registerNewStudent(it.info.name)), // Student, Student, ...
+        mergeMap(it => this.studentsService.registerNewStudent(it.info)), // Student, Student, ...
         map( (_, idx) => Math.ceil( ( (idx+1) / items.length) * 100)), // 10, 20, 30, ..., 100
         finalize( () => {
           this.snackBar.open('Registered ' + items.length + ' new students', '', {

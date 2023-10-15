@@ -4,6 +4,7 @@ import { AttendanceEvent } from "./attendance-event.model"
 export interface Student {
     id: number,
     name: string,
+    graduation_year?: number,
     registered_by: number,
     created_at: DateTime,
     updated_at: DateTime,

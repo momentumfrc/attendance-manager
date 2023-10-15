@@ -145,7 +145,10 @@ export class StudentsService {
     );
   }
 
-  public updateStudent(id: number, update: {name: string}): Observable<Student> {
+  public updateStudent(id: number, update: {
+    name: string,
+    graduation_year?: number
+  }): Observable<Student> {
     const request = this.httpClient.put<Student>(environment.apiRoot + '/students/' + id, update)
       .pipe(shareReplay(1));
 
@@ -176,12 +179,16 @@ export class StudentsService {
     return request;
   }
 
-  public registerNewStudent(name: string): Observable<Student> {
-    const postBody = {
-      'action': 'create',
-      'name': name
+  public registerNewStudent(student: {
+    name: string,
+    graduation_year?: number
+  }): Observable<Student> {
+    let params = {
+      action: "create",
+      ...student
     };
-    const request = this.httpClient.post<Student>(environment.apiRoot + '/students', postBody)
+
+    const request = this.httpClient.post<Student>(environment.apiRoot + '/students', params)
       .pipe(shareReplay(1));
 
     request.subscribe(newStudent => this.updateStudentsInCache([newStudent]));
