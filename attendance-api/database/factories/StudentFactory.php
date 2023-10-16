@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
@@ -18,10 +19,20 @@ class StudentFactory extends Factory
     {
         $faker = \Faker\Factory::create();
 
-        return [
+        $values = [
             'name' => $faker->name(),
             'registered_by' => 1,
             'deleted_at' => null
         ];
+
+        if(rand(0, 10) < 7) {
+            $values['graduation_year'] = $faker->year('+10 years');
+        }
+
+        if(rand(0, 10) < 2) {
+            $values['deleted_at'] = Carbon::now();
+        }
+
+        return $values;
     }
 }
