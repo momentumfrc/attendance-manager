@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, ReplaySubject, startWith, Subject, Subscription, takeUntil, tap } from 'rxjs';
-import { Student } from 'src/app/models/student.model';
+import { Student, StudentList } from 'src/app/models/student.model';
 import { StudentsService } from 'src/app/services/students.service';
 
 @Component({
@@ -13,7 +13,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
   studentSearch = new Subject<string>();
   allStudents = new ReplaySubject<Array<Student>>(1);
 
-  filteredStudents = new ReplaySubject<Array<Student>>(1);
+  filteredStudents = new ReplaySubject<StudentList>(1);
 
   private allStudentSubscription!: Subscription
 
@@ -51,9 +51,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
         value = value.filter(student => student.name.toLocaleLowerCase().includes(search));
       }
 
-      value = value.sort((a, b) => a.name.localeCompare(b.name));
-
-      return value;
+      return new StudentList(value);
     })).subscribe(this.filteredStudents)
   }
 

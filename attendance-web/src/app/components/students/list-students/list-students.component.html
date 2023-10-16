@@ -12,18 +12,18 @@
 </mat-menu>
 
 <mat-list *ngIf="filteredStudents | async as filteredStudents ; else loading">
-    <ng-container *ngFor="let student of filteredStudents ; last as isLast">
+    <ng-container *ngFor="let student of filteredStudents.students; last as isLast">
         <a class="student-detail-link" [routerLink]="['..', 'detail', student.id]">
         <mat-list-item>
             <div class="student-list-item">
                 <div *ngIf="student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
-                <div>{{student.name}}</div>
+                <div>{{filteredStudents.getQualifiedName(student)}}</div>
             </div>
         </mat-list-item>
     </a>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
-    <mat-list-item *ngIf="filteredStudents?.length == 0" id="noStudentsWarn">No matching students found!</mat-list-item>
+    <mat-list-item *ngIf="filteredStudents?.students?.length == 0" id="noStudentsWarn">No matching students found!</mat-list-item>
 </mat-list>
 <ng-template #loading>
     <app-spinner></app-spinner>

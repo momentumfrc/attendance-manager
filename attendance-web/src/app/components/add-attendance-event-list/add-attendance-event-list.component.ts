@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
-import { Student } from 'src/app/models/student.model';
+import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
@@ -22,7 +22,7 @@ import { PollService } from 'src/app/services/poll.service';
 export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, OnDestroy {
   allStudents = new ReplaySubject<Array<Student>>(1);
 
-  filteredStudents = new ReplaySubject<Array<Student>>(1);
+  filteredStudents = new ReplaySubject<StudentList>(1);
   searchValue = new Subject<string>();
 
   lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
@@ -100,10 +100,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           }
         }
 
-        return a.name.localeCompare(b.name);
+        return compareStudents(a, b);
       });
 
-      return value;
+      return new StudentList(value, false);
     })).subscribe(this.filteredStudents)
   }
 
