@@ -31,7 +31,16 @@ app-search-box {
     padding: 0px 16px;
 
     display: flex;
-    justify-content: space-between;
+
+    @include media.mobile {
+        flex-direction: column-reverse;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    @include media.desktop {
+        justify-content: space-between;
+    }
 }
 
 .action-container {
