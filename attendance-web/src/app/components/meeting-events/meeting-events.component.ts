@@ -9,7 +9,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
-import { MeetingConfirmDialogComponent } from './meeting-confirm-dialog/meeting-confirm-dialog.component';
+import { ConfirmDialogComponent } from '../reuse/confirm-dialog/confirm-dialog.component';
 
 interface RichMeetingEvent {
   event: MeetingEvent,
@@ -94,7 +94,7 @@ export class MeetingEventsComponent implements OnInit {
       // last end-of-meeting event.
       // FIXME: Abstract this magic number into a variable
       if(events.length > 0 && now.toMillis() - events[0].created_at.toMillis() < (6 * 60 * 60 * 1000)) {
-        let dialogref = this.dialog.open(MeetingConfirmDialogComponent, {
+        let dialogref = this.dialog.open(ConfirmDialogComponent, {
           width: '320px',
           data: {
             action: 'End Meeting',
@@ -115,7 +115,7 @@ export class MeetingEventsComponent implements OnInit {
   }
 
   removeEvent(event: RichMeetingEvent): void {
-    let dialogref = this.dialog.open(MeetingConfirmDialogComponent, {
+    let dialogref = this.dialog.open(ConfirmDialogComponent, {
       width: '320px',
       data: {action: 'Deletion', message: 'Event will be permanently deleted!', closeColor: 'warn'}
     });

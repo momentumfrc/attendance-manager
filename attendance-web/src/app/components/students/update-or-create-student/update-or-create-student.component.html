@@ -14,9 +14,17 @@
                 <mat-form-field apperance="fill">
                     <mat-label>Name</mat-label>
                     <input matInput placeholder="John Doe" type="text" formControlName="name" autocomplete="off">
-                    <mat-hint>Names must be unique</mat-hint>
                     <mat-error *ngIf="mainForm.controls['name'].errors?.['required']">Name is required</mat-error>
-                    <mat-error *ngIf="mainForm.controls['name'].errors?.['nameTaken']">A student with that name already exists</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="formRow">
+                <mat-icon aria-hidden="true">calendar_month</mat-icon>
+                <mat-form-field appearance="fill">
+                    <mat-label>Graduation Year</mat-label>
+                    <input matInput [placeholder]="getGradYearPlaceholder()" [errorStateMatcher]="matcher" type="text" formControlName="graduation_year" autocomplete="off">
+                    <mat-hint>Student name must be unique within any given graduation year</mat-hint>
+                    <mat-error *ngIf="mainForm.errors?.['nameTaken']">A student with that name and graduation year already exists</mat-error>
+                    <mat-error *ngIf="mainForm.controls['graduation_year'].errors?.['pattern']">Year must be numeric</mat-error>
                 </mat-form-field>
             </div>
             <div class="actionRow" *ngIf="this.isDeleted|async; else restoreActions">

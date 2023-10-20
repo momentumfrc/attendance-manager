@@ -6,25 +6,39 @@
 </div>
 
 <mat-menu #filterMenu="matMenu">
-    <form id="filterMenuContainer" [formGroup]="filterOptions" (click)="$event.stopPropagation()">
-        <mat-slide-toggle formControlName="showDeleted">Include deleted</mat-slide-toggle>
-    </form>
+    <div id="filterMenuContainer">
+        <mat-slide-toggle [formControl]="showDeleted">Include deleted</mat-slide-toggle>
+        <mat-slide-toggle [formControl]="showEditControl" *ngIf="authService.checkHasAnyRole(['mentor']) | async">Edit</mat-slide-toggle>
+    </div>
 </mat-menu>
 
-<mat-list *ngIf="filteredStudents | async as filteredStudents ; else loading">
-    <ng-container *ngFor="let student of filteredStudents ; last as isLast">
-        <a class="student-detail-link" [routerLink]="['..', 'detail', student.id]">
-        <mat-list-item>
+<div id="edit-actions" *ngIf="showEditSubject | async">
+    <div class="action-container left-actions">
+        <button mat-raised-button color="primary" [disabled]="everyCheckedStudentNotDeleted | async" (click)="restoreSelectedStudents()">Restore</button>
+        <button mat-raised-button color="warn" [disabled]="everyCheckedStudentDeleted | async" (click)="deleteSelectedStudents()">Delete</button>
+    </div>
+
+    <div class="action-container right-actions">
+        <button mat-stroked-button (click)="selectAllGraduatedStudents()">Select Graduated Students</button>
+        <button mat-stroked-button [disabled]="noStudentChecked | async" (click)="deselectAll()">Deselect All</button>
+    </div>
+</div>
+
+<mat-nav-list *ngIf="combinedFilteredStudentAndControls | async as combined ; else loading" id="student-list">
+    <ng-container *ngFor="let student of combined[0].students; index as i; last as isLast">
+        <mat-list-item (click)="navigateOrSelect(student, combined[1][i])">
             <div class="student-list-item">
-                <div *ngIf="student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
-                <div>{{student.name}}</div>
+                <mat-checkbox class="select-student" [formControl]="combined[1][i]" *ngIf="showEditSubject | async" (click)="$event.stopPropagation()"></mat-checkbox>
+                <div class="student-list-detail">
+                    <div *ngIf="student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
+                    <div>{{combined[0].getQualifiedName(student)}}</div>
+                </div>
             </div>
         </mat-list-item>
-    </a>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
-    <mat-list-item *ngIf="filteredStudents?.length == 0" id="noStudentsWarn">No matching students found!</mat-list-item>
-</mat-list>
+    <mat-list-item *ngIf="combined[0]?.students?.length == 0" id="noStudentsWarn">No matching students found!</mat-list-item>
+</mat-nav-list>
 <ng-template #loading>
     <app-spinner></app-spinner>
 </ng-template>

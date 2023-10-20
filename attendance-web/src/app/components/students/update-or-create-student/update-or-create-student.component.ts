@@ -5,6 +5,8 @@ import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
 import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DateTime } from 'luxon';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 enum ComponentState {
   NO_STUDENT_PROVIDED,
@@ -58,9 +60,13 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
       this.mainForm = new FormGroup({
         name: new FormControl('', {
-          validators: [Validators.required],
-          asyncValidators: [this.nameTakenValidator]
+          validators: [Validators.required]
+        }),
+        graduation_year: new FormControl('', {
+          validators: [Validators.pattern('\\d+')]
         })
+      }, {
+        asyncValidators: [this.nameTakenValidator]
       });
 
       this.isDeleted = this.editStudent.pipe(
@@ -83,6 +89,9 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
       this.editStudent.subscribe((student) => {
         if(student != null) {
           this.mainForm.controls['name'].setValue(student.name);
+          if(student.graduation_year) {
+            this.mainForm.controls['graduation_year'].setValue(student.graduation_year);
+          }
         }
       })
     }
@@ -92,21 +101,28 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   }
 
   private nameTakenValidator : AsyncValidatorFn = (control) => {
-    const name = (control.value ?? "").toLocaleLowerCase();
-    let editStudent: Observable<Student|null> = this.editStudent;
-    return forkJoin([
-      this.students.pipe(take(1)),
-      editStudent.pipe(take(1))
-    ]).pipe(
-      map((values: [Array<Student>, Student|null]) => {
-        const students = values[0];
-        const editStudent = values[1];
-        let invalid = students.some(student => student.name.toLocaleLowerCase() == name);
+    const group = control as FormGroup;
+    const name: string = (group.controls['name'].value ?? '').toLocaleLowerCase();
+    const yearStr: string|undefined = group.controls['graduation_year'].value;
+
+    let year: number|undefined;
+    if(yearStr) {
+      year = parseInt(yearStr);
+    } else {
+      year = undefined;
+    }
+
+    return forkJoin({
+      students: this.students.pipe(take(1)),
+      editStudent: this.editStudent.pipe(take(1))
+    }).pipe(
+      map(({students, editStudent}) => {
+        let conflicts = students.filter(student => student.name.toLocaleLowerCase() == name && student.graduation_year == year);
         if(editStudent != null) {
-          invalid = invalid && editStudent.name.toLocaleLowerCase() != name;
+          conflicts = conflicts.filter(student => student.id != editStudent.id);
         }
-        if(invalid) {
-          return { nameTaken: { value: control.value } };
+        if(conflicts.length > 0) {
+          return { nameTaken: { name, year } };
         } else {
           return null;
         }
@@ -116,13 +132,18 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   onSubmit(formData: any, formDirective: FormGroupDirective): void {
     this.mainForm.disable();
     const studentName = this.mainForm.value.name!;
+    let graduation_year: number|undefined = parseInt(this.mainForm.value.graduation_year);
+    if(isNaN(graduation_year)) {
+      graduation_year = undefined;
+    }
+
     if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
       // edit existing user
       this.editStudent.subscribe(student => {
         if(student == null) {
           return;
         }
-        this.studentsService.updateStudent(student.id, {name: studentName}).subscribe(
+        this.studentsService.updateStudent(student.id, {name: studentName, graduation_year}).subscribe(
           (student: Student) => {
             this.snackBar.open("Student " + student.name + " updated!", '', {
               duration: 4000
@@ -133,7 +154,10 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
       });
     } else {
       // create new user
-      this.studentsService.registerNewStudent(studentName).subscribe((student: Student) => {
+      this.studentsService.registerNewStudent({
+        name: studentName,
+        graduation_year
+      }).subscribe((student: Student) => {
         this.studentsService.invalidateCache();
         this.mainForm.enable();
         this.mainForm.reset();
@@ -173,4 +197,16 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     this.router.navigate(['/', 'students', 'detail', student.id]);
   }
 
+  protected getGradYearPlaceholder(): string {
+    return DateTime.now().plus({'years': 4}).year.toString();
+  }
+
+  protected matcher: ErrorStateMatcher = {
+    isErrorState(control, form): boolean {
+      if(!control || !form) {
+        return false;
+      }
+      return (control.invalid || (form.errors?.['nameTaken'])) && control.dirty;
+    },
+  }
 }

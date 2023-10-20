@@ -85,7 +85,53 @@
             </mat-card-content>
             </mat-card>
 
-            <p *ngIf="registeredBy|async as registrar">Registered By: {{registrar.name}}</p>
+            <h2>Student Information</h2>
+            <mat-card id="infoCard">
+            <mat-card-content>
+                <mat-list>
+                    <ng-container *ngIf="student.graduation_year">
+                        <mat-list-item>
+                            <div class="infoRow">
+                                <div class="infoName">Expected Graduation</div>
+                                <div class="infoValue">{{student.graduation_year}}</div>
+                            </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                    </ng-container>
+                    <ng-container *ngIf="registeredBy|async as registrar">
+                        <mat-list-item>
+                            <div class="infoRow">
+                                <div class="infoName">Registered By</div>
+                                <div class="infoValue">{{registrar.name}}</div>
+                            </div>
+                        </mat-list-item>
+                        <mat-divider></mat-divider>
+                    </ng-container>
+                    <mat-list-item>
+                        <div class="infoRow">
+                            <div class="infoName">Registered At</div>
+                            <div class="infoValue">{{student.created_at.toLocaleString(dateTimeShort)}}</div>
+                        </div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item>
+                        <div class="infoRow">
+                            <div class="infoName">Last Updated At</div>
+                            <div class="infoValue">{{student.updated_at.toLocaleString(dateTimeShort)}}</div>
+                        </div>
+                    </mat-list-item>
+                    <ng-container *ngIf="student.deleted_at">
+                        <mat-divider></mat-divider>
+                        <mat-list-item>
+                            <div class="infoRow">
+                                <div class="infoName">Deleted At</div>
+                                <div class="infoValue">{{student.deleted_at.toLocaleString(dateTimeShort)}}</div>
+                            </div>
+                        </mat-list-item>
+                    </ng-container>
+                </mat-list>
+            </mat-card-content>
+            </mat-card>
         </div>
     </ng-container>
 </ng-container>

@@ -5,9 +5,9 @@
 </mat-card>
 <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
 <div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
-    <ng-container *ngFor="let student of filteredStudents; last as isLast">
+    <ng-container *ngFor="let student of filteredStudents.students; last as isLast">
     <div class="studentRow">
-    <div class="studentName">{{ student.name }}</div>
+    <div class="studentName">{{filteredStudents.getQualifiedName(student)}}</div>
         <button class="studentActionButton"
                 mat-raised-button
                 color="{{actionColor()}}"
@@ -18,7 +18,7 @@
     </div>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
-    <div *ngIf="filteredStudents?.length == 0" id="noStudentsWarn">No matching students found!</div>
+    <div *ngIf="filteredStudents?.students?.length == 0" id="noStudentsWarn">No matching students found!</div>
 </div>
 <ng-template #loading>
     <app-spinner></app-spinner>

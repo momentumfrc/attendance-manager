@@ -3,7 +3,7 @@ import { HttpEvent, HttpEventType, HttpHandler, HttpInterceptor, HttpRequest } f
 import { map, Observable } from 'rxjs';
 import { DateTime } from 'luxon';
 
-const date_keys = ['created_at', 'updated_at', 'checkin_date', 'checkout_date', 'meeting_date'];
+const date_keys = ['created_at', 'updated_at', 'deleted_at', 'checkin_date', 'checkout_date', 'meeting_date'];
 
 @Injectable()
 export class DateInterceptor implements HttpInterceptor {
