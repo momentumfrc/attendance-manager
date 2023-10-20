@@ -34,9 +34,14 @@ class StudentControllerTest extends TestCase
         $event1->save();
         $this->assertDatabaseCount('attendance_events', 1);
 
+        $nonDeletedStudents = $students->where('deleted_at', null)->values();
+
         $response = $this->actingAs($user)->getJson('/api/students');
         $response->assertStatus(200);
+        $response->assertExactJson($nonDeletedStudents->toArray());
 
+        $response = $this->actingAs($user)->getJson('/api/students?includeDeleted=1');
+        $response->assertStatus(200);
         $response->assertExactJson($students->toArray());
     }
 
@@ -111,6 +116,10 @@ class StudentControllerTest extends TestCase
 
         $student = $students[2];
 
+        if($student->trashed()) {
+            $student->restore();
+        }
+
         // Missing required name
         $response = $this->actingAs($user)->putJson('/api/students/'.$student->id, []);
         $response->assertStatus(422);
@@ -141,9 +150,10 @@ class StudentControllerTest extends TestCase
         $this->assertSame(Student::find($student->id)->name, 'Foo Bar');
         $this->assertDatabaseCount('students', 5);
 
-        // Update name to same as other student
+        // Update name/year to same as other student
         $response = $this->actingAs($user)->putJson('/api/students/'.$student->id, [
-            'name' => $students[0]->name
+            'name' => $students[0]->name,
+            'graduation_year' => $students[0]->graduation_year
         ]);
         $response->assertStatus(422);
         $this->assertSame(Student::find($student->id)->name, 'Foo Bar');

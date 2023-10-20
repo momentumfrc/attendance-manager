@@ -22,7 +22,8 @@ class StudentFactory extends Factory
         $values = [
             'name' => $faker->name(),
             'registered_by' => 1,
-            'deleted_at' => null
+            'deleted_at' => null,
+            'graduation_year' => null
         ];
 
         if(rand(0, 10) < 7) {
