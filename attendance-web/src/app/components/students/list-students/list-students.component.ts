@@ -117,7 +117,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
             arr.push(students[idx]);
           }
           return arr;
-        }, [] as Student[]))
+        }, [] as Student[])),
+        startWith([]),
       ).subscribe(students => this.checkedStudents.next(students));
     });
 
