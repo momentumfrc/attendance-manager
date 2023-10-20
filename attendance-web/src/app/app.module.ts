@@ -49,7 +49,7 @@ import { ReportsComponent } from './components/reports/reports.component';
 import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
-import { MeetingConfirmDialogComponent } from './components/meeting-events/meeting-confirm-dialog/meeting-confirm-dialog.component';
+import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confirm-dialog.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 import { ErrorComponent } from './components/error/error.component';
 
@@ -73,7 +73,7 @@ import { ErrorComponent } from './components/error/error.component';
     CsvExportComponent,
     EventLogComponent,
     MeetingEventsComponent,
-    MeetingConfirmDialogComponent,
+    ConfirmDialogComponent,
     MeetingsReportComponent,
     ErrorComponent
   ],

@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MeetingEventsComponent } from '../meeting-events.component';
+import { MeetingEventsComponent } from '../../meeting-events/meeting-events.component';
 
 export interface ConfirmDialogData {
   action: string,
@@ -10,11 +10,11 @@ export interface ConfirmDialogData {
 }
 
 @Component({
-  selector: 'app-meeting-confirm-dialog',
-  templateUrl: './meeting-confirm-dialog.component.html',
-  styleUrls: ['./meeting-confirm-dialog.component.scss']
+  selector: 'app-confirm-dialog',
+  templateUrl: './confirm-dialog.component.html',
+  styleUrls: ['./confirm-dialog.component.scss']
 })
-export class MeetingConfirmDialogComponent {
+export class ConfirmDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<MeetingEventsComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData

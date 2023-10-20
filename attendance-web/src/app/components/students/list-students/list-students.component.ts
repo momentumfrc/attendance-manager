@@ -18,6 +18,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     days: 18
   });
 
+  private readonly bulkConfirmThreshold = 3;
+
   studentSearch = new Subject<string>();
   allStudents = new ReplaySubject<Array<Student>>(1);
 
