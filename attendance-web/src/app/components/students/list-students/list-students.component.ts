@@ -132,17 +132,17 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   selectAllGraduatedStudents(): void {
     combineLatest({
-      students: this.allStudents,
+      students: this.filteredStudents,
       controls: this.studentCheckControls
     }).pipe(take(1))
-    .subscribe(({students, controls}) => {
+    .subscribe(({students: [indices, students], controls}) => {
       const now = DateTime.now();
-      for(let i = 0; i < students.length; ++i) {
-        if(students[i].graduation_year) {
-          const gradDate = DateTime.fromObject({year: students[i].graduation_year}).plus(this.graduationTimeInYear);
-          controls.at(i).setValue(gradDate <= now, {emitEvent: i == students.length-1});
+      for(let i = 0; i < indices.length; ++i) {
+        if(students.students[i].graduation_year) {
+          const gradDate = DateTime.fromObject({year: students.students[i].graduation_year}).plus(this.graduationTimeInYear);
+          controls.at(indices[i]).setValue(gradDate <= now, {emitEvent: i == indices.length-1});
         } else {
-          controls.at(i).setValue(false, {emitEvent: i == students.length-1});
+          controls.at(indices[i]).setValue(false, {emitEvent: i == indices.length-1});
         }
       }
     })
