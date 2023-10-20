@@ -1,11 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { DateTime, Duration } from 'luxon';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { StudentsService } from 'src/app/services/students.service';
+import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-list-students',
@@ -44,7 +46,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
   constructor(
     private studentsService : StudentsService,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
   ) {
     this.everyCheckedStudentNotDeleted = this.checkedStudents.pipe(
       map(students => students.find(it => it.deleted_at != undefined) == undefined)
@@ -163,22 +166,62 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   deleteSelectedStudents(): void {
     this.checkedStudents.pipe(take(1)).subscribe(students => {
-      for(let student of students) {
-        if(student.deleted_at == undefined) {
+      const toDelete = students.filter(it => it.deleted_at == undefined);
+      let doDeletion = () => {
+        for(let student of toDelete) {
           this.studentsService.deleteStudent(student.id);
         }
+      };
+
+      if(toDelete.length >= this.bulkConfirmThreshold) {
+        let dialogref = this.dialog.open(ConfirmDialogComponent, {
+          width: '320px',
+          data: {
+            action: 'Deletion',
+            message: `This will delete ${toDelete.length} students!`,
+            closeColor: 'warn'
+          }
+        });
+        dialogref.afterClosed().subscribe(confirmed => {
+          if(confirmed) {
+            doDeletion();
+          }
+        })
+      } else {
+        // no need for confirmation
+        doDeletion();
       }
-    })
+    });
   }
 
   restoreSelectedStudents(): void {
     this.checkedStudents.pipe(take(1)).subscribe(students => {
-      for(let student of students) {
-        if(student.deleted_at != undefined) {
+      const toRestore = students.filter(it => it.deleted_at != undefined);
+      let doRestoration = () => {
+        for(let student of toRestore) {
           this.studentsService.undoDeleteStudent(student.id);
         }
+      };
+
+      if(toRestore.length > this.bulkConfirmThreshold) {
+        let dialogref = this.dialog.open(ConfirmDialogComponent, {
+          width: '320px',
+          data: {
+            action: 'Restoration',
+            message: `This will restore ${toRestore.length} students!`,
+            closeColor: 'warn'
+          }
+        });
+        dialogref.afterClosed().subscribe(confirmed => {
+          if(confirmed) {
+            doRestoration();
+          }
+        })
+      } else {
+        // no need for confirmation
+        doRestoration();
       }
-    })
+    });
   }
 
   navigateOrSelect(student: Student, control: FormControl<boolean>): void {
