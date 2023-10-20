@@ -24,21 +24,21 @@
     </div>
 </div>
 
-<div *ngIf="combinedFilteredStudentAndControls | async as combined ; else loading" id="student-list">
+<mat-nav-list *ngIf="combinedFilteredStudentAndControls | async as combined ; else loading" id="student-list">
     <ng-container *ngFor="let student of combined[0].students; index as i; last as isLast">
-        <div class="student-list-item">
-            <mat-checkbox class="select-student" [formControl]="combined[1][i]" *ngIf="showEditSubject | async"></mat-checkbox>
-            <a class="student-detail-link" [routerLink]="['..', 'detail', student.id]">
+        <mat-list-item (click)="navigateOrSelect(student, combined[1][i])">
+            <div class="student-list-item">
+                <mat-checkbox class="select-student" [formControl]="combined[1][i]" *ngIf="showEditSubject | async" (click)="$event.stopPropagation()"></mat-checkbox>
                 <div class="student-list-detail">
                     <div *ngIf="student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
                     <div>{{combined[0].getQualifiedName(student)}}</div>
                 </div>
-            </a>
-        </div>
+            </div>
+        </mat-list-item>
     <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
     <mat-list-item *ngIf="combined[0]?.students?.length == 0" id="noStudentsWarn">No matching students found!</mat-list-item>
-</div>
+</mat-nav-list>
 <ng-template #loading>
     <app-spinner></app-spinner>
 </ng-template>

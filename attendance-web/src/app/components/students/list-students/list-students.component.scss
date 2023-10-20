@@ -39,30 +39,14 @@ app-search-box {
     gap: 10px;
 }
 
-#student-list {
-    padding-top: 8px;
-    width: 100%;
-}
-
 .student-list-item {
     display: flex;
     height: 48px;
     align-items: center;
 
-    font-size: 16px;
-
     padding: 0px 16px;
-}
 
-.student-detail-link {
-    color: inherit;
-    flex-grow: 1;
-
-    height: 100%;
-}
-
-.student-list-item:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    text-decoration: underline;
 }
 
 .student-list-detail {

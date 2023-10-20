@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DateTime, Duration } from 'luxon';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
@@ -25,7 +26,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
   filteredStudents = new ReplaySubject<[number[], StudentList]>(1);
   combinedFilteredStudentAndControls = new ReplaySubject<[StudentList, FormControl<boolean>[]]>(1);
 
-  showEditSubject = new ReplaySubject<boolean>(1);
+  showEditSubject = new BehaviorSubject<boolean>(false);
   showEditControl = new FormControl(false, {nonNullable: true});
 
   everyCheckedStudentNotDeleted: Observable<boolean>;
@@ -40,7 +41,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   constructor(
     private studentsService : StudentsService,
-    public authService: AuthService
+    public authService: AuthService,
+    private router: Router
   ) {
     this.everyCheckedStudentNotDeleted = this.checkedStudents.pipe(
       map(students => students.find(it => it.deleted_at != undefined) == undefined)
@@ -58,7 +60,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     // Get students from database
     this.allStudentSubscription = this.studentsService.getAllStudents(true).subscribe((students) => this.allStudents.next(students));
 
-    this.showEditControl.valueChanges.pipe(startWith(false)).subscribe(this.showEditSubject);
+    this.showEditControl.valueChanges.subscribe(this.showEditSubject);
 
     // Combine search, sort filters, and student roster into the final observable which
     // will be formatted and shown to the user
@@ -172,6 +174,14 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
         }
       }
     })
+  }
+
+  navigateOrSelect(student: Student, control: FormControl<boolean>): void {
+    if(this.showEditSubject.getValue()) {
+      control.setValue(!control.value);
+    } else {
+      this.router.navigate(['students', 'detail', student.id]);
+    }
   }
 
 }
