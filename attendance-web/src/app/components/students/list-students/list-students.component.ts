@@ -21,7 +21,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
   studentSearch = new Subject<string>();
   allStudents = new ReplaySubject<Array<Student>>(1);
 
-  studentCheckControls = new ReplaySubject<FormArray<FormControl<boolean>>>(1);
+  studentCheckControls = new ReplaySubject<[Student[], FormArray<FormControl<boolean>>]>(1);
 
   filteredStudents = new ReplaySubject<[number[], StudentList]>(1);
   combinedFilteredStudentAndControls = new ReplaySubject<[StudentList, FormControl<boolean>[]]>(1);
@@ -93,7 +93,10 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     })).subscribe(this.filteredStudents);
 
     this.allStudents.pipe(
-      map(students => new FormArray(students.map(_ => new FormControl(false, {nonNullable: true}))))
+      map(students => [
+        students,
+        new FormArray(students.map(_ => new FormControl(false, {nonNullable: true})))
+      ] as [Student[], FormArray<FormControl<boolean>>])
     ).subscribe(this.studentCheckControls);
 
     combineLatest({
@@ -102,14 +105,11 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     }).pipe(
       map(({
         filteredStudents: [indices, students],
-        controls
+        controls: [_, controls]
       }) => [students, indices.map(idx => controls.at(idx))] as [StudentList, FormControl<boolean>[]])
     ).subscribe(this.combinedFilteredStudentAndControls);
 
-    combineLatest({
-      students: this.allStudents,
-      controls: this.studentCheckControls
-    }).pipe(debounceTime(50), tap<{students: Student[], controls: FormArray<FormControl<boolean>>}>(console.log)).subscribe(({students, controls}) => {
+    this.studentCheckControls.subscribe(([students, controls]) => {
       controls.valueChanges.pipe(
         takeUntil(this.studentCheckControls.pipe(skip(1))),
         map(bools => bools.reduce((arr, shouldKeep, idx) => {
@@ -138,11 +138,13 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
       students: this.filteredStudents,
       controls: this.studentCheckControls
     }).pipe(take(1))
-    .subscribe(({students: [indices, students], controls}) => {
+    .subscribe(({
+      students: [indices, filteredStudents],
+      controls: [allStudents, controls]}) => {
       const now = DateTime.now();
       for(let i = 0; i < indices.length; ++i) {
-        if(students.students[i].graduation_year) {
-          const gradDate = DateTime.fromObject({year: students.students[i].graduation_year}).plus(this.graduationTimeInYear);
+        if(filteredStudents.students[i].graduation_year) {
+          const gradDate = DateTime.fromObject({year: filteredStudents.students[i].graduation_year}).plus(this.graduationTimeInYear);
           controls.at(indices[i]).setValue(gradDate <= now, {emitEvent: i == indices.length-1});
         } else {
           controls.at(indices[i]).setValue(false, {emitEvent: i == indices.length-1});
@@ -153,7 +155,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   deselectAll(): void {
     this.studentCheckControls.pipe(take(1)).subscribe(controls => {
-      controls.reset();
+      controls[1].reset();
     })
   }
 
