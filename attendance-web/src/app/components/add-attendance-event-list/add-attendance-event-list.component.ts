@@ -103,7 +103,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         return compareStudents(a, b);
       });
 
-      return new StudentList(value, false);
+      return new StudentList(value);
     })).subscribe(this.filteredStudents)
   }
 

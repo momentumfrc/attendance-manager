@@ -25,20 +25,11 @@ export function compareStudents(a: Student, b: Student): number {
 }
 
 export class StudentList {
-    public students: Student[];
-
     private nameRepetitions: Map<string, number> = new Map();
 
     constructor(
-        students: Student[],
-        sort: boolean = true
+        public students: Student[]
     ){
-        if(sort) {
-            this.students = [...students].sort(compareStudents);
-        } else {
-            this.students = students;
-        }
-
         this.students.forEach(student => {
             if(this.nameRepetitions.has(student.name)) {
                 this.nameRepetitions.set(student.name, this.nameRepetitions.get(student.name)!! + 1);
