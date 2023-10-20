@@ -3,6 +3,7 @@ import { FormArray, FormControl } from '@angular/forms';
 import { DateTime, Duration } from 'luxon';
 import { BehaviorSubject, combineLatest, debounceTime, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { StudentsService } from 'src/app/services/students.service';
 
 @Component({
@@ -39,6 +40,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
 
   constructor(
     private studentsService : StudentsService,
+    public authService: AuthService
   ) {
     this.everyCheckedStudentNotDeleted = this.checkedStudents.pipe(
       map(students => students.find(it => it.deleted_at != undefined) == undefined)

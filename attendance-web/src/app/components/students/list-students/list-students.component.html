@@ -5,6 +5,13 @@
     </button>
 </div>
 
+<mat-menu #filterMenu="matMenu">
+    <div id="filterMenuContainer">
+        <mat-slide-toggle [formControl]="showDeleted">Include deleted</mat-slide-toggle>
+        <mat-slide-toggle [formControl]="showEditControl" *ngIf="authService.checkHasAnyRole(['mentor']) | async">Edit</mat-slide-toggle>
+    </div>
+</mat-menu>
+
 <div id="edit-actions" *ngIf="showEditSubject | async">
     <div class="action-container left-actions">
         <button mat-raised-button color="primary" [disabled]="everyCheckedStudentNotDeleted | async" (click)="restoreSelectedStudents()">Restore</button>
@@ -16,13 +23,6 @@
         <button mat-stroked-button [disabled]="noStudentChecked | async" (click)="deselectAll()">Deselect All</button>
     </div>
 </div>
-
-<mat-menu #filterMenu="matMenu">
-    <div id="filterMenuContainer" (click)="$event.stopPropagation()">
-        <mat-slide-toggle [formControl]="showDeleted">Include deleted</mat-slide-toggle>
-        <mat-slide-toggle [formControl]="showEditControl">Edit</mat-slide-toggle>
-    </div>
-</mat-menu>
 
 <div *ngIf="combinedFilteredStudentAndControls | async as combined ; else loading" id="student-list">
     <ng-container *ngFor="let student of combined[0].students; index as i; last as isLast">
