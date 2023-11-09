@@ -11,7 +11,9 @@ if [ ! -d "${LOG_DIR}" ]; then
 fi
 
 # BEGIN REDIRECTED STDOUT, STDERR
-{
+(
+export PATH=/usr/local/bin:${PATH}
+
 if [ ! -d "${API_DIR}" ]; then
     echo "Error: ${API_DIR} is not a directory"
     exit 1
@@ -22,9 +24,9 @@ echo -e "\\t${0}"
 
 cd ${API_DIR}
 
-php artisan meetings:end
+php ./artisan meetings:end
 
 echo
 
-} >> ${OUTPUT_FILE} 2>&1
+) >> ${OUTPUT_FILE} 2>&1
 
