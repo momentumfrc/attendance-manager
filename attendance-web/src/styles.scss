@@ -7,6 +7,6 @@ body {
     --mdc-typography-button-letter-spacing: 0;
 }
 
-.mdc-tab__text-label {
+.mdc-tab__text-label, .mdc-button__label {
     letter-spacing: normal;
 }
