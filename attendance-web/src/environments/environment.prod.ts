@@ -2,5 +2,5 @@ export const environment = {
   production: true,
   apiRoot: "/attendance/api",
   authRoot: "/attendance/auth",
-  pollInterval: 5000
+  pollInterval: 500
 };
