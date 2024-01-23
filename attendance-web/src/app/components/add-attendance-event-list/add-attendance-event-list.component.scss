@@ -43,8 +43,13 @@ app-search-box {
     }
 
     justify-content: space-between;
+    gap: 10px;
 
     margin: 5px 0px;
+}
+
+.studentName {
+    flex-grow: 1;
 }
 
 .studentActionButton {

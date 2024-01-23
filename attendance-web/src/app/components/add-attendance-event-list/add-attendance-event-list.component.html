@@ -5,20 +5,21 @@
 </mat-card>
 <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
 <div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
-    <ng-container *ngFor="let student of filteredStudents.students; last as isLast">
-    <div class="studentRow">
-    <div class="studentName">{{filteredStudents.getQualifiedName(student)}}</div>
+    <ng-container *ngFor="let student of filteredStudents[0].students; index as i; last as isLast">
+        <div class="studentRow">
+        <div class="studentName">{{filteredStudents[0].getQualifiedName(student)}}</div>
+        <mat-spinner [diameter]="45" [strokeWidth]="8" *ngIf="filteredStudents[1][i]"></mat-spinner>
         <button class="studentActionButton"
                 mat-raised-button
                 color="{{actionColor()}}"
-                [disabled]="canPerformAction(student)|async"
+                [disabled]="cannotPerformAction(student)|async"
                 (click)="performAction(student)">
                     {{actionText()}}
         </button>
-    </div>
-    <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
+        </div>
+        <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
     </ng-container>
-    <div *ngIf="filteredStudents?.students?.length == 0" id="noStudentsWarn">No matching students found!</div>
+    <div *ngIf="filteredStudents[0]?.students?.length == 0" id="noStudentsWarn">No matching students found!</div>
 </div>
 <ng-template #loading>
     <app-spinner></app-spinner>

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take } from 'rxjs';
+import { BehaviorSubject, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -22,7 +22,7 @@ import { PollService } from 'src/app/services/poll.service';
 export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, OnDestroy {
   allStudents = new ReplaySubject<Array<Student>>(1);
 
-  filteredStudents = new ReplaySubject<StudentList>(1);
+  filteredStudents = new ReplaySubject<[StudentList, boolean[]]>(1);
   searchValue = new Subject<string>();
 
   lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
@@ -34,13 +34,14 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected readonly eventTypes = AttendanceEventType
   protected mode: AttendanceEventType
 
+  protected pendingStudentIds = new BehaviorSubject<number[]>([]);
+
   constructor(
     private pollService: PollService,
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
     private meetingsService : MeetingsService,
     private authService : AuthService,
-    private dialog: MatDialog,
     private snackbar: MatSnackBar,
     route: ActivatedRoute
   ) {
@@ -62,6 +63,8 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       }
     });
 
+    this.pendingStudentIds.subscribe(console.log);
+
     // Set up polling for new check-ins/check-outs
     this.polling = this.pollService.getPollingObservable().subscribe(pollData => {
       this.studentsService.updateStudentsInCache(pollData.updated_students);
@@ -76,8 +79,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     combineLatest({
       students: this.allStudents,
       search: this.searchValue.pipe(startWith("")),
-      meeting: this.lastEndOfMeeting
-    }).pipe(map(({students, search, meeting}) => {
+      meeting: this.lastEndOfMeeting,
+      pendingStudentIds: this.pendingStudentIds
+    }).pipe(map(({students, search, meeting, pendingStudentIds}) => {
       let searchLc = (search ?? "").toLocaleLowerCase();
 
       let value = students;
@@ -103,7 +107,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         return compareStudents(a, b);
       });
 
-      return new StudentList(value);
+      // flag pending students
+      const isPending = value.map(student => pendingStudentIds.includes(student.id));
+
+      return [new StudentList(value), isPending] as [StudentList, boolean[]];
     })).subscribe(this.filteredStudents)
   }
 
@@ -124,6 +131,8 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   private attendance(student: Student, action: AttendanceEventType) : void {
+    this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
+
     this.authService.getUser().pipe(map(user => {
       if(!user) {
         throw new Error("Not authenticated");
@@ -146,24 +155,32 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           [AttendanceEventType.CHECK_OUT]: "checked out"
         }[action];
 
-        const registerResponse = this.attendanceService.registerEvent(student.id, action).pipe(shareReplay(1));
-        registerResponse.subscribe(event => this.studentsService.refreshSingleStudent(event.student_id))
+        this.attendanceService.registerEvent(student.id, action).pipe(
+          finalize( () => {
+            this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
+          })
+        ).subscribe(event => {
+          this.studentsService.refreshSingleStudent(event.student_id);
+          const snackBarHandle = this.snackbar.open(
+            "Student " + student.name + " " + eventStr,
+            "Undo",
+            { duration: 4000 }
+          );
 
-        const snackBarHandle = this.snackbar.open(
-          "Student " + student.name + " " + eventStr,
-          "Undo",
-          { duration: 4000 }
-        );
-
-        snackBarHandle.onAction().subscribe(() => {
-          registerResponse.subscribe(event => {
-            this.attendanceService.deleteEvent(event.id).subscribe(deleted => {
+          snackBarHandle.onAction().subscribe(() => {
+            this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
+            this.attendanceService.deleteEvent(event.id).pipe(
+              finalize(() => {
+                this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
+              })
+            ).subscribe(deleted => {
               if(deleted) {
                 this.studentsService.refreshSingleStudent(event.student_id);
               }
-            })
+            });
           });
         });
+
     });
   }
 
@@ -193,10 +210,17 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     return check_out < check_in;
   }
 
-  protected canPerformAction(student: Student): Observable<boolean> {
-    return this.lastEndOfMeeting.pipe(
-      map(meeting => this.shouldConsiderStudentCheckedIn(student, meeting)),
-      map(isCheckedIn => (this.mode == AttendanceEventType.CHECK_IN) == isCheckedIn)
+  protected cannotPerformAction(student: Student): Observable<boolean> {
+    return combineLatest({
+      availableActionDoesNotMatchTab: this.lastEndOfMeeting.pipe(
+          map(meeting => this.shouldConsiderStudentCheckedIn(student, meeting)),
+          map(isCheckedIn => (this.mode == AttendanceEventType.CHECK_IN) == isCheckedIn)
+      ),
+      isPending: this.pendingStudentIds.pipe(
+        map(ids => ids.includes(student.id))
+      )
+    }).pipe(
+      map(({availableActionDoesNotMatchTab, isPending}) => availableActionDoesNotMatchTab || isPending)
     );
   }
 
