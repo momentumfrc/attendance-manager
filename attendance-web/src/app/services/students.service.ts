@@ -4,7 +4,7 @@ import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular
 import { catchError, filter, map, Observable, of, OperatorFunction, ReplaySubject, shareReplay, switchMap, take, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-import { Student } from 'src/app/models/student.model';
+import { areStudentsEqual, Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
 import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 import { ErrorService } from './error.service';
@@ -85,6 +85,16 @@ export class StudentsService {
     const request = this.querySingleStudent(id).pipe(
       filter(it => it !== undefined) as OperatorFunction<Student|undefined, Student>
     ).subscribe(student => this.updateStudentsInCache([student]));
+  }
+
+  public matchesCache(students: Student[]): Observable<boolean> {
+    return this.cachedStudents.pipe(
+      take(1),
+      map(cache => students.reduce((eqSoFar, student) => {
+        const cachedStudent = cache.get(student.id);
+        return eqSoFar && cachedStudent != undefined && areStudentsEqual(student, cachedStudent);
+      }, true))
+    );
   }
 
   public updateStudentsInCache(new_students: Student[]) {

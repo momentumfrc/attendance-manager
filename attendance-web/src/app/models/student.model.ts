@@ -1,5 +1,5 @@
 import { DateTime } from "luxon"
-import { AttendanceEvent } from "./attendance-event.model"
+import { AttendanceEvent, areAttendanceEventsEqual } from "./attendance-event.model"
 
 export interface Student {
     id: number,
@@ -11,6 +11,30 @@ export interface Student {
     deleted_at?: DateTime,
     last_check_in?: AttendanceEvent,
     last_check_out?: AttendanceEvent
+}
+
+export function areStudentsEqual(a: Student, b: Student): boolean {
+    const compare_optional_dates = (d1: DateTime|undefined, d2: DateTime|undefined) => {
+        if(d1 == undefined || d2 == undefined) {
+            return d1 === d2;
+        }
+        return d1.equals(d2);
+    };
+    const compare_optional_events = (e1: AttendanceEvent|undefined, e2: AttendanceEvent|undefined) => {
+        if(e1 == undefined || e2 == undefined) {
+            return e1 === e2;
+        }
+        return areAttendanceEventsEqual(e1, e2);
+    };
+    return a.id === b.id
+        && a.name === b.name
+        && a.graduation_year === b.graduation_year
+        && a.registered_by === b.registered_by
+        && a.created_at.equals(b.created_at)
+        && a.updated_at.equals(b.updated_at)
+        && compare_optional_dates(a.deleted_at, b.deleted_at)
+        && compare_optional_events(a.last_check_in, b.last_check_in)
+        && compare_optional_events(a.last_check_out, b.last_check_out);
 }
 
 export function compareStudents(a: Student, b: Student): number {

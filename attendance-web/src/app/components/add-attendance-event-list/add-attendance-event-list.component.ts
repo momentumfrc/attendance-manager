@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap, timer } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -35,6 +35,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected mode: AttendanceEventType
 
   protected pendingStudentIds = new BehaviorSubject<number[]>([]);
+  protected inUpdateLockout = new BehaviorSubject<boolean>(false);
 
   constructor(
     private pollService: PollService,
@@ -67,11 +68,31 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
     // Set up polling for new check-ins/check-outs
     this.polling = this.pollService.getPollingObservable().subscribe(pollData => {
-      this.studentsService.updateStudentsInCache(pollData.updated_students);
+      // If we get new data, disable the UI for a configurable period (in case a user is about
+      // to tap an option that will move with the update)
+      let shouldLockout: Observable<boolean>;
       if(pollData.meeting_events.length > 0) {
-        // TODO: Verify that the 0th meeting event is always the most recent
-        this.lastEndOfMeeting.next(pollData.meeting_events[0]);
+        shouldLockout = of(true);
+      } else if(pollData.updated_students.length > 0) {
+        shouldLockout = this.studentsService.matchesCache(pollData.updated_students).pipe(map(matches => !matches));
+      } else {
+        shouldLockout = of(false);
       }
+
+      shouldLockout.subscribe(shouldLockout => {
+        if(shouldLockout) {
+          this.inUpdateLockout.next(true);
+          timer(environment.updateLockoutInterval).subscribe(() => {
+            this.inUpdateLockout.next(false);
+          });
+
+          this.studentsService.updateStudentsInCache(pollData.updated_students);
+          if(pollData.meeting_events.length > 0) {
+            // TODO: Verify that the 0th meeting event is always the most recent
+            this.lastEndOfMeeting.next(pollData.meeting_events[0]);
+          }
+        }
+      });
     });
 
     // Combine search, sort filters, and student roster into the final observable which
@@ -131,6 +152,11 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   private attendance(student: Student, action: AttendanceEventType) : void {
+    // If we're locked-out due to a recent update, ignore the event
+    if(this.inUpdateLockout.getValue()) {
+      return;
+    }
+
     this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
 
     this.authService.getUser().pipe(map(user => {
@@ -218,9 +244,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       ),
       isPending: this.pendingStudentIds.pipe(
         map(ids => ids.includes(student.id))
-      )
+      ),
+      inUpdateLockout: this.inUpdateLockout
     }).pipe(
-      map(({availableActionDoesNotMatchTab, isPending}) => availableActionDoesNotMatchTab || isPending)
+      map(({availableActionDoesNotMatchTab, isPending, inUpdateLockout}) => availableActionDoesNotMatchTab || isPending || inUpdateLockout)
     );
   }
 
