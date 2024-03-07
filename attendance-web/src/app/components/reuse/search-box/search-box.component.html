@@ -1,4 +1,5 @@
 <div class="search">
     <mat-icon aria-hidden="false" aria-label="Search icon" fontIcon="search"></mat-icon>
     <input type="text" [formControl]="searchControl" autocomplete="off" >
+    <mat-icon *ngIf="shouldShowCancel|async" aria-hidden="false" aria-label="Clear" (click)="clearSearch()">cancel</mat-icon>
 </div>
