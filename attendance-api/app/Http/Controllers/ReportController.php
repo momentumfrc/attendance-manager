@@ -8,13 +8,13 @@ use Carbon\Carbon;
 
 use Illuminate\Support\Facades\DB;
 
-class StatsController extends Controller
+class ReportController extends Controller
 {
     public function __construct() {
         $this->middleware('can:view stats');
     }
 
-    public function meetings(Request $request) {
+    public function listMeetings(Request $request) {
         $request->validate([
             'since' => 'date_format:U|lt:4294967295',
             'until' => 'date_format:U|lt:4294967295',

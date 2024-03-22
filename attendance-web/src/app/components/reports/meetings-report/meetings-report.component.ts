@@ -45,7 +45,7 @@ export class MeetingsReportComponent {
 
     this.selectedInterval.subscribe(interval => {
       this.state.next(PageState.LOADING);
-      this.reportsService.getMeetingStats({since: interval.start ?? undefined, until: interval.end ?? undefined}).subscribe(stats => {
+      this.reportsService.getMeetingList({since: interval.start ?? undefined, until: interval.end ?? undefined}).subscribe(stats => {
         this.meetingData.next(stats);
       })
     })

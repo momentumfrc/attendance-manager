@@ -12,7 +12,7 @@ export class ReportsService {
 
   constructor(private httpClient: HttpClient) { }
 
-  getMeetingStats(options?: {
+  getMeetingList(options?: {
     since?: DateTime,
     until?: DateTime,
     limit?: number
@@ -28,6 +28,6 @@ export class ReportsService {
       params = params.set('limit', options.limit);
     }
 
-    return this.httpClient.get<Array<MeetingStatistic>>(environment.apiRoot + '/stats/meetings', {params});
+    return this.httpClient.get<Array<MeetingStatistic>>(environment.apiRoot + '/reports/list-meetings', {params});
   }
 }
