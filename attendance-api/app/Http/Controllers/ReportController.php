@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 
 use Illuminate\Support\Facades\DB;
+use \App\Models\AttendanceSession;
 
 class ReportController extends Controller
 {
@@ -44,5 +46,36 @@ class ReportController extends Controller
         $query->orderBy('meeting_date', 'desc');
 
         return $query->get();
+    }
+
+    public function meetingAttendance(Request $request) {
+        $request->validate([
+            'on' => 'date_format:Y-m-d',
+            'timezone' => 'date_format:P'
+        ]);
+
+        $timezone = $request->input('timezone', config('config.default_client_timezone'));
+
+        $query = DB::table('attendance_sessions')->select(['student_id', 'checkin_id', 'checkin_date', 'checkout_id', 'checkout_date']);
+
+        if($request->has('on')) {
+            $on = $request->on;
+        } else {
+            $on = DB::table('attendance_sessions')
+                ->selectRaw('CAST(MAX(CONVERT_TZ(checkin_date, "+0:00", ?)) AS DATE) AS max_meeting_date',
+                [$timezone]
+            )->value('max_meeting_date');
+        }
+
+        $on = Carbon::createFromFormat('Y-m-d', $on, $timezone)->setTime(0, 0, 0);
+
+        $query->whereRaw('CAST(CONVERT_TZ(checkin_date, "+0:00", ?) AS DATE) = ?', [$request->input('timezone', config('config.default_client_timezone')), $on->toDateString()]);
+
+        $students = AttendanceSession::hydrate($query->get()->toArray());
+
+        return array(
+            "meeting_date" => $on,
+            "attendance_sessions" => $students
+        );
     }
 }
