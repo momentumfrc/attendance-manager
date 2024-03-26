@@ -71,6 +71,8 @@ class ReportController extends Controller
 
         $query->whereRaw('CAST(CONVERT_TZ(checkin_date, "+0:00", ?) AS DATE) = ?', [$request->input('timezone', config('config.default_client_timezone')), $on->toDateString()]);
 
+        $query->orderBy('checkin_date', 'ASC');
+
         $students = AttendanceSession::hydrate($query->get()->toArray());
 
         return array(
