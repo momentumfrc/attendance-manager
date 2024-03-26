@@ -1,0 +1,27 @@
+<ng-container *ngIf="report|async as report; else loading">
+    <h1 class="attendance-header">Attendance on {{report.date.toLocaleString(DATE_SHORT_FMT)}}</h1>
+<mat-card>
+<mat-card-content>
+    <table mat-table [dataSource]="report.attendance_sessions">
+        <ng-container matColumnDef="student-name">
+            <th mat-header-cell *matHeaderCellDef>Student Name</th>
+            <td mat-cell *matCellDef="let element">{{element.student.name}}</td>
+        </ng-container>
+        <ng-container matColumnDef="checkin-date">
+            <th mat-header-cell *matHeaderCellDef>Check In</th>
+            <td mat-cell *matCellDef="let element">{{element.checkin_date.toLocaleString(DATETIME_SHORT_FMT)}}</td>
+        </ng-container>
+        <ng-container matColumnDef="checkout-date">
+            <th mat-header-cell *matHeaderCellDef>Check Out</th>
+            <td mat-cell *matCellDef="let element">{{element.checkout_date?.toLocaleString(DATETIME_SHORT_FMT) ?? "-"}}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="meetingAttendanceColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: meetingAttendanceColumns;"></tr>
+    </table>
+</mat-card-content>
+</mat-card>
+</ng-container>
+<ng-template #loading>
+    <app-spinner></app-spinner>
+</ng-template>

@@ -4,7 +4,7 @@ import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 import { DateTime, Interval } from 'luxon';
 import { BehaviorSubject, combineLatest, filter, map, ReplaySubject, share, startWith, tap } from 'rxjs';
-import { MeetingStatistic } from 'src/app/models/meeting-statistic.model';
+import { MeetingStudentCount } from 'src/app/models/report-models';
 import { ReportsService } from 'src/app/services/reports.service';
 
 enum PageState {
@@ -20,7 +20,7 @@ enum PageState {
 export class MeetingsReportComponent {
   readonly dateFormat = DateTime.DATE_SHORT;
 
-  meetingStatsColumns = ['date', 'student-count'];
+  meetingStatsColumns = ['attendance-detail', 'date', 'student-count'];
 
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState
@@ -31,7 +31,7 @@ export class MeetingsReportComponent {
   });
 
   selectedInterval = new ReplaySubject<Interval>(1);
-  meetingData = new ReplaySubject<Array<MeetingStatistic>>(1);
+  meetingData = new ReplaySubject<Array<MeetingStudentCount>>(1);
 
   chart?: Chart = undefined
 
@@ -89,5 +89,9 @@ export class MeetingsReportComponent {
         });
       }
     });
+  }
+
+  clog(arg: any) {
+    console.log(arg);
   }
 }

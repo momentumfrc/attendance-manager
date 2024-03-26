@@ -7,6 +7,31 @@ table {
     width: 100%;
 }
 
+.attendance-detail-button {
+    width: 48px !important;
+    height: 48px !important;
+    padding: 0px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    & > *[role=img] {
+       width: 32px;
+       height: 32px;
+       font-size: 32px;
+
+       svg {
+          width: 32px;
+          height: 32px;
+       }
+    }
+
+    .mat-mdc-button-touch-target {
+       width: 48px !important;
+       height: 48px !important;
+    }
+ }
+
 /* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
 mat-card {
     margin-bottom: 20px;

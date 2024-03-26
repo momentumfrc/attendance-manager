@@ -52,6 +52,7 @@ import { MeetingEventsComponent } from './components/meeting-events/meeting-even
 import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confirm-dialog.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 import { ErrorComponent } from './components/error/error.component';
+import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 
 
 @NgModule({
@@ -75,6 +76,7 @@ import { ErrorComponent } from './components/error/error.component';
     MeetingEventsComponent,
     ConfirmDialogComponent,
     MeetingsReportComponent,
+    MeetingAttendanceReportComponent,
     ErrorComponent
   ],
   imports: [
