@@ -18,6 +18,7 @@ import { EventLogComponent } from './components/reports/event-log/event-log.comp
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 import { ErrorComponent } from './components/error/error.component';
+import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -40,10 +41,12 @@ const routes: Routes = [
     canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
     data: { roleOptions: ['mentor', 'student-lead']},
     children: [
-      {path: '', redirectTo: 'meetings', pathMatch: 'full'},
-      {path: 'meetings', component: MeetingsReportComponent},
-      {path: 'event-log', component: EventLogComponent},
-      {path: 'export', component: CsvExportComponent}
+      { path: '', redirectTo: 'meetings', pathMatch: 'full' },
+      { path: 'meetings', component: MeetingsReportComponent },
+      { path: 'meetings/attendance', component: MeetingAttendanceReportComponent },
+      { path: 'meetings/attendance/:date', component: MeetingAttendanceReportComponent },
+      { path: 'event-log', component: EventLogComponent },
+      { path: 'export', component: CsvExportComponent }
     ]
   },
   { path: 'meetings', component: MeetingEventsComponent,

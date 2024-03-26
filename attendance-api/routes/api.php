@@ -8,7 +8,7 @@ use App\Http\Controllers\AttendanceEventController;
 use App\Http\Controllers\AttendanceSessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeetingEventController;
-use App\Http\Controllers\StatsController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PollController;
 
 use Spatie\Permission\Models\Role;
@@ -49,7 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return Role::all()->pluck('name');
     });
 
-    Route::get('stats/meetings', [StatsController::class, 'meetings']);
+    Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
+    Route::get('reports/meeting-attendance', [ReportController::class, 'meetingAttendance']);
     Route::get('poll', [PollController::class, 'poll']);
 });
 
