@@ -41,14 +41,14 @@
                         <mat-list-item>
                             <div class="statRow">
                                 <div class="statName">Meetings Attended</div>
-                                <div class="statValue">{{stats.sessions.length}}</div>
+                                <div class="statValue"><span class="major-stat-value">{{stats.sessions.length}}</span> / {{stats.allMeetings.length}}</div>
                             </div>
                         </mat-list-item>
                         <mat-divider></mat-divider>
                         <mat-list-item>
                             <div class="statRow">
                                 <div class="statName">Missed Checkouts</div>
-                                <div class="statValue">{{stats.getMissedCheckouts()}}</div>
+                                <div class="statValue"><span class="major-stat-value">{{stats.getMissedCheckouts()}}</span> / {{stats.sessions.length}}</div>
                             </div>
                         </mat-list-item>
                     </mat-list>

@@ -5,11 +5,13 @@ import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, combineLatest, filter, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
+import { MeetingAttendance, MeetingStudentCount } from 'src/app/models/report-models';
 import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ErrorService } from 'src/app/services/error.service';
+import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
@@ -46,7 +48,8 @@ class RichAttendanceSession {
 
 class AttendanceStats {
   constructor(
-    public sessions: Array<AttendanceSession>
+    public sessions: Array<AttendanceSession>,
+    public allMeetings: Array<MeetingStudentCount>
   ) {}
 
   public getTotalDuration(): string {
@@ -80,6 +83,7 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   protected registeredBy = new ReplaySubject<User>(1)
 
   protected sessionsSubject = new ReplaySubject<AttendanceSession[]>(1);
+  protected meetingsSubject = new ReplaySubject<MeetingStudentCount[]>(1);
 
   protected attendanceSessions = new PaginatedDataSource<RichAttendanceSession>()
   protected attendanceStats = new ReplaySubject<AttendanceStats>(1)
@@ -99,7 +103,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     private usersService: UsersService,
     private attendanceService: AttendanceService,
     private errorService: ErrorService,
-    private authService: AuthService
+    private authService: AuthService,
+    private reportsService: ReportsService
   ) {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
@@ -155,8 +160,15 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
       this.attendanceSessions.setData(sessions);
     });
 
-    this.sessionsSubject.pipe(
-      map(sessions => new AttendanceStats(sessions))
+    dateRangeChanges.pipe(
+      switchMap(dateRange => this.reportsService.getMeetingList({since: dateRange.since, until: dateRange.until}))
+    ).subscribe(meetings => this.meetingsSubject.next(meetings));
+
+    combineLatest({
+      sessions: this.sessionsSubject,
+      meetings: this.meetingsSubject
+    }).pipe(
+      map(({sessions, meetings}) => new AttendanceStats(sessions, meetings))
     ).subscribe(this.attendanceStats);
   }
 
