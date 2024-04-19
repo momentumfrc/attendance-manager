@@ -173,6 +173,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           undefined,
           { duration: 4000 }
         );
+        this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(id => id != student.id));
         return;
       }
 
