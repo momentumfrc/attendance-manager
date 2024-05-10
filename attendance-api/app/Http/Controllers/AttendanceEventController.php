@@ -23,10 +23,15 @@ class AttendanceEventController extends Controller
             'since' => 'date_format:U|lt:4294967295',
             'until' => 'date_format:U|lt:4294967295',
             'limit' => 'integer|min:1',
-            'type' => 'string|in:'.join(',', config('enums.attendance_event_types'))
+            'type' => 'string|in:'.join(',', config('enums.attendance_event_types')),
+            'with_trashed' => 'boolean'
         ]);
 
         $response = AttendanceEvent::query();
+
+        if($request->boolean('with_trashed')) {
+            $response = $response->withTrashed();
+        }
 
         $response->orderBy('created_at', 'desc');
 
@@ -100,14 +105,32 @@ class AttendanceEventController extends Controller
         return AttendanceEvent::withTrashed()->findOrFail($id);
     }
 
-    public function destroy(AttendanceEvent $event) {
-        if(Carbon::now()->diffInSeconds($event->created_at) > config('config.undo_window')) {
-            throw ValidationException::withMessages([
-                'id' => ['The record cannot be removed as the undo window has elapsed.']
-            ]);
+    public function update(String $id) {
+        Gate::authorize('delete attendance event');
+        $event = AttendanceEvent::withTrashed()->findOrFail($id);
+        if($event->trashed()) {
+            $event->restore();
+        }
+
+        return $event;
+    }
+
+    public function destroy(Request $request, AttendanceEvent $event) {
+        if($request->boolean('force')) {
+            Gate::authorize('delete attendance event');
+        } else {
+            Gate::authorize('undo attendance event');
+
+            if(Carbon::now()->diffInSeconds($event->created_at) > config('config.undo_window')) {
+                throw ValidationException::withMessages([
+                    'id' => ['The record cannot be removed as the undo window has elapsed.']
+                ]);
+            }
         }
 
         $event->delete();
+
+        return $event;
     }
 
 }
