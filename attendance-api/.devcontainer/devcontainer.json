@@ -11,7 +11,9 @@
 			"settings": {
 				"remote.autoForwardPorts": false
 			},
-			"extensions": []
+			"extensions": [
+				"bmewburn.vscode-intelephense-client"
+			]
 		}
 	},
 	"remoteUser": "sail",
