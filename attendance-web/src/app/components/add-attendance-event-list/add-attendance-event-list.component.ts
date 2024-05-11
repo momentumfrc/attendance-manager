@@ -212,16 +212,16 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   private shouldConsiderStudentCheckedIn(student: Student, meeting: MeetingEvent|null) {
-    const check_in: DateTime|null = student.last_check_in?.updated_at ?? null;
-    let check_out: DateTime|null = student.last_check_out?.updated_at ?? null;
+    const check_in: DateTime|null = student.last_check_in?.created_at ?? null;
+    let check_out: DateTime|null = student.last_check_out?.created_at ?? null;
 
     if(meeting != null) {
       if(check_out != null) {
-        if(meeting.updated_at > check_out) {
-          check_out = meeting.updated_at;
+        if(meeting.created_at > check_out) {
+          check_out = meeting.created_at;
         }
       } else {
-        check_out = meeting.updated_at;
+        check_out = meeting.created_at;
       }
     }
 
