@@ -25,9 +25,7 @@ use Spatie\Permission\Models\Role;
 */
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('students', StudentController::class);
-    Route::apiResource('attendance/events', AttendanceEventController::class)->only([
-        'index', 'show', 'store', 'destroy'
-    ]);
+    Route::apiResource('attendance/events', AttendanceEventController::class);
 
     Route::apiResource('attendance/sessions', AttendanceSessionController::class)->only([
         'index'

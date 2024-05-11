@@ -7,6 +7,10 @@ table {
     margin-bottom: 20px;
 }
 
+button.action-button {
+    width: 45px;
+}
+
 /* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
 mat-card {
     margin-bottom: 10px;
