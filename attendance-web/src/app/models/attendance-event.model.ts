@@ -11,7 +11,8 @@ export interface AttendanceEvent {
     registered_by: number,
     type: AttendanceEventType,
     created_at: DateTime,
-    updated_at: DateTime
+    updated_at: DateTime,
+    deleted_at?: DateTime
 }
 
 export function areAttendanceEventsEqual(a: AttendanceEvent, b: AttendanceEvent) {

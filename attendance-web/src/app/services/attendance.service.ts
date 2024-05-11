@@ -23,10 +23,20 @@ export class AttendanceService {
     });
   }
 
-  deleteEvent(eventId: number): Observable<boolean> {
-    return this.httpClient.delete<HttpResponse<any>>(environment.apiRoot + '/attendance/events/' + eventId, {
-      observe: 'response'
-    }).pipe(map(response => response.status == 200));
+  deleteEvent(eventId: number, options: {
+    force?: boolean
+  } = {}): Observable<AttendanceEvent> {
+    let params = new HttpParams();
+    if(options.force) {
+      params = params.set('force', options.force ? 1 : 0);
+    }
+    return this.httpClient.delete<AttendanceEvent>(environment.apiRoot + '/attendance/events/' + eventId, {
+      params
+    });
+  }
+
+  restoreEvent(eventId: number): Observable<AttendanceEvent> {
+    return this.httpClient.put<AttendanceEvent>(environment.apiRoot + '/attendance/events/' + eventId, {});
   }
 
   getEvents(options: {
@@ -34,7 +44,8 @@ export class AttendanceService {
       until?: DateTime,
       forStudentId?: number,
       limit?: number,
-      type?: AttendanceEventType
+      type?: AttendanceEventType,
+      withTrashed?: boolean
   }): Observable<Array<AttendanceEvent>> {
     let params = new HttpParams();
     if(options.since) {
@@ -51,6 +62,9 @@ export class AttendanceService {
     }
     if(options.type) {
       params = params.set('type', options.type);
+    }
+    if(options.withTrashed) {
+      params = params.set('with_trashed', options.withTrashed ? 1 : 0);
     }
 
     return this.httpClient.get<Array<AttendanceEvent>>(environment.apiRoot + '/attendance/events', {params});
