@@ -15,7 +15,7 @@
 <ng-container *ngIf="state|async as state">
     <ng-container *ngIf="state == stateType.LOADED">
     <mat-card>
-    <mat-card-content>
+    <mat-card-content id="event-card">
         <table mat-table [dataSource]="richEvents" *ngIf="eventColumnSubject|async as eventColumns">
             <ng-container matColumnDef="eventId">
                 <th mat-header-cell *matHeaderCellDef>Id</th>
