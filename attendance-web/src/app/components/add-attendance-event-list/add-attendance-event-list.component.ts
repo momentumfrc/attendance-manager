@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap, timer } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
@@ -13,6 +13,8 @@ import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.mod
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { DateTime } from 'luxon';
 import { PollService } from 'src/app/services/poll.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorService } from 'src/app/services/error.service';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -43,6 +45,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     private attendanceService : AttendanceService,
     private meetingsService : MeetingsService,
     private authService : AuthService,
+    private errorService: ErrorService,
     private snackbar: MatSnackBar,
     route: ActivatedRoute
   ) {
@@ -63,8 +66,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
         this.lastEndOfMeeting.next(null);
       }
     });
-
-    this.pendingStudentIds.subscribe(console.log);
 
     // Set up polling for new check-ins/check-outs
     this.polling = this.pollService.getPollingObservable().subscribe(pollData => {
@@ -182,30 +183,41 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
           [AttendanceEventType.CHECK_OUT]: "checked out"
         }[action];
 
-        this.attendanceService.registerEvent(student.id, action).pipe(
-          finalize( () => {
-            this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
-          })
+        this.attendanceService.registerEvent(student.id, action, {catchErrors: false}).pipe(
+          catchError((error: HttpErrorResponse) => {
+            if(error.status == 422) {
+              console.log("Detected simultaneous attendance events. Ignoring recently entered event.");
+              return of(null);
+            }
+            throw error;
+          }),
+          this.errorService.interceptErrors()
         ).subscribe(event => {
-          this.studentsService.refreshSingleStudent(event.student_id);
-          const snackBarHandle = this.snackbar.open(
-            "Student " + student.name + " " + eventStr,
-            "Undo",
-            { duration: 4000 }
-          );
+          this.studentsService.refreshSingleStudent(student.id).pipe(
+            finalize(() => {
+              this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
+            })
+          ).subscribe(() => {});
+          if(event) {
+            const snackBarHandle = this.snackbar.open(
+              "Student " + student.name + " " + eventStr,
+              "Undo",
+              { duration: 4000 }
+            );
 
-          snackBarHandle.onAction().subscribe(() => {
-            this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
-            this.attendanceService.deleteEvent(event.id).pipe(
-              finalize(() => {
-                this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
-              })
-            ).subscribe(deleted => {
-              if(deleted) {
-                this.studentsService.refreshSingleStudent(event.student_id);
-              }
+            snackBarHandle.onAction().subscribe(() => {
+              this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
+              this.attendanceService.deleteEvent(event.id).pipe(
+                finalize(() => {
+                  this.pendingStudentIds.next(this.pendingStudentIds.getValue().filter(it => it != student.id));
+                })
+              ).subscribe(deleted => {
+                if(deleted) {
+                  this.studentsService.refreshSingleStudent(event.student_id);
+                }
+              });
             });
-          });
+          }
         });
 
     });

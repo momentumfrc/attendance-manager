@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular/common/http'
 
-import { catchError, filter, map, Observable, of, OperatorFunction, ReplaySubject, shareReplay, switchMap, take, tap } from 'rxjs';
+import { catchError, filter, map, Observable, of, OperatorFunction, ReplaySubject, share, shareReplay, switchMap, take, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { areStudentsEqual, Student } from 'src/app/models/student.model';
@@ -81,10 +81,15 @@ export class StudentsService {
     );
   }
 
-  public refreshSingleStudent(id: number) {
+  public refreshSingleStudent(id: number): Observable<Student> {
     const request = this.querySingleStudent(id).pipe(
-      filter(it => it !== undefined) as OperatorFunction<Student|undefined, Student>
-    ).subscribe(student => this.updateStudentsInCache([student]));
+      filter(it => it !== undefined) as OperatorFunction<Student|undefined, Student>,
+      share()
+    );
+
+    request.subscribe(student => this.updateStudentsInCache([student]));
+
+    return request;
   }
 
   public matchesCache(students: Student[]): Observable<boolean> {
