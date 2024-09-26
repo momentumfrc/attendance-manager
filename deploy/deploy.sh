@@ -34,8 +34,13 @@ mv attendance/attendance-web attendance/attendance-web-src
 
 source deploy.env
 
+GIT_HASH=$(git rev-parse --short HEAD)
+
 pushd attendance/attendance-api
 mv .env.example .env
+
+# The "//\//\\\/" wizardry just tells bash to substitute '/' with '\/'
+# This escapes the '/' so they're not interpreted as separators by sed
 sed -i "s/APP_URL=.*/APP_URL=${APP_URL//\//\\\/}/g" .env
 sed -i "s/APP_DEBUG=.*/APP_DEBUG=${APP_DEBUG//\//\\\/}/g" .env
 sed -i "s/APP_ENV=.*/APP_ENV=${APP_ENV//\//\\\/}/g" .env
@@ -47,9 +52,13 @@ sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE//\//\\\/}/g" .env
 sed -i "s/SLACK_CLIENT_ID=.*/SLACK_CLIENT_ID=${SLACK_CLIENT_ID//\//\\\/}/g" .env
 sed -i "s/SLACK_CLIENT_SECRET=.*/SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET//\//\\\/}/g" .env
 sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
+sed -i "s/GIT_HASH=.*/GIT_HASH=${GIT_HASH}/g" .env
 popd
 
 pushd attendance/attendance-web-src
+
+sed -i "s/gitHash:.*/gitHash: \"${GIT_HASH}\"/g" src/environments/environment.prod.ts
+
 rm -rf dist/attendance-web
 
 docker run --rm \

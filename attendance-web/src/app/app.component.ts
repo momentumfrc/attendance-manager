@@ -1,9 +1,11 @@
-import { Component, HostListener } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from './services/auth.service';
 import { StudentsService } from './services/students.service';
+import { HttpClient } from '@angular/common/http';
+import { ServerInfoService } from './services/server-info.service';
 
 @Component({
   selector: 'app-root',
@@ -15,11 +17,17 @@ export class AppComponent {
 
   readonly logoutUrl = environment.authRoot + '/logout';
 
+  readonly client_hash = environment.gitHash;
+  readonly server_hash: Observable<string>;
+
   constructor(
     protected authService: AuthService,
     protected studentsService: StudentsService,
-    protected snackbar: MatSnackBar
-  ) {}
+    protected snackbar: MatSnackBar,
+    private serverInfo: ServerInfoService
+  ) {
+    this.server_hash = serverInfo.getServerHash();
+  }
 
   getFirstName(): Observable<string|null> {
     return this.authService.getUser().pipe(map(user =>

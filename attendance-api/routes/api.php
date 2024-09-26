@@ -50,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
     Route::get('reports/meeting-attendance', [ReportController::class, 'meetingAttendance']);
     Route::get('poll', [PollController::class, 'poll']);
+
+    Route::get('info', fn () => ['git_hash' => config('app.git_hash')]);
 });
 
 

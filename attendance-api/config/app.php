@@ -126,6 +126,8 @@ return [
 
     'skip_auth' => env('APP_SKIP_AUTH', false),
 
+    'git_hash' => env('GIT_HASH', 'UNKNOWN'),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

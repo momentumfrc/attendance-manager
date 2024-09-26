@@ -65,6 +65,6 @@ index 12e51c2..70681ca 100644
  
 +    'skip_auth' => env('APP_SKIP_AUTH', false),
 +
+     'git_hash' => env('GIT_HASH', 'UNKNOWN'),
+ 
      /*
-     |--------------------------------------------------------------------------
-     | Autoloaded Service Providers

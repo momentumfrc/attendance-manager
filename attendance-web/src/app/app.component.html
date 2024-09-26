@@ -12,6 +12,7 @@
     </mat-toolbar>
     <mat-sidenav-container>
         <mat-sidenav #sidenav mode="over" autoFocus="false">
+            <div id="sidebar-container">
             <mat-action-list>
                 <mat-list-item>
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/check-in">
@@ -50,6 +51,8 @@
                     </a>
                 </mat-list-item>
             </mat-action-list>
+            <div id="info-bar">C:{{client_hash}} | S:{{server_hash | async}}</div>
+            </div>
         </mat-sidenav>
         <mat-sidenav-content>
             <div id="mainPage">

@@ -7,7 +7,8 @@ export const environment = {
   apiRoot: "/api",
   authRoot: "/auth",
   pollInterval: 500,
-  updateLockoutInterval: 100
+  updateLockoutInterval: 100,
+  gitHash: "UNKNOWN"
 };
 
 /*
