@@ -10,8 +10,4 @@ RewriteRule ^(.*)$ attendance-web/$1 [END]
 
 RewriteRule ^(.*)$ attendance-web/index.html [END]
 
-<IfModule mod_headers.c>
-    <FilesMatch "\.(html|js|css)">
-        Header set Cache-Control "max-age=0, must-revalidate"
-    </FilesMatch>
-</IfModule>
+Header set Cache-Control "max-age=0, must-revalidate"
