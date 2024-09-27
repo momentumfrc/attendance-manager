@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -55,63 +55,57 @@ import { ErrorComponent } from './components/error/error.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    UpdateOrCreateStudentComponent,
-    AddAttendanceEventListComponent,
-    LoginComponent,
-    ElevateUsersComponent,
-    UserComponent,
-    HomeComponent,
-    StudentsComponent,
-    ListStudentsComponent,
-    ImportStudentsComponent,
-    SearchBoxComponent,
-    ShowStudentComponent,
-    SpinnerComponent,
-    ReportsComponent,
-    CsvExportComponent,
-    EventLogComponent,
-    MeetingEventsComponent,
-    ConfirmDialogComponent,
-    MeetingsReportComponent,
-    MeetingAttendanceReportComponent,
-    ErrorComponent
-  ],
-  imports: [
-    BrowserModule,
-    HttpClientModule,
-    AppRoutingModule,
-    ReactiveFormsModule,
-    BrowserAnimationsModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatMenuModule,
-    MatListModule,
-    MatDividerModule,
-    MatDialogModule,
-    MatButtonToggleModule,
-    MatInputModule,
-    MatCardModule,
-    MatSnackBarModule,
-    MatRadioModule,
-    MatTabsModule,
-    MatCheckboxModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatTooltipModule,
-    MatDatepickerModule,
-    MatLuxonDateModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSidenavModule,
-    MatSlideToggleModule
-  ],
-  providers: [
-    httpInterceptorProviders
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        UpdateOrCreateStudentComponent,
+        AddAttendanceEventListComponent,
+        LoginComponent,
+        ElevateUsersComponent,
+        UserComponent,
+        HomeComponent,
+        StudentsComponent,
+        ListStudentsComponent,
+        ImportStudentsComponent,
+        SearchBoxComponent,
+        ShowStudentComponent,
+        SpinnerComponent,
+        ReportsComponent,
+        CsvExportComponent,
+        EventLogComponent,
+        MeetingEventsComponent,
+        ConfirmDialogComponent,
+        MeetingsReportComponent,
+        MeetingAttendanceReportComponent,
+        ErrorComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatButtonModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatMenuModule,
+        MatListModule,
+        MatDividerModule,
+        MatDialogModule,
+        MatButtonToggleModule,
+        MatInputModule,
+        MatCardModule,
+        MatSnackBarModule,
+        MatRadioModule,
+        MatTabsModule,
+        MatCheckboxModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        MatTooltipModule,
+        MatDatepickerModule,
+        MatLuxonDateModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSidenavModule,
+        MatSlideToggleModule], providers: [
+        httpInterceptorProviders,
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }

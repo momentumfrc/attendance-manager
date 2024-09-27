@@ -69,7 +69,7 @@ docker run --rm \
     -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
-mv attendance/attendance-web-src/dist/attendance-web attendance/attendance-web
+mv attendance/attendance-web-src/dist/attendance-web/browser attendance/attendance-web
 
 rm -rf attendance/attendance-web-src
 
