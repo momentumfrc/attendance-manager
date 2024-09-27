@@ -166,14 +166,21 @@ class StudentControllerTest extends TestCase
         $user = User::first();
 
         $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id
+            'registered_by' => $user->id,
+            'deleted_at' => null
         ]);
         $this->assertDatabaseCount('students', 5);
 
         $student = $students[3];
+        $this->assertNotSoftDeleted($student);
 
         $response = $this->actingAs($user)->delete('/api/students/'.$student->id);
         $response->assertStatus(200);
+        $this->assertDatabaseCount('students', 5);
+        $this->assertSoftDeleted($student);
+
+        $response = $this->actingAs($user)->delete('/api/students/'.$student->id);
+        $response->assertStatus(404);
         $this->assertDatabaseCount('students', 5);
         $this->assertSoftDeleted($student);
     }
