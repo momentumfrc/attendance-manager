@@ -1,6 +1,14 @@
 import { DateTime } from "luxon"
 import { AttendanceEvent, areAttendanceEventsEqual } from "./attendance-event.model"
 
+export interface StudentProfileImage {
+    id: number,
+    created_at: DateTime,
+    updated_at: DateTime,
+    student_id: number,
+    uploaded_by: number
+}
+
 export interface Student {
     id: number,
     name: string,
@@ -10,7 +18,8 @@ export interface Student {
     updated_at: DateTime,
     deleted_at?: DateTime,
     last_check_in?: AttendanceEvent,
-    last_check_out?: AttendanceEvent
+    last_check_out?: AttendanceEvent,
+    profile_image?: StudentProfileImage
 }
 
 export function areStudentsEqual(a: Student, b: Student): boolean {

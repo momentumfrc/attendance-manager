@@ -13,6 +13,10 @@
                 <div *ngIf="canDelete()|async"><a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a></div>
             </div>
 
+            <div *ngIf="student.profile_image !== null" id="student-profile-container">
+                <img id="student-profile" src="{{getProfileImageSrc(student)}}" alt="student profile image">
+            </div>
+
             <form [formGroup]="studentStatsOptions" id="statsOptionForm">
                 <mat-form-field appearance="outline" id="dateInputField">
                     <mat-label>Enter a date range</mat-label>

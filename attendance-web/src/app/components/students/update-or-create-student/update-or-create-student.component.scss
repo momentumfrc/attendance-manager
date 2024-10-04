@@ -1,12 +1,12 @@
 @use 'media';
 
 
-#registerCard {
+mat-card {
     margin-top: 20px;
     font-size: 1.4em;
 }
 
-#registerCardContent {
+mat-card-content {
     padding-top: 24px;
     padding-left: 16px;
     padding-right: 24px;
@@ -60,4 +60,24 @@
         margin-top: 20px;
         flex-grow: 1;
     }
+}
+
+#student-profile-container {
+    width: 300px;
+    height: 300px;
+    background: #cccccc;
+
+    border-radius: 5px;
+
+    margin: auto;
+}
+
+#student-profile {
+    width: 300px;
+
+    border-radius: inherit;
+}
+
+#student-actions {
+    margin-top: 10px;
 }
