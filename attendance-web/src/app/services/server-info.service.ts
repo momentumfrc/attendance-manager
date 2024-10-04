@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, ReplaySubject, tap } from 'rxjs';
+import { map, Observable, ReplaySubject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ServerInfo } from '../models/server-info.model';
 
@@ -17,7 +17,6 @@ export class ServerInfoService {
 
   public getServerHash(): Observable<string> {
     return this.serverInfo.pipe(
-      tap(console.log),
       map(info => info.git_hash)
     );
   }
