@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -34,7 +33,7 @@ class Student extends Model
     }
 
     public function attendanceSessions() {
-        return $this->hasMany(attendanceSessions::class, 'student_id');
+        return $this->hasMany(AttendanceSession::class, 'student_id');
     }
 
 }
