@@ -24,6 +24,9 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'add students']);
         Permission::create(['name' => 'modify students']);
         Permission::create(['name' => 'remove students']);
+        Permission::create(['name' => 'view student images']);
+        Permission::create(['name' => 'modify student images']);
+
         Permission::create(['name' => 'student check in']);
         Permission::create(['name' => 'student check out']);
         Permission::create(['name' => 'undo attendance event']);
@@ -42,7 +45,9 @@ class RolesSeeder extends Seeder
         Role::create(['name' => 'mentor'])
             ->givePermissionTo([
                 'add students',
+                'view student images',
                 'modify students',
+                'modify student images',
                 'remove students',
                 'student check in',
                 'student check out',
@@ -60,6 +65,7 @@ class RolesSeeder extends Seeder
         Role::create(['name' => 'student-lead'])
             ->givePermissionTo([
                 'student check in',
+                'view student images',
                 'undo attendance event',
                 'list users',
                 'list roles',
@@ -68,6 +74,8 @@ class RolesSeeder extends Seeder
                 'view stats'
             ]);
 
+        // Here I hard-code the initial admin user (who will then add the rest of the admins)
+        // It'd probably be best to get this from the app config or the .env environment
         if(config('app.debug', false)) {
             $adminId = 'U2Q3A63J9';
         } else {
