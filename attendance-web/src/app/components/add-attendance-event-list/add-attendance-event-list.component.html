@@ -3,10 +3,24 @@
         Note: You are not authorized to perform this action. This view is read-only.
     </mat-card-content>
 </mat-card>
-<app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
+
+<div id="searchbar">
+    <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
+    <button mat-fab color="primary" [matMenuTriggerFor]="filterMenu" aria-label="Filters">
+        <mat-icon>tune</mat-icon>
+    </button>
+</div>
+
+<mat-menu #filterMenu="matMenu">
+    <div id="filterMenuContainer">
+        <mat-slide-toggle [formControl]="showProfileImagesControl">Show profile images</mat-slide-toggle>
+    </div>
+</mat-menu>
+
 <div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
     <ng-container *ngFor="let student of filteredStudents[0].students; index as i; last as isLast">
         <div class="studentRow">
+        <img *ngIf="showProfileImages|async" class="student-profile" src="{{getProfileImageSrc(student)}}">
         <div class="studentName">{{filteredStudents[0].getQualifiedName(student)}}</div>
         <mat-spinner [diameter]="45" [strokeWidth]="8" *ngIf="filteredStudents[1][i]"></mat-spinner>
         <button class="studentActionButton"

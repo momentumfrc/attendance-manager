@@ -1,11 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, catchError, combineLatest, finalize, forkJoin, interval, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, Subscription, switchMap, take, tap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, ReplaySubject, startWith, Subject, takeUntil, timer } from 'rxjs';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
-import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
-import { AttendanceEvent, AttendanceEventType } from 'src/app/models/attendance-event.model';
+import { AttendanceEventType } from 'src/app/models/attendance-event.model';
 import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
@@ -15,6 +14,7 @@ import { DateTime } from 'luxon';
 import { PollService } from 'src/app/services/poll.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorService } from 'src/app/services/error.service';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-add-attendance-event-list',
@@ -29,15 +29,16 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
   lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
 
-  polling!: Subscription;
-
-  private studentsSub!: Subscription;
-
   protected readonly eventTypes = AttendanceEventType
   protected mode: AttendanceEventType
 
   protected pendingStudentIds = new BehaviorSubject<number[]>([]);
   protected inUpdateLockout = new BehaviorSubject<boolean>(false);
+
+  showProfileImagesControl: FormControl;
+  showProfileImages: Observable<boolean>;
+
+  private unsubscribe = new Subject<boolean>();
 
   constructor(
     private pollService: PollService,
@@ -54,10 +55,19 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     } else {
       this.mode = AttendanceEventType.CHECK_OUT;
     }
+
+    const shouldShowProfileImages: boolean = localStorage.getItem("show-profile-images") === "true";
+    this.showProfileImagesControl = new FormControl(shouldShowProfileImages, {nonNullable: true});
+    this.showProfileImages = this.showProfileImagesControl.valueChanges.pipe(startWith(shouldShowProfileImages));
   }
 
   ngOnInit(): void {
-    this.studentsSub = this.studentsService.getAllStudents(false).subscribe(this.allStudents);
+    this.showProfileImagesControl.valueChanges.subscribe(shouldShow => {
+      console.log("Set show-profile-images to " + shouldShow.toString());
+      localStorage.setItem("show-profile-images", shouldShow ? "true" : "false");
+    })
+
+    this.studentsService.getAllStudents(false).pipe(takeUntil(this.unsubscribe)).subscribe(this.allStudents);
 
     this.meetingsService.getEvents({limit: 1, type: MeetingEventType.END_OF_MEETING}).subscribe(events => {
       if(events.length > 0) {
@@ -68,7 +78,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     });
 
     // Set up polling for new check-ins/check-outs
-    this.polling = this.pollService.getPollingObservable().subscribe(pollData => {
+    this.pollService.getPollingObservable().pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
       // If we get new data, disable the UI for a configurable period (in case a user is about
       // to tap an option that will move with the update)
       let shouldLockout: Observable<boolean>;
@@ -140,8 +150,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   ngOnDestroy(): void {
-    this.polling.unsubscribe();
-    this.studentsSub.unsubscribe();
+    this.unsubscribe.next(true);
   }
 
   private getValidRoles(): string[] {
@@ -285,4 +294,13 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected notAuthorized(): Observable<boolean> {
     return this.authService.checkHasAnyRole(this.getValidRoles()).pipe(map(it => !it));
   }
+
+  getProfileImageSrc(student: Student): string {
+    if(!student.profile_image) {
+      return environment.assetRoot + "/profile-placeholder.png"; // TODO use a static placeholder
+    }
+
+    return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;
+  }
+
 }

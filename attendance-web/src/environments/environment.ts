@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  assetRoot: "/assets",
   apiRoot: "/api",
   authRoot: "/auth",
   pollInterval: 500,
