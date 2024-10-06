@@ -25,6 +25,11 @@ class StudentControllerTest extends TestCase
         $students = Student::factory()->count(5)->CREATE([
             'registered_by' => $user->id
         ]);
+
+        foreach($students as $student) {
+            $student->profile_image = null;
+        }
+
         $this->assertDatabaseCount('students', 5);
 
         $event1 = new AttendanceEvent;
@@ -75,7 +80,7 @@ class StudentControllerTest extends TestCase
         $response->assertStatus(201);
 
         $this->assertDatabaseCount('students', 1);
-        $createdStudent = Student::first();
+        $createdStudent = Student::without("profileImage")->first();
         $this->assertSame($createdStudent->name, 'Foo Bar');
         $response->assertExactJson($createdStudent->toArray());
 
@@ -98,6 +103,7 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('students', 5);
 
         $student = $students[2];
+        $student->profile_image = null;
         $response = $this->actingAs($user)->getJson('/api/students/'.$student->id);
 
         $response->assertStatus(200);

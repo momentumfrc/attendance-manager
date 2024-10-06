@@ -1,5 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
+@use 'media';
+
 html, body { height: 100%; }
 body {
     margin: 0;
@@ -9,4 +11,36 @@ body {
 
 .mdc-tab__text-label, .mdc-button__label {
     letter-spacing: normal;
+}
+
+
+.actionRow {
+    display: flex;
+    width: 100%;
+
+    @include media.desktop {
+        gap: 20px;
+        justify-content: flex-end;
+        flex-direction: row;
+    }
+
+    @include media.mobile {
+        flex-direction: column;
+    }
+}
+
+.actionRow > button {
+    font-size: 1em;
+    font-weight: 400;
+
+    @include media.desktop{
+        padding: 20px 30px;
+    }
+
+    @include media.mobile {
+        padding: 30px 30px;
+
+        margin-top: 20px;
+        flex-grow: 1;
+    }
 }

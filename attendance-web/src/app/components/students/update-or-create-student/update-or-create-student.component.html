@@ -6,7 +6,22 @@
     <h1>Student not found!</h1>
 </ng-container>
 <ng-container *ngIf="(context.state == stateType.NO_STUDENT_PROVIDED) || (context.state == stateType.LOADED)">
-    <mat-card id="registerCard">
+    <mat-card *ngIf="context.state == stateType.LOADED">
+        <mat-card-header>Student Actions</mat-card-header>
+        <mat-card-content>
+            <div class="actionRow" *ngIf="editStudent|async as student">
+                <ng-container *ngIf="this.isDeleted|async; else deleteActions">
+                    <button  mat-raised-button color="primary" (click)="undoDelete(student)">Restore Student</button>
+                </ng-container>
+                <ng-template #deleteActions>
+                    <button mat-raised-button color="warn" (click)="doDelete(student)">Delete Student</button>
+                </ng-template>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+    <mat-card-header>Details</mat-card-header>
     <mat-card-content id="registerCardContent">
         <form [formGroup]="mainForm" (ngSubmit)="onSubmit(mainForm.value, formDirective)" #formDirective="ngForm" >
             <div class="formRow">
@@ -27,17 +42,35 @@
                     <mat-error *ngIf="mainForm.controls['graduation_year'].errors?.['pattern']">Year must be numeric</mat-error>
                 </mat-form-field>
             </div>
-            <div class="actionRow" *ngIf="this.isDeleted|async; else restoreActions">
-                <button *ngIf="editStudent|async as student" mat-raised-button color="primary" (click)="undoDelete(student)">Restore</button>
-            </div>
-            <ng-template #restoreActions>
-            <div class="actionRow">
-                <button *ngIf="editStudent|async as student" mat-raised-button color="warn" (click)="doDelete(student)">Delete</button>
+            <div class="actionRow" *ngIf="!(this.isDeleted|async)">
                 <button mat-raised-button color="primary" type="submit" [disabled]="!mainForm.valid" id="submitButton">Save</button>
             </div>
-        </ng-template>
         </form>
     </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="editStudent|async as student">
+        <mat-card-header>Profile Image</mat-card-header>
+        <mat-card-content>
+            <ng-container *ngIf="student.profile_image !== null; else addImage">
+            <div id="student-profile-container" >
+                <img id="student-profile" alt="student profile image" src="{{getProfileSrc(student)}}">
+            </div>
+            <div class="actionRow" *ngIf="!(this.isDeleted|async)">
+                <button mat-raised-button color="warn" (click)="deleteProfileImage(student)">Delete Image</button>
+            </div>
+        </ng-container>
+        <ng-template #addImage>
+            <div class="actionRow" *ngIf="uploadStatus|async as status">
+                <ng-container *ngIf="status.upload_in_progress; else startUploadButton">
+                    <mat-progress-bar mode="determinate" value="{{status.progress}}"></mat-progress-bar>
+                </ng-container>
+                <ng-template #startUploadButton>
+                    <input hidden #fileInput type="file" (change)="profileFileSelected(student, $event)">
+                    <button mat-raised-button color="primary" (click)="fileInput.click()">Upload Image</button>
+                </ng-template>
+            </div>
+        </ng-template>
+        </mat-card-content>
     </mat-card>
 </ng-container>
 </ng-container>

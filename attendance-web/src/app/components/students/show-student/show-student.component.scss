@@ -1,3 +1,5 @@
+@use 'media';
+
 #studentNotFound {
     margin-top: 20px;
 }
@@ -60,4 +62,29 @@ div.statRow, div.infoRow {
 
 span.major-stat-value {
     font-weight: 500;
+}
+
+#student-profile-container {
+    @include media.desktop{
+        width: 300px;
+        height: 300px;
+    }
+
+    @include media.mobile {
+        width: 250px;
+        height: 250px;
+        margin: auto;
+    }
+
+    background: #cccccc;
+
+    border-radius: 5px;
+}
+
+#student-profile {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+
+    border-radius: inherit;
 }

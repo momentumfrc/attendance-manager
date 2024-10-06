@@ -15,6 +15,7 @@ import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
+import { environment } from 'src/environments/environment';
 
 enum PageState {
   STUDENT_LOADING = 1,
@@ -182,6 +183,10 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
 
   canDelete(): Observable<boolean> {
     return this.authService.checkHasAnyRole(["mentor"]);
+  }
+
+  getProfileImageSrc(student: Student): string {
+    return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;
   }
 
 }

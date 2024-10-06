@@ -10,4 +10,10 @@ RewriteRule ^(.*)$ attendance-web/$1 [END]
 
 RewriteRule ^(.*)$ attendance-web/index.html [END]
 
-Header set Cache-Control "max-age=0, must-revalidate"
+<If "%{THE_REQUEST} -strmatch '*/attendance/api/student-profile-images/*'">
+    Header set Cache-Control "private, max-age=2592000, immutable"
+</If>
+
+<If "! %{THE_REQUEST} -strmatch '*/attendance/api/*'">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+</If>

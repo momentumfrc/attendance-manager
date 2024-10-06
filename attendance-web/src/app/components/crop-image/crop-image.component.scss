@@ -1,0 +1,17 @@
+#container {
+    width: 100%;
+    max-width: 350px;
+    padding: 20px;
+    margin: auto;
+    box-sizing: border-box;
+}
+
+#croppie {
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+}
+
+.actionRow {
+    padding-top: 20px;
+}

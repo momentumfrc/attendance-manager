@@ -4,9 +4,38 @@
     margin-top: 20px;
 }
 
-app-search-box {
-    display: block;
+#searchbar {
     margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+app-search-box {
+    flex-grow: 1;
+}
+
+#filterMenuContainer {
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+mat-icon {
+    $size: 30px;
+    font-size: $size;
+    width: $size;
+    height: $size;
+}
+
+.student-profile {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+
+    border-radius: 5px;
 }
 
 #studentResults {
@@ -50,9 +79,12 @@ app-search-box {
 
 .studentName {
     flex-grow: 1;
+    min-width: 110px;
 }
 
 .studentActionButton {
+    flex-shrink: 0;
+
     @include media.mobile {
         height: 50px;
         width: 120px;

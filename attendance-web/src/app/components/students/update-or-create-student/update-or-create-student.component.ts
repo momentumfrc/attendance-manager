@@ -3,10 +3,14 @@ import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirectiv
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
-import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter, takeUntil, Subject, combineLatest, tap, concatMap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DateTime } from 'luxon';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { environment } from 'src/environments/environment';
+import { ProfileImagesService, UploadStatus, UploadValidationError } from 'src/app/services/profile-images.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CropImageComponent } from '../../crop-image/crop-image.component';
 
 enum ComponentState {
   NO_STUDENT_PROVIDED,
@@ -14,6 +18,11 @@ enum ComponentState {
   NO_STUDENT_FOUND,
   LOADED
 }
+
+interface UIUploadStatus {
+  upload_in_progress: boolean,
+  progress: number
+};
 
 @Component({
   selector: 'app-update-or-create-student',
@@ -32,16 +41,22 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
   mainForm: FormGroup
 
+  private unsubscribe = new Subject<boolean>();
+
+  uploadStatus = new BehaviorSubject<UIUploadStatus>({upload_in_progress: false, progress: 100});
+
   constructor(
     private studentsService : StudentsService,
     private snackBar: MatSnackBar,
     private router: Router,
+    private profilePhotosService: ProfileImagesService,
+    private dialog: MatDialog,
     route: ActivatedRoute) {
       let id = route.snapshot.paramMap.get('studentId');
-      this.students = this.studentsService.getAllStudents(true);
+      this.students = this.studentsService.getAllStudents(true).pipe(takeUntil(this.unsubscribe));
       if(route.snapshot.url[0].path == 'edit' && id != null) {
         let parsedId = parseInt(id);
-        this.students.pipe(take(1), map( (students: Array<Student>) => {
+        this.students.pipe(takeUntil(this.unsubscribe), map( (students: Array<Student>) => {
           return students.find(it => it.id == parsedId) ?? null;
         })).subscribe(this.editStudent);
 
@@ -81,7 +96,6 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
           this.mainForm.enable();
         }
       });
-
     }
 
   ngOnInit(): void {
@@ -98,6 +112,8 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unsubscribe.next(true);
+    this.unsubscribe.complete();
   }
 
   private nameTakenValidator : AsyncValidatorFn = (control) => {
@@ -126,7 +142,8 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         } else {
           return null;
         }
-    }));
+    })
+  );
   }
 
   onSubmit(formData: any, formDirective: FormGroupDirective): void {
@@ -139,7 +156,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
     if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
       // edit existing user
-      this.editStudent.subscribe(student => {
+      this.editStudent.pipe(take(1)).subscribe(student => {
         if(student == null) {
           return;
         }
@@ -148,7 +165,6 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
             this.snackBar.open("Student " + student.name + " updated!", '', {
               duration: 4000
             });
-            this.router.navigate(['/', 'students', 'detail', student.id]);
           }
         );
       });
@@ -162,6 +178,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         this.mainForm.enable();
         this.mainForm.reset();
         formDirective.resetForm();
+        this.router.navigate(['/', 'students', 'edit', student.id]);
         this.snackBar.open("Student " + studentName + " registered!", '', {
           duration: 4000
         });
@@ -208,5 +225,85 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
       }
       return (control.invalid || (form.errors?.['nameTaken'])) && control.dirty;
     },
+  }
+
+  getProfileSrc(student: Student) {
+    return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;
+  }
+
+  deleteProfileImage(student: Student) {
+    if(student.profile_image) {
+      this.profilePhotosService.deleteImage(student.profile_image.id).subscribe(() => {
+        this.studentsService.refreshSingleStudent(student.id);
+      });
+    }
+  }
+
+  profileFileSelected(student: Student, event: Event) {
+    if(!event.target) {
+      console.warn("Received targetless event");
+      return;
+    }
+
+    const target = event.target as HTMLInputElement;
+    if(!target.files) {
+      console.warn("Event target does not contain a files element");
+      return;
+    }
+
+    const fileList: FileList = target.files;
+    if(fileList.length == 0) {
+      console.warn("No files selected, aborting file upload");
+      return;
+    }
+
+    const file = fileList[0];
+
+    const allowed_mimetypes = ['image/png', 'image/jpeg'];
+    if(!allowed_mimetypes.includes(file.type)) {
+      this.snackBar.open("Invalid file type", "", {
+        duration: 4000
+      });
+      return;
+    }
+
+    console.log('Uploading file ' + file.name + ' of type ' + file.type + ' and size ' + file.size);
+
+    let dialogRef = this.dialog.open(CropImageComponent, {
+      height: '450px',
+      width: '400px',
+      data: {inputImage: file}
+    });
+
+    (dialogRef.afterClosed() as Observable<null|Observable<Blob>>).pipe(
+      filter(it => it !== null),
+      concatMap(it => it))
+      .subscribe(result => {
+      this.profilePhotosService.uploadImage(student.id, result).subscribe(response => {
+        if(response.status == UploadStatus.IN_PROGRESS) {
+          this.uploadStatus.next({upload_in_progress: true, progress: response.progress});
+        } else if(response.status == UploadStatus.DONE) {
+          this.uploadStatus.next({upload_in_progress: false, progress: 100});
+          this.studentsService.refreshSingleStudent(student.id);
+        }
+      });
+    });
+
+    /*try {
+      this.profilePhotosService.uploadImage(student.id, file).subscribe(response => {
+        if(response.status == UploadStatus.IN_PROGRESS) {
+          this.uploadStatus.next({upload_in_progress: true, progress: response.progress});
+        } else if(response.status == UploadStatus.DONE) {
+          this.uploadStatus.next({upload_in_progress: false, progress: 100});
+          this.studentsService.refreshSingleStudent(student.id);
+        }
+      });
+    } catch(error) {
+      if(error instanceof UploadValidationError) {
+        this.snackBar.open(error.message, "", {
+          duration: 4000
+        });
+      }
+    }*/
   }
 }

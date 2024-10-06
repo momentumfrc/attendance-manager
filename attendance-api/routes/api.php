@@ -10,7 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeetingEventController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PollController;
-
+use App\Http\Controllers\StudentProfileImageController;
 use Spatie\Permission\Models\Role;
 
 /*
@@ -29,6 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('attendance/sessions', AttendanceSessionController::class)->only([
         'index'
+    ]);
+
+    Route::apiResource('student-profile-images', StudentProfileImageController::class)->only([
+        'show', 'store', 'destroy'
     ]);
 
     Route::apiResource('meetings', MeetingEventController::class)->only([

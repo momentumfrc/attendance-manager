@@ -28,22 +28,22 @@ docker run -it --rm \
     -v ${PWD}/:/opt \
     -w /opt \
     -u 1000:1000 \
-    laravelsail/php74-composer:latest \
+    laravelsail/php81-composer:latest \
     bash -c "composer install --optimize-autoloader --no-dev && php artisan key:generate"
 popd
 
 pushd ../attendance-web
-rm -r dist/attendance-web
+rm -rf dist/attendance-web
 
 docker run --rm \
     --entrypoint "sh" \
     -u 1000:1000 \
     -v ${PWD}/:/mnt \
-    node:alpine \
+    node:18-alpine \
     -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
-cp -r ../attendance-web/dist/attendance-web www/attendance/
+cp -r ../attendance-web/dist/attendance-web/browser www/attendance/attendance-web
 
 mkdir -p data/sites-available
 cp 000-default.conf data/sites-available/
@@ -54,7 +54,7 @@ docker compose down -v
 popd
 
 docker compose up --build -d
-sleep 5
+sleep 10
 for i in 1..10; do
     docker compose exec -w /var/www/html/attendance/attendance-api -u 1000:1000 apache php artisan migrate --seed --seeder RolesSeeder && break
 done
