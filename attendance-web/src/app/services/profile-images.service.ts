@@ -43,11 +43,7 @@ export class ProfileImagesService {
     );
   }
 
-  uploadImage(studentId: number, image: File): Observable<UploadResponse> {
-    const allowed_mimetypes = ['image/png', 'image/jpeg'];
-    if(!allowed_mimetypes.includes(image.type)) {
-      throw new UploadValidationError("File has invalid type");
-    }
+  uploadImage(studentId: number, image: Blob): Observable<UploadResponse> {
 
     // Files must be <= 1024 kb
     // TODO: move this value to the environment instead of hard-coding it here

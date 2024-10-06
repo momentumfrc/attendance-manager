@@ -3,12 +3,14 @@ import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirectiv
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentsService } from 'src/app/services/students.service';
 import { Student } from 'src/app/models/student.model';
-import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter, takeUntil, Subject, combineLatest, tap } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter, takeUntil, Subject, combineLatest, tap, concatMap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DateTime } from 'luxon';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { environment } from 'src/environments/environment';
 import { ProfileImagesService, UploadStatus, UploadValidationError } from 'src/app/services/profile-images.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CropImageComponent } from '../../crop-image/crop-image.component';
 
 enum ComponentState {
   NO_STUDENT_PROVIDED,
@@ -48,6 +50,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private profilePhotosService: ProfileImagesService,
+    private dialog: MatDialog,
     route: ActivatedRoute) {
       let id = route.snapshot.paramMap.get('studentId');
       this.students = this.studentsService.getAllStudents(true).pipe(takeUntil(this.unsubscribe));
@@ -256,8 +259,37 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
     const file = fileList[0];
 
+    const allowed_mimetypes = ['image/png', 'image/jpeg'];
+    if(!allowed_mimetypes.includes(file.type)) {
+      this.snackBar.open("Invalid file type", "", {
+        duration: 4000
+      });
+      return;
+    }
+
     console.log('Uploading file ' + file.name + ' of type ' + file.type + ' and size ' + file.size);
-    try {
+
+    let dialogRef = this.dialog.open(CropImageComponent, {
+      height: '450px',
+      width: '400px',
+      data: {inputImage: file}
+    });
+
+    (dialogRef.afterClosed() as Observable<null|Observable<Blob>>).pipe(
+      filter(it => it !== null),
+      concatMap(it => it))
+      .subscribe(result => {
+      this.profilePhotosService.uploadImage(student.id, result).subscribe(response => {
+        if(response.status == UploadStatus.IN_PROGRESS) {
+          this.uploadStatus.next({upload_in_progress: true, progress: response.progress});
+        } else if(response.status == UploadStatus.DONE) {
+          this.uploadStatus.next({upload_in_progress: false, progress: 100});
+          this.studentsService.refreshSingleStudent(student.id);
+        }
+      });
+    });
+
+    /*try {
       this.profilePhotosService.uploadImage(student.id, file).subscribe(response => {
         if(response.status == UploadStatus.IN_PROGRESS) {
           this.uploadStatus.next({upload_in_progress: true, progress: response.progress});
@@ -272,6 +304,6 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
           duration: 4000
         });
       }
-    }
+    }*/
   }
 }

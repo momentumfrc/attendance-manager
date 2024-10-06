@@ -53,12 +53,14 @@ import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confir
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 import { ErrorComponent } from './components/error/error.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
+import { CropImageComponent } from './components/crop-image/crop-image.component';
 
 
 @NgModule({ declarations: [
         AppComponent,
         UpdateOrCreateStudentComponent,
         AddAttendanceEventListComponent,
+        CropImageComponent,
         LoginComponent,
         ElevateUsersComponent,
         UserComponent,
