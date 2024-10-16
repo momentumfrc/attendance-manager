@@ -36,7 +36,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected inUpdateLockout = new BehaviorSubject<boolean>(false);
 
   showProfileImagesControl: FormControl;
-  showProfileImages: Observable<boolean>;
+  showProfileImages = new ReplaySubject<boolean>(1);
 
   private unsubscribe = new Subject<boolean>();
 
@@ -58,7 +58,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
     const shouldShowProfileImages: boolean = localStorage.getItem("show-profile-images") === "true";
     this.showProfileImagesControl = new FormControl(shouldShowProfileImages, {nonNullable: true});
-    this.showProfileImages = this.showProfileImagesControl.valueChanges.pipe(startWith(shouldShowProfileImages));
+    this.showProfileImagesControl.valueChanges.pipe(startWith(shouldShowProfileImages), takeUntil(this.unsubscribe)).subscribe(this.showProfileImages);
   }
 
   ngOnInit(): void {
