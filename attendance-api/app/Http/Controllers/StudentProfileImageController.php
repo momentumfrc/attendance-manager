@@ -42,6 +42,10 @@ class StudentProfileImageController extends Controller
             ]);
         }
 
+        if(Storage::missing('student_profiles')) {
+            Storage::makeDirectory('student_profiles');
+        }
+
         $path = 'student_profiles/'.Str::random(40).'.png';
         $fullpath = Storage::path($path);
 
