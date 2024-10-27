@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
+use Illuminate\Support\Str;
+
+use Spatie\Image\Image;
+use Spatie\Image\Manipulations;
+
 class StudentProfileImageController extends Controller
 {
     public function __construct() {
@@ -37,7 +42,16 @@ class StudentProfileImageController extends Controller
             ]);
         }
 
-        $path = $request->file('image')->store('student_profiles');
+        $path = 'student_profiles/'.Str::random(40).'.png';
+        $fullpath = Storage::path($path);
+
+        $resize_size = config('config.profile_image_resolution');
+
+        Image::load($request->file('image')->path())
+            ->useImageDriver('gd')
+            ->fit(Manipulations::FIT_CONTAIN, $resize_size, $resize_size)
+            ->save($fullpath);
+
         $photoModel = new StudentProfileImage;
         $photoModel->path = $path;
         $photoModel->student_id = $student->id;
