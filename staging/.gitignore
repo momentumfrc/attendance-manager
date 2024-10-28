@@ -1,4 +1,8 @@
-www/attendance/attendance-api
-www/attendance/attendance-web
-data/
+*.conf.txt
+*.conf0
+*.properties0
+*.bak
+html/attendance/attendance-api
+html/attendance/attendance-web
 staging.env
+
