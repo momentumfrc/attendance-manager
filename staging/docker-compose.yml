@@ -1,18 +1,23 @@
-version: '3'
 services:
-  apache:
+  litespeed:
     build:
-      context: ./apache
+      context: ./lsws-build
       dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "80:80"
     volumes:
-      - ./data/sites-available:/etc/apache2/sites-available
-      - ./www:/var/www/html
+      - ./lsws-conf:/usr/local/lsws/conf
+      - ./vhost-localhost:/var/www/vhosts/localhost
+    ports:
+      - 80:80
+      - 7080:7080
     networks:
       staging:
-  db:
+    restart: unless-stopped
+    stop_signal: SIGKILL
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+  mariadb:
     image: mariadb
     environment:
       - MARIADB_USER=laravel
@@ -23,6 +28,7 @@ services:
       - "3306"
     networks:
       staging:
+    restart: unless-stopped
 networks:
   staging:
     driver: bridge

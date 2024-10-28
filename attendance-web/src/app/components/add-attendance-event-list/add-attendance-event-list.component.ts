@@ -297,7 +297,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
   getProfileImageSrc(student: Student): string {
     if(!student.profile_image) {
-      return environment.assetRoot + "/profile-placeholder.png"; // TODO use a static placeholder
+      return environment.assetRoot + "/profile-placeholder-small.png";
     }
 
     return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;

@@ -21,7 +21,7 @@ trap finish EXIT
 rm -rf attendance
 mkdir attendance
 
-cp ../staging/www/attendance/.htaccess attendance
+cp ../staging/vhost-localhost/html/attendance/.htaccess attendance
 
 pushd ..
 
@@ -117,7 +117,8 @@ rsync -rlptvz --progress --delete \
     -e 'ssh -i ~/.ssh/id_rsa_win' \
     ./attendance/ momentu2@momentum4999.com:~/public_html/attendance \
     --exclude backup/attendance_backups/ \
-    --exclude scripts/logs
+    --exclude scripts/logs \
+    --exclude attendance-api/storage/app/student_profiles
 
 ssh -i ~/.ssh/id_rsa_win momentu2@momentum4999.com 'bash -l -c "~/public_html/attendance/install.sh"'
 

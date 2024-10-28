@@ -1,5 +1,7 @@
 RewriteEngine On
 
+RewriteRule ^/?api/student-profile-images/.*$ - [E="cache-control:public,max-age=300"]
+
 RewriteCond %{REQUEST_URI} ^/attendance/api/.*$ [OR]
 RewriteCond %{REQUEST_URI} ^/attendance/auth/.*$
 RewriteRule ^(.*)$ attendance-api/public/$1 [L]
@@ -11,7 +13,7 @@ RewriteRule ^(.*)$ attendance-web/$1 [END]
 RewriteRule ^(.*)$ attendance-web/index.html [END]
 
 <If "%{THE_REQUEST} -strmatch '*/attendance/api/student-profile-images/*'">
-    Header set Cache-Control "private, max-age=2592000, immutable"
+    Header set Cache-Control "public, max-age=300, immutable"
 </If>
 
 <If "! %{THE_REQUEST} -strmatch '*/attendance/api/*'">
