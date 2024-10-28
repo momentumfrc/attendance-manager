@@ -6,14 +6,13 @@ SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
 
 docker compose down -v
-sudo chown -R jordan:jordan html
-rm -rf html/attendance/attendance-api html/attendance/attendance-web
+rm -rf vhost-localhost/html/attendance/attendance-api vhost-localhost/html/attendance/attendance-web
 
-git ls-files ../attendance-api | cpio -pdm ./html/attendance/attendance-api
+git ls-files ../attendance-api | cpio -pdm ./vhost-localhost/html/attendance/attendance-api
 
 source staging.env
 
-pushd html/attendance/attendance-api
+pushd vhost-localhost/html/attendance/attendance-api
 cp .env.example .env
 sed -i "s/APP_URL=.*/APP_URL=${APP_URL//\//\\\/}/g" .env
 sed -i "s/APP_DEBUG=.*/APP_DEBUG=${APP_DEBUG//\//\\\/}/g" .env
@@ -37,7 +36,7 @@ docker run --rm \
     -c "cd /mnt && npm ci && npm run-script ng -- build -c production --base-href ${APP_SUBDIR}/"
 popd
 
-cp -r ../attendance-web/dist/attendance-web/browser html/attendance/attendance-web
+cp -r ../attendance-web/dist/attendance-web/browser vhost-localhost/html/attendance/attendance-web
 
 pushd ../dev-proxy
 docker compose down -v
@@ -47,12 +46,12 @@ docker compose up --build -d
 
 docker compose exec \
     -w /var/www/vhosts/localhost/html/attendance/attendance-api \
-    litespeed bash -c "composer install --optimize-autoloader --no-dev && php artisan key:generate"
+    litespeed su ubuntu -c "composer install --optimize-autoloader --no-dev && php artisan key:generate"
 
 sleep 10
 for i in 1..10; do
     docker compose exec -w /var/www/vhosts/localhost/html/attendance/attendance-api -u 1000:1000 litespeed php artisan migrate --seed --seeder RolesSeeder && break
 done
 
-docker compose logs -f
+tail -f vhost-localhost/logs/error.log
 popd

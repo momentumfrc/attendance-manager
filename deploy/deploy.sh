@@ -21,7 +21,7 @@ trap finish EXIT
 rm -rf attendance
 mkdir attendance
 
-cp ../staging/www/attendance/.htaccess attendance
+cp ../staging/vhost-localhost/html/attendance/.htaccess attendance
 
 pushd ..
 

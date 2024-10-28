@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./lsws-conf:/usr/local/lsws/conf
-      - ./html:/var/www/vhosts/localhost/html
+      - ./vhost-localhost:/var/www/vhosts/localhost
     ports:
       - 80:80
       - 7080:7080

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<virtualHostConfig>
+  <docRoot>$VH_ROOT/html/</docRoot>
+  <enableGzip>1</enableGzip>
+  <logging>
+    <log>
+      <useServer>0</useServer>
+      <fileName>$VH_ROOT/logs/error.log</fileName>
+      <logLevel>DEBUG</logLevel>
+    </log>
+    <accessLog>
+      <useServer>0</useServer>
+      <fileName>$VH_ROOT/logs/access.log</fileName>
+      <logFormat>%v %h %l %u %t \&quot;%r\&quot; %&gt;s %b</logFormat>
+      <logHeaders>7</logHeaders>
+    </accessLog>
+  </logging>
+  <index>
+    <useServer>0</useServer>
+    <indexFiles>index.html, index.php</indexFiles>
+  </index>
+  <htAccess>
+    <allowOverride>31</allowOverride>
+  </htAccess>
+  <cache>
+    <cacheEngine>1</cacheEngine>
+    <storage>
+      <cacheStorePath>$VH_ROOT/lscache</cacheStorePath>
+      <litemage>0</litemage>
+    </storage>
+  </cache>
+  <contextList>
+    <context>
+      <type>NULL</type>
+      <uri>/</uri>
+      <location>$DOC_ROOT/</location>
+      <allowBrowse>1</allowBrowse>
+      <addDefaultCharset>off</addDefaultCharset>
+    </context>
+  </contextList>
+  <rewrite>
+    <enable>1</enable>
+    <logLevel>9</logLevel>
+  </rewrite>
+</virtualHostConfig>

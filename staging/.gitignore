@@ -2,7 +2,10 @@
 *.conf0
 *.properties0
 *.bak
-html/attendance/attendance-api
-html/attendance/attendance-web
+vhost-localhost/html/attendance/attendance-api
+vhost-localhost/html/attendance/attendance-web
 staging.env
 
+*.key
+*.old
+.last
