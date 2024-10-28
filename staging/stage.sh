@@ -46,7 +46,7 @@ docker compose up --build -d
 
 docker compose exec \
     -w /var/www/vhosts/localhost/html/attendance/attendance-api \
-    litespeed su ubuntu -c "composer install --optimize-autoloader --no-dev && php artisan key:generate"
+    litespeed su ubuntu -c "composer install --optimize-autoloader --no-dev && php artisan key:generate && php artisan storage:link"
 
 sleep 10
 for i in 1..10; do

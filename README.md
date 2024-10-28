@@ -73,7 +73,12 @@ code attendance-api
 
 5. You may be prompted to install recommended extensions. You should do so.
 
-6. In the vscode console, run `php artsian migrate --seed` to set up the database.
+6. In the vscode console, run the following to set up the api.
+```bash
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+s```
 
 7. Open the attendance-web folder in a separate vscode window.
 ```

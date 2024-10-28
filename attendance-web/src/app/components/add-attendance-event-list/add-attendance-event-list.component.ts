@@ -300,7 +300,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       return environment.assetRoot + "/profile-placeholder-small.png";
     }
 
-    return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;
+    return environment.apiRoot + '/storage/student_profiles/' + student.profile_image?.basename;
   }
 
 }

@@ -186,7 +186,7 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   }
 
   getProfileImageSrc(student: Student): string {
-    return environment.apiRoot + '/student-profile-images/' + student.profile_image?.id;
+    return environment.apiRoot + '/storage/student_profiles/' + student.profile_image?.basename;
   }
 
 }

@@ -89,6 +89,7 @@ cd attendance-api
 composer install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan config:cache
+php artisan storage:link
 php artisan migrate --force
 #php artisan seed --class=RolesSeeder
 
@@ -118,7 +119,7 @@ rsync -rlptvz --progress --delete \
     ./attendance/ momentu2@momentum4999.com:~/public_html/attendance \
     --exclude backup/attendance_backups/ \
     --exclude scripts/logs \
-    --exclude attendance-api/storage/app/student_profiles
+    --exclude attendance-api/storage/app/
 
 ssh -i ~/.ssh/id_rsa_win momentu2@momentum4999.com 'bash -l -c "~/public_html/attendance/install.sh"'
 

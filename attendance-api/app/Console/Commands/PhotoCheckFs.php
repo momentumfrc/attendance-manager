@@ -35,7 +35,7 @@ class PhotoCheckFs extends Command
         $dryRun = $this->option('dry-run');
         $noConfirm = $this->option('no-confirm');
 
-        $onDisk = collect(Storage::files('student_profiles'));
+        $onDisk = collect(Storage::files('public/student_profiles'));
         $inDb = StudentProfileImage::all();
 
         $danglingFiles = $onDisk->diff($inDb->pluck('path'));
@@ -101,7 +101,7 @@ class PhotoCheckFs extends Command
             }
 
             if(!$dryRun && $reformat) {
-                $new_path = 'student_profiles/'.Str::random(40).'.png';
+                $new_path = 'public/student_profiles/'.Str::random(40).'.png';
                 $fullpath = Storage::path($new_path);
 
                 $image->fit(Manipulations::FIT_CONTAIN, $resize_size, $resize_size)

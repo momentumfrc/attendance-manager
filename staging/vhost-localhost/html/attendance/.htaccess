@@ -1,6 +1,6 @@
 RewriteEngine On
 
-RewriteRule ^/?api/student-profile-images/.*$ - [E="cache-control:public,max-age=300"]
+RewriteRule ^/?api/storage/(.*)$ attendance-api/public/storage/$1 [END]
 
 RewriteCond %{REQUEST_URI} ^/attendance/api/.*$ [OR]
 RewriteCond %{REQUEST_URI} ^/attendance/auth/.*$

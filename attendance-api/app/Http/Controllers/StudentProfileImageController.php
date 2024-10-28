@@ -42,11 +42,11 @@ class StudentProfileImageController extends Controller
             ]);
         }
 
-        if(Storage::missing('student_profiles')) {
-            Storage::makeDirectory('student_profiles');
+        if(Storage::missing('public/student_profiles')) {
+            Storage::makeDirectory('public/student_profiles');
         }
 
-        $path = 'student_profiles/'.Str::random(40).'.png';
+        $path = 'public/student_profiles/'.Str::random(40).'.png';
         $fullpath = Storage::path($path);
 
         $resize_size = config('config.profile_image_resolution');
@@ -71,8 +71,7 @@ class StudentProfileImageController extends Controller
      */
     public function show(String $id)
     {
-        $photoModel = StudentProfileImage::findOrFail($id);
-        return Storage::response($photoModel->path);
+        return StudentProfileImage::findOrFail($id);
     }
 
     /**
