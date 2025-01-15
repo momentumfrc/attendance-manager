@@ -36,9 +36,10 @@ interface AttendanceAndMeetingData {
 }
 
 @Component({
-  selector: 'app-event-log',
-  templateUrl: './event-log.component.html',
-  styleUrls: ['./event-log.component.scss']
+    selector: 'app-event-log',
+    templateUrl: './event-log.component.html',
+    styleUrls: ['./event-log.component.scss'],
+    standalone: false
 })
 export class EventLogComponent implements OnInit {
   readonly dateTimeShort = DateTime.DATETIME_SHORT;

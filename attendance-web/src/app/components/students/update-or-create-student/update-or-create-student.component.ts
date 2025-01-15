@@ -25,9 +25,10 @@ interface UIUploadStatus {
 };
 
 @Component({
-  selector: 'app-update-or-create-student',
-  templateUrl: './update-or-create-student.component.html',
-  styleUrls: ['./update-or-create-student.component.scss']
+    selector: 'app-update-or-create-student',
+    templateUrl: './update-or-create-student.component.html',
+    styleUrls: ['./update-or-create-student.component.scss'],
+    standalone: false
 })
 export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   protected readonly stateType = ComponentState

@@ -8,9 +8,10 @@ interface Tab {
 }
 
 @Component({
-  selector: 'app-students',
-  templateUrl: './students.component.html',
-  styleUrls: ['./students.component.scss']
+    selector: 'app-students',
+    templateUrl: './students.component.html',
+    styleUrls: ['./students.component.scss'],
+    standalone: false
 })
 export class StudentsComponent {
   tabs = new ReplaySubject<Tab[]>(1);

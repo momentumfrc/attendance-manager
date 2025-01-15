@@ -59,11 +59,11 @@ app-search-box {
 }
 
 .student-list-detail {
-    @include media.text;
-
     display: flex;
     align-items: center;
     height: 100%;
+
+    @include media.text;
 }
 
 .deletedIcon {

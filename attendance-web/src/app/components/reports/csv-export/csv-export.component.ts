@@ -9,9 +9,10 @@ import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
 
 @Component({
-  selector: 'app-csv-export',
-  templateUrl: './csv-export.component.html',
-  styleUrls: ['./csv-export.component.scss']
+    selector: 'app-csv-export',
+    templateUrl: './csv-export.component.html',
+    styleUrls: ['./csv-export.component.scss'],
+    standalone: false
 })
 export class CsvExportComponent implements OnInit {
 

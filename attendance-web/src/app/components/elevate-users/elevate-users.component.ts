@@ -7,9 +7,10 @@ import { AuthService } from 'src/app/services/auth.service';
 import { SearchBoxComponent } from '../reuse/search-box/search-box.component';
 
 @Component({
-  selector: 'app-elevate-users',
-  templateUrl: './elevate-users.component.html',
-  styleUrls: ['./elevate-users.component.scss']
+    selector: 'app-elevate-users',
+    templateUrl: './elevate-users.component.html',
+    styleUrls: ['./elevate-users.component.scss'],
+    standalone: false
 })
 export class ElevateUsersComponent implements AfterViewInit {
 

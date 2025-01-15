@@ -10,9 +10,10 @@ import { StudentsService } from 'src/app/services/students.service';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-list-students',
-  templateUrl: './list-students.component.html',
-  styleUrls: ['./list-students.component.scss']
+    selector: 'app-list-students',
+    templateUrl: './list-students.component.html',
+    styleUrls: ['./list-students.component.scss'],
+    standalone: false
 })
 export class ListStudentsComponent implements OnInit, OnDestroy {
   private readonly graduationTimeInYear = Duration.fromObject({

@@ -17,9 +17,10 @@ interface RichMeetingEvent {
 }
 
 @Component({
-  selector: 'app-meeting-events',
-  templateUrl: './meeting-events.component.html',
-  styleUrls: ['./meeting-events.component.scss']
+    selector: 'app-meeting-events',
+    templateUrl: './meeting-events.component.html',
+    styleUrls: ['./meeting-events.component.scss'],
+    standalone: false
 })
 export class MeetingEventsComponent implements OnInit {
   readonly dateTimeFormatShort = DateTime.DATETIME_SHORT;

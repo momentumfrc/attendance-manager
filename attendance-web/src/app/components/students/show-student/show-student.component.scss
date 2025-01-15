@@ -65,6 +65,9 @@ span.major-stat-value {
 }
 
 #student-profile-container {
+    background: #cccccc;
+    border-radius: 5px;
+
     @include media.desktop{
         width: 300px;
         height: 300px;
@@ -75,10 +78,6 @@ span.major-stat-value {
         height: 250px;
         margin: auto;
     }
-
-    background: #cccccc;
-
-    border-radius: 5px;
 }
 
 #student-profile {

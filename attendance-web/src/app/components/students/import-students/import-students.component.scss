@@ -7,6 +7,8 @@ $valid-indicator-width: 60px;
 }
 
 #fileReqs {
+    margin-top: 20px;
+
     @include media.desktop {
         font-size: 1.4em;
         line-height: 1.4;
@@ -18,8 +20,6 @@ $valid-indicator-width: 60px;
         line-height: 1.6;
         font-weight: 300;
     }
-
-    margin-top: 20px;
 }
 
 #validationError {

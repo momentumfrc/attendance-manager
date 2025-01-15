@@ -16,9 +16,10 @@ interface MeetingAttendanceReport {
 };
 
 @Component({
-  selector: 'app-meeting-attendance-report',
-  templateUrl: './meeting-attendance-report.component.html',
-  styleUrl: './meeting-attendance-report.component.scss'
+    selector: 'app-meeting-attendance-report',
+    templateUrl: './meeting-attendance-report.component.html',
+    styleUrl: './meeting-attendance-report.component.scss',
+    standalone: false
 })
 export class MeetingAttendanceReportComponent implements OnInit, OnDestroy {
   DATE_SHORT_FMT = DateTime.DATE_SHORT;

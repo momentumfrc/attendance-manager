@@ -3,9 +3,10 @@ import { ReplaySubject } from 'rxjs';
 import { ErrorService } from 'src/app/services/error.service';
 
 @Component({
-  selector: 'app-error',
-  templateUrl: './error.component.html',
-  styleUrls: ['./error.component.scss']
+    selector: 'app-error',
+    templateUrl: './error.component.html',
+    styleUrls: ['./error.component.scss'],
+    standalone: false
 })
 export class ErrorComponent {
   protected errorMessage = new ReplaySubject<string>(1);

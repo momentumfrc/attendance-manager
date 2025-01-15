@@ -70,9 +70,10 @@ class AttendanceStats {
 }
 
 @Component({
-  selector: 'app-show-student',
-  templateUrl: './show-student.component.html',
-  styleUrls: ['./show-student.component.scss']
+    selector: 'app-show-student',
+    templateUrl: './show-student.component.html',
+    styleUrls: ['./show-student.component.scss'],
+    standalone: false
 })
 export class ShowStudentComponent implements OnInit, OnDestroy {
   readonly dateTimeShort = DateTime.DATETIME_SHORT;

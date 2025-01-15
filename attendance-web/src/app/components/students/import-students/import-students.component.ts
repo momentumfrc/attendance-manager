@@ -33,9 +33,10 @@ class NewStudentInfo {
 
 
 @Component({
-  selector: 'app-import-students',
-  templateUrl: './import-students.component.html',
-  styleUrls: ['./import-students.component.scss']
+    selector: 'app-import-students',
+    templateUrl: './import-students.component.html',
+    styleUrls: ['./import-students.component.scss'],
+    standalone: false
 })
 export class ImportStudentsComponent implements OnInit {
 

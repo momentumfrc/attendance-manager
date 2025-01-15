@@ -17,9 +17,10 @@ import { ErrorService } from 'src/app/services/error.service';
 import { FormControl } from '@angular/forms';
 
 @Component({
-  selector: 'app-add-attendance-event-list',
-  templateUrl: './add-attendance-event-list.component.html',
-  styleUrls: ['./add-attendance-event-list.component.scss']
+    selector: 'app-add-attendance-event-list',
+    templateUrl: './add-attendance-event-list.component.html',
+    styleUrls: ['./add-attendance-event-list.component.scss'],
+    standalone: false
 })
 export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, OnDestroy {
   allStudents = new ReplaySubject<Array<Student>>(1);

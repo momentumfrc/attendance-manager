@@ -13,9 +13,10 @@ enum PageState {
 }
 
 @Component({
-  selector: 'app-meetings',
-  templateUrl: './meetings-report.component.html',
-  styleUrls: ['./meetings-report.component.scss']
+    selector: 'app-meetings',
+    templateUrl: './meetings-report.component.html',
+    styleUrls: ['./meetings-report.component.scss'],
+    standalone: false
 })
 export class MeetingsReportComponent {
   readonly dateFormat = DateTime.DATE_SHORT;

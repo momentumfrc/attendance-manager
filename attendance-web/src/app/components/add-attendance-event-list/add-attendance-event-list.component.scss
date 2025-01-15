@@ -39,6 +39,10 @@ mat-icon {
 }
 
 #studentResults {
+    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box;
+
     @include media.desktop {
         font-size: 1.4em;
         line-height: 1.4;
@@ -50,18 +54,15 @@ mat-icon {
         line-height: 1.6;
         font-weight: 300;
     }
-
-    margin-top: 20px;
-
-    width: 100%;
-
-    box-sizing: border-box;
 }
 
 .studentRow {
     display: flex;
-
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    margin: 5px 0px;
 
     @include media.mobile {
         padding-left: 5px;
@@ -70,11 +71,6 @@ mat-icon {
     @include media.desktop {
         padding-left: 20px;
     }
-
-    justify-content: space-between;
-    gap: 10px;
-
-    margin: 5px 0px;
 }
 
 .studentName {

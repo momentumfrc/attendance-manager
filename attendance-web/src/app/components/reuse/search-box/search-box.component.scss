@@ -37,6 +37,7 @@
     flex-grow: 1;
     box-sizing: border-box;
     border: none;
+    outline: none;
 
     @include media.desktop {
         padding: 12px 0px;
@@ -45,8 +46,6 @@
     @include media.mobile {
         font: 400 1.4em helvetica, sans-serif;
     }
-
-    outline: none;
 }
 
 .search > mat-icon {

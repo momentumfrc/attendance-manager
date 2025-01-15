@@ -8,9 +8,10 @@ export interface CropImageInput {
 };
 
 @Component({
-  selector: 'app-crop-image',
-  templateUrl: './crop-image.component.html',
-  styleUrl: './crop-image.component.scss'
+    selector: 'app-crop-image',
+    templateUrl: './crop-image.component.html',
+    styleUrl: './crop-image.component.scss',
+    standalone: false
 })
 export class CropImageComponent {
   @ViewChild('croppie') croppieDiv!: ElementRef;

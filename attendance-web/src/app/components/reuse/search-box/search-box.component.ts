@@ -3,9 +3,10 @@ import { FormControl } from '@angular/forms';
 import { BehaviorSubject, Subscription, map, startWith } from 'rxjs';
 
 @Component({
-  selector: 'app-search-box',
-  templateUrl: './search-box.component.html',
-  styleUrls: ['./search-box.component.scss']
+    selector: 'app-search-box',
+    templateUrl: './search-box.component.html',
+    styleUrls: ['./search-box.component.scss'],
+    standalone: false
 })
 export class SearchBoxComponent implements OnInit, OnDestroy {
 
