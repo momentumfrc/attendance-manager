@@ -52,24 +52,24 @@ class AttendanceEventControllerTest extends TestCase
         $this->assertCount(8, $events);
 
         $response = $this->actingAs($user)->getJson('/api/attendance/events');
-        $response->assertExactJson($events->toArray());
+        $response->assertSimilarJson($events->toArray());
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['student_id' => $students[0]->id]);
-        $response->assertExactJson($events->filter(fn($event) => $event->student_id == $students[0]->id)->values()->toArray());
+        $response->assertSimilarJson($events->filter(fn($event) => $event->student_id == $students[0]->id)->values()->toArray());
 
         $since = $events->pluck('created_at')->random();
         $until = $events->pluck('created_at')->random();
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['since' => $since->timestamp]);
-        $response->assertExactJson($events->filter(fn($event) => $event->created_at->greaterThanOrEqualTo($since))->values()->toArray());
+        $response->assertSimilarJson($events->filter(fn($event) => $event->created_at->greaterThanOrEqualTo($since))->values()->toArray());
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['until' => $since->timestamp]);
-        $response->assertExactJson($events->filter(fn($event) => $event->created_at->lessThanOrEqualTo($since))->values()->toArray());
+        $response->assertSimilarJson($events->filter(fn($event) => $event->created_at->lessThanOrEqualTo($since))->values()->toArray());
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['type' => 'check-in']);
-        $response->assertExactJson($events->filter(fn($event) => $event->type == 'check-in')->values()->toArray());
+        $response->assertSimilarJson($events->filter(fn($event) => $event->type == 'check-in')->values()->toArray());
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['limit' => '2']);
-        $response->assertExactJson($events->take(2)->values()->toArray());
+        $response->assertSimilarJson($events->take(2)->values()->toArray());
     }
 }

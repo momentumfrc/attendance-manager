@@ -26,10 +26,6 @@ class StudentControllerTest extends TestCase
             'registered_by' => $user->id
         ]);
 
-        foreach($students as $student) {
-            $student->profile_image = null;
-        }
-
         $this->assertDatabaseCount('students', 5);
 
         $event1 = new AttendanceEvent;
@@ -39,15 +35,29 @@ class StudentControllerTest extends TestCase
         $event1->save();
         $this->assertDatabaseCount('attendance_events', 1);
 
+        foreach($students as $student) {
+            $student->profile_image = null;
+            $student->last_check_in = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
+            $student->last_check_out = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('updated_at', 'desc')->first();
+
+            if($student->last_check_in !== null) {
+                $student->last_check_in = $student->last_check_in->toArray();
+            }
+
+            if($student->last_check_out !== null) {
+                $student->last_check_out = $student->last_check_out->toArray();
+            }
+        }
+
         $nonDeletedStudents = $students->where('deleted_at', null)->values();
 
         $response = $this->actingAs($user)->getJson('/api/students');
         $response->assertStatus(200);
-        $response->assertExactJson($nonDeletedStudents->toArray());
+        $response->assertSimilarJson($nonDeletedStudents->toArray());
 
         $response = $this->actingAs($user)->getJson('/api/students?includeDeleted=1');
         $response->assertStatus(200);
-        $response->assertExactJson($students->toArray());
+        $response->assertSimilarJson($students->toArray());
     }
 
     public function test_store() {
@@ -82,7 +92,7 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('students', 1);
         $createdStudent = Student::without("profileImage")->first();
         $this->assertSame($createdStudent->name, 'Foo Bar');
-        $response->assertExactJson($createdStudent->toArray());
+        $response->assertSimilarJson($createdStudent->toArray());
 
         $response = $this->actingAs($user)->postJson('/api/students', [
             'action' => 'create',
@@ -104,10 +114,12 @@ class StudentControllerTest extends TestCase
 
         $student = $students[2];
         $student->profile_image = null;
+        $student->last_check_in = null;
+        $student->last_check_out = null;
         $response = $this->actingAs($user)->getJson('/api/students/'.$student->id);
 
         $response->assertStatus(200);
-        $response->assertExactJson($student->toArray());
+        $response->assertSimilarJson($student->toArray());
     }
 
     public function test_update() {

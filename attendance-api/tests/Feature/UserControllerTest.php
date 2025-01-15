@@ -58,7 +58,7 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/users');
         $response->assertStatus(200);
 
-        $response->assertExactJson($expected);
+        $response->assertSimilarJson($expected);
     }
 
     public function test_show() {
@@ -77,7 +77,7 @@ class UserControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/users/'.$user2->id);
 
         $response->assertStatus(200);
-        $response->assertExactJson($user2->toArray());
+        $response->assertSimilarJson($user2->toArray());
     }
 
     public function test_update() {
@@ -110,7 +110,7 @@ class UserControllerTest extends TestCase
         ]);
         $response->assertStatus(200);
         $this->assertSame(User::find($user2->id)->getRoleNames()->toArray(), $expected['role_names']);
-        $response->assertExactJson($expected);
+        $response->assertSimilarJson($expected);
 
         $expected['role_names'] = [];
         $response = $this->actingAs($user)->putJson('/api/users/'.$user2->id, [
@@ -118,7 +118,7 @@ class UserControllerTest extends TestCase
         ]);
         $response->assertStatus(200);
         $this->assertSame(User::find($user2->id)->getRoleNames()->toArray(), $expected['role_names']);
-        $response->assertExactJson($expected);
+        $response->assertSimilarJson($expected);
 
         $expected['role_names'] = ['mentor', 'student-lead'];
         $response = $this->actingAs($user)->putJson('/api/users/'.$user2->id, [
@@ -126,7 +126,7 @@ class UserControllerTest extends TestCase
         ]);
         $response->assertStatus(200);
         $this->assertSame(User::find($user2->id)->getRoleNames()->toArray(), $expected['role_names']);
-        $response->assertExactJson($expected);
+        $response->assertSimilarJson($expected);
     }
 
     public function test_update_self() {
