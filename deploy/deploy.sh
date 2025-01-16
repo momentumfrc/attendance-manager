@@ -1,6 +1,36 @@
 #!/bin/bash
 
-set -ex
+set -e
+
+
+POSITIONAL_ARGS=()
+
+RESEED=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --reseed)
+      RESEED=true
+      shift
+      ;;
+    -h|--help)
+      echo $0 [--reseed]
+      exit 0
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+set -x
 
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
@@ -77,6 +107,14 @@ cat > attendance/install.sh << 'EOF'
 #!/bin/bash
 set -ex
 
+EOF
+
+cat >> attendance/install.sh << EOF
+RESEED=${RESEED}
+
+EOF
+
+cat >> attendance/install.sh << 'EOF'
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 cd ${SCRIPT_DIR}
 
@@ -91,7 +129,10 @@ php artisan key:generate
 php artisan config:cache
 php artisan storage:link
 php artisan migrate --force
-#php artisan seed --class=RolesSeeder
+
+if [ ${RESEED} = true ]; then
+    php artisan seed --class=RolesSeeder
+fi
 
 echo INSTALL FINISHED
 sleep 2
