@@ -147,11 +147,7 @@ class StudentController extends Controller
     {
         $student = Student::withTrashed()->findOrFail($id);
 
-        $checkin = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
-        $checkout = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('updated_at', 'desc')->first();
-
-        $student->last_check_in = $checkin;
-        $student->last_check_out = $checkout;
+        $student->populateAttendanceEvents();
 
         return $student;
     }

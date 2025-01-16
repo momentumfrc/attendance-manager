@@ -31,4 +31,9 @@ class Student extends Model
         return $this->hasOne(StudentProfileImage::class);
     }
 
+    public function populateAttendanceEvents() {
+        $this->last_check_in = $this->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
+        $this->last_check_out = $this->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('updated_at', 'desc')->first();
+    }
+
 }
