@@ -5,7 +5,7 @@
                 <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" (click)="sidenav.toggle()">
                     <mat-icon>menu</mat-icon>
                 </button>
-                <a routerLink="/check-in" id="title">Attendance Manager</a>
+                <a routerLink="/" id="title">Attendance Manager</a>
             </div>
             <span id="userName" *ngIf="getFirstName() | async as name">Welcome, {{name}}</span>
             </div>
@@ -15,7 +15,7 @@
             <div id="sidebar-container">
             <mat-action-list>
                 <mat-list-item>
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/check-in">
+                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/">
                         <mat-icon class="nav-icon">home</mat-icon>
                         <p class="nav-label">Home</p>
                     </a>

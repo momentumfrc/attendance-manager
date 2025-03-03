@@ -175,7 +175,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         name: studentName,
         graduation_year
       }).subscribe((student: Student) => {
-        this.studentsService.invalidateCache();
+        this.studentsService.refreshCache();
         this.mainForm.enable();
         this.mainForm.reset();
         formDirective.resetForm();

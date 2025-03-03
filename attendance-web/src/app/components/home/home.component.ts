@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable, take } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterEvent } from '@angular/router';
+import { filter, map, Observable, Subscription, take } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -11,7 +11,7 @@ import { UsersService } from 'src/app/services/users.service';
     styleUrls: ['./home.component.scss'],
     standalone: false
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   tabs = [
     {
       path: './check-in',
@@ -22,28 +22,45 @@ export class HomeComponent implements OnInit {
     }
   ];
 
-  requiredPermission = 'student check in';
+  requiredPermission = 'list attendance events';
+
+  routersub!: Subscription;
 
   constructor(
-    protected authService: AuthService,
     protected permissionsService: PermissionsService,
-    route: ActivatedRoute,
-    router: Router
+    protected route: ActivatedRoute,
+    protected router: Router
   ) {
-    if(route.snapshot.url.length == 0) {
-      permissionsService.checkPermissions([this.requiredPermission]).subscribe(authorized => {
-        if(authorized) {
-          router.navigate(['check-in']);
-        }
-      })
-    }
   }
 
-  protected shouldShowNavBar(): Observable<boolean> {
-    return this.authService.getUser().pipe(take(1), map(user => user !== null && user.role_names.length > 0));
+  protected shouldShowAttendanceEvents(): Observable<boolean> {
+    return this.permissionsService.checkPermissions(['list attendance events']);
   }
 
   ngOnInit(): void {
+    if(this.route.snapshot.url.length == 0) {
+      this.permissionsService.checkPermissions([this.requiredPermission]).subscribe(authorized => {
+        if(authorized) {
+          this.router.navigate(['check-in']);
+        }
+      })
+    }
+
+    this.routersub = this.router.events.pipe(
+      filter(e => e instanceof RouterEvent)
+    ).subscribe(event => {
+      if(event.url == '/') {
+        this.permissionsService.checkPermissions([this.requiredPermission]).subscribe(authorized => {
+          if(authorized) {
+            this.router.navigate(['check-in']);
+          }
+        })
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routersub.unsubscribe();
   }
 
 }

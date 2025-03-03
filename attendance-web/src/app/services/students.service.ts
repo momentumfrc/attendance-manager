@@ -15,7 +15,7 @@ import { PollService } from './poll.service';
 })
 export class StudentsService {
   private cachedStudents = new ReplaySubject<Map<number, Student>>(1);
-  private lastRefresh: DateTime;
+  private lastRefresh: DateTime|null;
 
   private areDeletedStudentsCached: boolean = false;
 
@@ -24,17 +24,22 @@ export class StudentsService {
     private pollService: PollService,
     private errorService: ErrorService
   ) {
-    this.invalidateCache();
-    this.lastRefresh = DateTime.now();
+    this.lastRefresh = null;
   }
 
   private checkForUpdates(retrieveDeletedStudents: boolean) {
     const now = DateTime.now();
     if(retrieveDeletedStudents && !this.areDeletedStudentsCached) {
-      this.invalidateCache(true);
+      this.refreshCache(true);
       this.areDeletedStudentsCached = true;
       return;
     }
+
+    if(this.lastRefresh === null) {
+      this.refreshCache(this.areDeletedStudentsCached);
+      return;
+    }
+
     if(now.diff(this.lastRefresh).toMillis() > environment.pollInterval) {
       this.pollService.getUpdates({since: this.lastRefresh}).subscribe(response => {
         this.lastRefresh = now;
@@ -43,7 +48,7 @@ export class StudentsService {
     }
   }
 
-  public invalidateCache(retrieveDeletedStudents: boolean = false) {
+  public refreshCache(retrieveDeletedStudents: boolean = false) {
     let params = new HttpParams();
     params = params.set('includeDeleted', retrieveDeletedStudents ? 1 : 0);
 

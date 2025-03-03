@@ -63,9 +63,9 @@ const routes: Routes = [
     canActivate: [MustBeLoggedInGuard],
     children: [
       { path: 'check-in', component: AddAttendanceEventListComponent,
-        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'student check in' ]}},
+        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'list attendance events' ]}},
       { path: 'check-out', component: AddAttendanceEventListComponent,
-        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'student check in' ]}}
+        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'list attendance events' ]}}
     ]
   },
   { path: 'error', component: ErrorComponent },
