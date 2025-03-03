@@ -80,6 +80,17 @@ class RolesSeeder extends Seeder
                 'view stats'
             ]);
 
+        Role::create(['name' => 'read-only'])
+            ->givePermissionTo([
+                'list students',
+                'list attendance events',
+                'view student images',
+                'list users',
+                'list roles',
+                'list meeting events',
+                'view stats'
+            ]);
+
         // Here I hard-code the initial admin user (who will then add the rest of the admins)
         // It'd probably be best to get this from the app config or the .env environment
         if(config('app.debug', false)) {
