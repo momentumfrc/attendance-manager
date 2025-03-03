@@ -28,6 +28,7 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'view student images']);
         Permission::create(['name' => 'modify student images']);
 
+        Permission::create(['name' => 'list attendance events']);
         Permission::create(['name' => 'student check in']);
         Permission::create(['name' => 'student check out']);
         Permission::create(['name' => 'undo attendance event']);
@@ -51,6 +52,7 @@ class RolesSeeder extends Seeder
                 'modify students',
                 'modify student images',
                 'remove students',
+                'list attendance events',
                 'student check in',
                 'student check out',
                 'undo attendance event',
@@ -67,6 +69,7 @@ class RolesSeeder extends Seeder
         Role::create(['name' => 'student-lead'])
             ->givePermissionTo([
                 'list students',
+                'list attendance events',
                 'student check in',
                 'view student images',
                 'undo attendance event',
