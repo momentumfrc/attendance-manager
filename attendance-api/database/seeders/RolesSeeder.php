@@ -21,12 +21,14 @@ class RolesSeeder extends Seeder
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        Permission::create(['name' => 'list students']);
         Permission::create(['name' => 'add students']);
         Permission::create(['name' => 'modify students']);
         Permission::create(['name' => 'remove students']);
         Permission::create(['name' => 'view student images']);
         Permission::create(['name' => 'modify student images']);
 
+        Permission::create(['name' => 'list attendance events']);
         Permission::create(['name' => 'student check in']);
         Permission::create(['name' => 'student check out']);
         Permission::create(['name' => 'undo attendance event']);
@@ -44,11 +46,13 @@ class RolesSeeder extends Seeder
 
         Role::create(['name' => 'mentor'])
             ->givePermissionTo([
+                'list students',
                 'add students',
                 'view student images',
                 'modify students',
                 'modify student images',
                 'remove students',
+                'list attendance events',
                 'student check in',
                 'student check out',
                 'undo attendance event',
@@ -64,6 +68,8 @@ class RolesSeeder extends Seeder
 
         Role::create(['name' => 'student-lead'])
             ->givePermissionTo([
+                'list students',
+                'list attendance events',
                 'student check in',
                 'view student images',
                 'undo attendance event',
@@ -71,6 +77,17 @@ class RolesSeeder extends Seeder
                 'list roles',
                 'list meeting events',
                 'add meeting events',
+                'view stats'
+            ]);
+
+        Role::create(['name' => 'read-only'])
+            ->givePermissionTo([
+                'list students',
+                'list attendance events',
+                'view student images',
+                'list users',
+                'list roles',
+                'list meeting events',
                 'view stats'
             ]);
 

@@ -18,6 +18,7 @@ use InvalidArgumentException;
 class StudentController extends Controller
 {
     public function __construct() {
+        $this->middleware('can:list students')->only(['index', 'show']);
         $this->middleware('can:add students')->only('store');
         $this->middleware('can:modify students')->only('update');
         $this->middleware('can:remove students')->only('destroy');

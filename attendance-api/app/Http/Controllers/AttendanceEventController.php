@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Gate;
 
 class AttendanceEventController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:list attendance events')->only(['index', 'show']);
+    }
+
     public function index(Request $request) {
         $request->validate([
             'student_id' => 'exists:students,id',

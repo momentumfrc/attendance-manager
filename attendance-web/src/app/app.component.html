@@ -5,7 +5,7 @@
                 <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" (click)="sidenav.toggle()">
                     <mat-icon>menu</mat-icon>
                 </button>
-                <a routerLink="/check-in" id="title">Attendance Manager</a>
+                <a routerLink="/" id="title">Attendance Manager</a>
             </div>
             <span id="userName" *ngIf="getFirstName() | async as name">Welcome, {{name}}</span>
             </div>
@@ -15,30 +15,30 @@
             <div id="sidebar-container">
             <mat-action-list>
                 <mat-list-item>
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/check-in">
+                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/">
                         <mat-icon class="nav-icon">home</mat-icon>
                         <p class="nav-label">Home</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" >
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['list meeting events', 'add meeting events']) | async" >
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/meetings">
                         <mat-icon class="nav-icon">date_range</mat-icon>
                         <p class="nav-label">Meetings</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async">
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view stats']) | async">
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/reports">
                         <mat-icon class="nav-icon">description</mat-icon>
                         <p class="nav-label">Reports</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="authService.checkHasAnyRole(['mentor', 'student-lead']) | async" >
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view student images']) | async" >
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/students">
                         <mat-icon class="nav-icon">groups</mat-icon>
                         <p class="nav-label">Students</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="authService.checkHasAnyRole(['mentor']) | async">
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['elevate users']) | async">
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/users">
                         <mat-icon class="nav-icon">person</mat-icon>
                         <p class="nav-label">Users</p>

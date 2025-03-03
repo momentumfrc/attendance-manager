@@ -15,6 +15,7 @@ import { PollService } from 'src/app/services/poll.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorService } from 'src/app/services/error.service';
 import { FormControl } from '@angular/forms';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 @Component({
     selector: 'app-add-attendance-event-list',
@@ -46,7 +47,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     private studentsService : StudentsService,
     private attendanceService : AttendanceService,
     private meetingsService : MeetingsService,
-    private authService : AuthService,
+    private permissionsService: PermissionsService,
     private errorService: ErrorService,
     private snackbar: MatSnackBar,
     route: ActivatedRoute
@@ -154,12 +155,12 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     this.unsubscribe.next(true);
   }
 
-  private getValidRoles(): string[] {
-    let validRoles = ['mentor'];
+  private getRequiredPermission(): string {
     if(this.mode == AttendanceEventType.CHECK_IN) {
-      validRoles.push('student-lead');
+      return 'student check in';
+    } else {
+      return 'student check out';
     }
-    return validRoles;
   }
 
   private attendance(student: Student, action: AttendanceEventType) : void {
@@ -170,14 +171,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
     this.pendingStudentIds.next(this.pendingStudentIds.getValue().concat([student.id]));
 
-    this.authService.getUser().pipe(map(user => {
-      if(!user) {
-        throw new Error("Not authenticated");
-      }
-      return user;
-    })).subscribe(user => {
-      let validRoles = this.getValidRoles();
-      let authorized = user.role_names.find(it => validRoles.includes(it)) != undefined;
+    this.permissionsService.checkPermissions([this.getRequiredPermission()]).subscribe(authorized => {
       if(!authorized) {
         this.snackbar.open(
           "You are not authorized to perform this action",
@@ -293,7 +287,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   }
 
   protected notAuthorized(): Observable<boolean> {
-    return this.authService.checkHasAnyRole(this.getValidRoles()).pipe(map(it => !it));
+    return this.permissionsService.checkPermissions([this.getRequiredPermission()]).pipe(map(it => !it));
   }
 
   getProfileImageSrc(student: Student): string {

@@ -11,6 +11,7 @@ import { User } from 'src/app/models/user.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ErrorService } from 'src/app/services/error.service';
+import { PermissionsService } from 'src/app/services/permissions.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -105,7 +106,7 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     private usersService: UsersService,
     private attendanceService: AttendanceService,
     private errorService: ErrorService,
-    private authService: AuthService,
+    private permissionsService: PermissionsService,
     private reportsService: ReportsService
   ) {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
@@ -183,7 +184,7 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   }
 
   canDelete(): Observable<boolean> {
-    return this.authService.checkHasAnyRole(["mentor"]);
+    return this.permissionsService.checkPermissions(['modify students', 'modify student images', 'remove students']);
   }
 
   getProfileImageSrc(student: Student): string {

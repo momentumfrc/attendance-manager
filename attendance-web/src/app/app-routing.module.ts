@@ -6,7 +6,7 @@ import { LoginComponent } from './components/login/login.component';
 import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
 import { MustBeLoggedInGuard } from './guards/must-be-logged-in.guard';
 import { MustNotBeLoggedInGuard } from './guards/must-not-be-logged-in.guard';
-import { MustHaveRoleGuard } from './guards/must-have-role.guard';
+import { MustHavePermissionGuard } from './guards/must-have-role.guard';
 import { StudentsComponent } from './components/students/students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
@@ -22,24 +22,27 @@ import { MeetingAttendanceReportComponent } from './components/reports/meeting-a
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
-    canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor', 'student-lead']},
+    canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
+    data: { permissions: ['list students', 'view student images']},
     children: [
       {path: '', redirectTo: 'list', pathMatch: 'full'},
       {path: 'detail/:studentId', component: ShowStudentComponent},
       { path: 'edit/:studentId', component: UpdateOrCreateStudentComponent,
-        canActivate: [MustHaveRoleGuard],
-        data: { roleOptions: ['mentor'] }},
+        canActivate: [MustHavePermissionGuard],
+        data: { permissions: ['modify students', 'modify student images', 'remove students'] }},
       {path: 'list', component: ListStudentsComponent},
       {path: 'add', component: UpdateOrCreateStudentComponent,
-        canActivate: [MustHaveRoleGuard],
-        data: { roleOptions: ['mentor'] }},
-      {path: 'import', component: ImportStudentsComponent}
+        canActivate: [MustHavePermissionGuard],
+        data: { permissions: ['add students', 'modify student images'] }},
+      {path: 'import', component: ImportStudentsComponent,
+        canActivate: [MustHavePermissionGuard],
+        data: { permissions: ['add students', 'modify student images'] }
+      }
     ]
   },
   { path: 'reports', component: ReportsComponent,
-    canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor', 'student-lead']},
+    canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
+    data: { permissions: ['list students', 'view stats'] },
     children: [
       { path: '', redirectTo: 'meetings', pathMatch: 'full' },
       { path: 'meetings', component: MeetingsReportComponent },
@@ -50,19 +53,19 @@ const routes: Routes = [
     ]
   },
   { path: 'meetings', component: MeetingEventsComponent,
-    canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor', 'student-lead']}
+    canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
+    data: { permissions: ['list meeting events', 'add meeting events']}
   },
-  { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHaveRoleGuard],
-    data: { roleOptions: ['mentor'] }},
+  { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
+    data: { permissions: ['elevate users'] }},
   { path: 'login', component: LoginComponent, canActivate: [MustNotBeLoggedInGuard] },
   { path: '', component: HomeComponent,
     canActivate: [MustBeLoggedInGuard],
     children: [
       { path: 'check-in', component: AddAttendanceEventListComponent,
-        canActivate: [MustHaveRoleGuard], data: { roleOptions: [ 'mentor', 'student-lead' ]}},
+        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'list attendance events' ]}},
       { path: 'check-out', component: AddAttendanceEventListComponent,
-        canActivate: [MustHaveRoleGuard], data: { roleOptions: [ 'mentor', 'student-lead' ]}}
+        canActivate: [MustHavePermissionGuard], data: { permissions: [ 'list attendance events' ]}}
     ]
   },
   { path: 'error', component: ErrorComponent },

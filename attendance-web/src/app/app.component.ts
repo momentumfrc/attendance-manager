@@ -6,6 +6,7 @@ import { AuthService } from './services/auth.service';
 import { StudentsService } from './services/students.service';
 import { HttpClient } from '@angular/common/http';
 import { ServerInfoService } from './services/server-info.service';
+import { PermissionsService } from './services/permissions.service';
 
 @Component({
     selector: 'app-root',
@@ -25,7 +26,8 @@ export class AppComponent {
     protected authService: AuthService,
     protected studentsService: StudentsService,
     protected snackbar: MatSnackBar,
-    private serverInfo: ServerInfoService
+    protected permissionsService: PermissionsService,
+    serverInfo: ServerInfoService,
   ) {
     this.server_hash = serverInfo.getServerHash();
   }

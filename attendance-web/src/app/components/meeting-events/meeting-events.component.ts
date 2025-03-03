@@ -10,6 +10,7 @@ import { MeetingsService } from 'src/app/services/meetings.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { ConfirmDialogComponent } from '../reuse/confirm-dialog/confirm-dialog.component';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 interface RichMeetingEvent {
   event: MeetingEvent,
@@ -38,7 +39,7 @@ export class MeetingEventsComponent implements OnInit {
 
   constructor(
     private meetingsService: MeetingsService,
-    private authService: AuthService,
+    private permissionsService: PermissionsService,
     private usersService: UsersService,
     private dialog: MatDialog,
   ) {
@@ -58,9 +59,11 @@ export class MeetingEventsComponent implements OnInit {
       this.loadingEvents = false;
     });
 
-    authService.checkHasAnyRole(['mentor']).subscribe(isMentor => {
-      this.eventColumns = this.eventColumns.concat('removeAction');
-    })
+    permissionsService.checkPermissions(['remove meeting events']).subscribe(isMentor => {
+      if(isMentor) {
+        this.eventColumns = this.eventColumns.concat('removeAction');
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -131,11 +134,5 @@ export class MeetingEventsComponent implements OnInit {
         ).subscribe(events => this.events.next(events));
       });
     });
-  }
-
-  notAllowedToEndMeetings(): Observable<boolean> {
-    // At the moment this feature isn't doing anything, but if we should decide that only
-    // mentors may mark end-of-meeting events, then this makes the change easy.
-    return this.authService.checkHasAnyRole(['mentor', 'student-lead']).pipe(map(it => !it));
   }
 }

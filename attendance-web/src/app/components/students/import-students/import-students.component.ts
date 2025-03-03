@@ -162,7 +162,7 @@ export class ImportStudentsComponent implements OnInit {
           this.snackBar.open('Registered ' + items.length + ' new students', '', {
             duration: 4000
           });
-          this.studentsService.invalidateCache();
+          this.studentsService.refreshCache();
           this.router.navigate(['/', 'students', 'list'])
         })
       )), // 10, 20, 30, ..., 100

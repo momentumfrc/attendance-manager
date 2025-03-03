@@ -8,6 +8,7 @@ import { Student, StudentList, compareStudents } from 'src/app/models/student.mo
 import { AuthService } from 'src/app/services/auth.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 @Component({
     selector: 'app-list-students',
@@ -49,6 +50,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     public authService: AuthService,
     private router: Router,
     private dialog: MatDialog,
+    private permissionsService: PermissionsService
   ) {
     this.everyCheckedStudentNotDeleted = this.checkedStudents.pipe(
       map(students => students.find(it => it.deleted_at != undefined) == undefined)
@@ -231,6 +233,10 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['students', 'detail', student.id]);
     }
+  }
+
+  shouldShowEditMenu(): Observable<boolean> {
+    return this.permissionsService.checkPermissions(['modify students', 'modify student images', 'remove students']);
   }
 
 }

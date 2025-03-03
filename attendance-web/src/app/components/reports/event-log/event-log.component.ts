@@ -14,6 +14,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 interface EventLogEvent {
   eventId: string,
@@ -64,7 +65,7 @@ export class EventLogComponent implements OnInit {
     private studentsService: StudentsService,
     private usersService: UsersService,
     private meetingsService: MeetingsService,
-    private authService: AuthService
+    private permissionsService: PermissionsService
   ) {
     combineLatest({
       dates: this.listOptions.controls['until'].valueChanges.pipe(
@@ -98,11 +99,8 @@ export class EventLogComponent implements OnInit {
       }
     })
 
-    authService.checkHasAnyRole(['mentor']).subscribe((isMentor) => {
-      this.showActions.next(isMentor);
-    });
-
-
+    permissionsService.checkPermissions(['delete attendance event']).subscribe(
+      canDelete => this.showActions.next(canDelete));
   }
 
   ngOnInit(): void {
