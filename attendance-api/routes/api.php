@@ -12,6 +12,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\StudentProfileImageController;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,14 +48,14 @@ Route::middleware('auth:sanctum')->group(function () {
         'index', 'show', 'update'
     ]);
 
-    Route::middleware('can:list roles')->get('roles', function() {
-        return Role::all()->pluck('name');
-    });
-
     Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
     Route::get('reports/meeting-attendance', [ReportController::class, 'meetingAttendance']);
     Route::get('poll', [PollController::class, 'poll']);
 
+    Route::get('roles', fn () => collect([
+        "roles" => Role::all()->map(fn ($role) => ['name'=>$role->name, 'permissions'=>$role->permissions->pluck("name")]),
+        "permissions" => Permission::all()->pluck("name")
+    ]));
 });
 
 Route::get('info', fn () => ['git_hash' => config('app.git_hash')]);
