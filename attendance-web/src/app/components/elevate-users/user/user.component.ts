@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, map } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
+import { PermissionsService } from 'src/app/services/permissions.service';
 import { UsersService } from 'src/app/services/users.service';
 
 @Component({
@@ -18,12 +19,13 @@ export class UserComponent implements OnInit {
 
   protected selectedRole! : FormControl<string|null>
 
-  protected roles = this.usersService.getAllRoles().pipe(map(roles => roles.concat(['none'])));
+  protected roles = this.permissionsService.getAllRoles().pipe(map(roles => roles.map(role => role.name).concat(['none'])));
   protected loggedInUser = this.authService.getUser();
 
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
+    private permissionsService: PermissionsService,
     private snackbar: MatSnackBar
   ) { }
 

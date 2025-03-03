@@ -1,29 +1,29 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { forkJoin, map, Observable, take } from 'rxjs';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MustHaveRoleGuard implements CanActivate, CanActivateChild {
+export class MustHavePermissionGuard implements CanActivate, CanActivateChild {
 
-  constructor(private authService: AuthService) {}
+  constructor(private permissionsService: PermissionsService) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.checkRoles(route);
+    return this.checkPermissions(route);
   }
   canActivateChild(
     childRoute: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    return this.checkRoles(childRoute);
+    return this.checkPermissions(childRoute);
   }
 
-  private checkRoles(route: ActivatedRouteSnapshot) : Observable<boolean> {
-    let routeRoles = route.data['roleOptions'] as Array<string>;
-    return this.authService.checkHasAnyRole(routeRoles);
+  private checkPermissions(route: ActivatedRouteSnapshot) : Observable<boolean> {
+    let routePermissions = route.data['permissions'] as Array<string>;
+    return this.permissionsService.checkPermissions(routePermissions);
   }
 
 }

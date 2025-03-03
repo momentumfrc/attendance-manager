@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { map, Observable, take } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
+import { PermissionsService } from 'src/app/services/permissions.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
     selector: 'app-home',
@@ -19,16 +22,25 @@ export class HomeComponent implements OnInit {
     }
   ];
 
-  allowedRoles = ['mentor', 'student-lead'];
+  requiredPermission = 'student check in';
 
   constructor(
     protected authService: AuthService,
+    protected permissionsService: PermissionsService,
     route: ActivatedRoute,
     router: Router
   ) {
-    if(route.snapshot.url.length == 0 && authService.checkHasAnyRole(this.allowedRoles)) {
-      router.navigate(['check-in']);
+    if(route.snapshot.url.length == 0) {
+      permissionsService.checkPermissions([this.requiredPermission]).subscribe(authorized => {
+        if(authorized) {
+          router.navigate(['check-in']);
+        }
+      })
     }
+  }
+
+  protected shouldShowNavBar(): Observable<boolean> {
+    return this.authService.getUser().pipe(take(1), map(user => user !== null && user.role_names.length > 0));
   }
 
   ngOnInit(): void {

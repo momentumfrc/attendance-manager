@@ -8,7 +8,7 @@
 <mat-menu #filterMenu="matMenu">
     <div id="filterMenuContainer">
         <mat-slide-toggle [formControl]="showDeleted">Include deleted</mat-slide-toggle>
-        <mat-slide-toggle [formControl]="showEditControl" *ngIf="authService.checkHasAnyRole(['mentor']) | async">Edit</mat-slide-toggle>
+        <mat-slide-toggle [formControl]="showEditControl" *ngIf="shouldShowEditMenu() | async">Edit</mat-slide-toggle>
     </div>
 </mat-menu>
 
