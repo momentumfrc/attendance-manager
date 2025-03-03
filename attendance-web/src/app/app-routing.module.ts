@@ -23,7 +23,7 @@ import { MeetingAttendanceReportComponent } from './components/reports/meeting-a
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
     canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
-    data: { permissions: ['view student images']},
+    data: { permissions: ['list students', 'view student images']},
     children: [
       {path: '', redirectTo: 'list', pathMatch: 'full'},
       {path: 'detail/:studentId', component: ShowStudentComponent},
@@ -42,7 +42,7 @@ const routes: Routes = [
   },
   { path: 'reports', component: ReportsComponent,
     canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
-    data: { permissions: ['view stats'] },
+    data: { permissions: ['list students', 'view stats'] },
     children: [
       { path: '', redirectTo: 'meetings', pathMatch: 'full' },
       { path: 'meetings', component: MeetingsReportComponent },

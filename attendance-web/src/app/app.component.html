@@ -26,13 +26,13 @@
                         <p class="nav-label">Meetings</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['view stats']) | async">
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view stats']) | async">
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/reports">
                         <mat-icon class="nav-icon">description</mat-icon>
                         <p class="nav-label">Reports</p>
                     </a>
                 </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['view student images']) | async" >
+                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view student images']) | async" >
                     <a class="nav-list-item" (click)="sidenav.close()" routerLink="/students">
                         <mat-icon class="nav-icon">groups</mat-icon>
                         <p class="nav-label">Students</p>
