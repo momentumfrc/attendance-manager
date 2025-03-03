@@ -131,7 +131,7 @@ php artisan storage:link
 php artisan migrate --force
 
 if [ ${RESEED} = true ]; then
-    php artisan seed --class=RolesSeeder
+    php artisan db:seed --class=RolesSeeder --force
 fi
 
 echo INSTALL FINISHED
