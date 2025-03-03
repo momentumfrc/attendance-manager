@@ -21,6 +21,7 @@ class RolesSeeder extends Seeder
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        Permission::create(['name' => 'list students']);
         Permission::create(['name' => 'add students']);
         Permission::create(['name' => 'modify students']);
         Permission::create(['name' => 'remove students']);
@@ -44,6 +45,7 @@ class RolesSeeder extends Seeder
 
         Role::create(['name' => 'mentor'])
             ->givePermissionTo([
+                'list students',
                 'add students',
                 'view student images',
                 'modify students',
@@ -64,6 +66,7 @@ class RolesSeeder extends Seeder
 
         Role::create(['name' => 'student-lead'])
             ->givePermissionTo([
+                'list students',
                 'student check in',
                 'view student images',
                 'undo attendance event',
