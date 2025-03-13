@@ -38,7 +38,7 @@ class AttendanceSessionController extends Controller
         }
 
         if($request->has('until')) {
-            $response = $response->where('checkout_date', '<=',  Carbon::createFromTimestamp($request->until));
+            $response = $response->where('checkin_date', '<=',  Carbon::createFromTimestamp($request->until));
         }
 
         if($request->has('limit')) {
