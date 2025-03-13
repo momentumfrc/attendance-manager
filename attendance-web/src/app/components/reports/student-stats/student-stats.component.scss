@@ -1,5 +1,12 @@
+@use 'media';
+
 #datePicker {
     margin-top: 20px;
     margin-bottom: 20px;
 }
 
+#reportCard {
+    @include media.mobile {
+        overflow-x: scroll;
+    }
+}
