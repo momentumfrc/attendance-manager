@@ -1,20 +1,6 @@
 <mat-card id="exportCard">
 <mat-card-content id="exportCardContent">
-<form [formGroup]="exportOptions" (ngSubmit)="onSubmit(exportOptions.value)">
-    <div class="formRow">
-        <mat-form-field appearance="outline">
-            <mat-label>Enter a date range</mat-label>
-            <mat-date-range-input [rangePicker]="picker">
-                <input matStartDate formControlName="since" placeholder="Start date">
-                <input matEndDate formControlName="until" placeholder="End date">
-            </mat-date-range-input>
-            <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
-    </div>
-
-    <button mat-raised-button color="primary" type="submit" [disabled]="!exportOptions.valid" id="submitButton">Export</button>
-</form>
+<app-date-picker [initialDuration]="{months: 6}" (dateRangeSelection)="dateRangeSelection = $event"></app-date-picker>
+<button mat-raised-button color="primary" type="submit" [disabled]="dateRangeSelection == null" id="submitButton" (click)="downloadCsv()">Export</button>
 </mat-card-content>
 </mat-card>

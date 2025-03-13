@@ -17,6 +17,7 @@ import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { environment } from 'src/environments/environment';
+import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 
 enum PageState {
   STUDENT_LOADING = 1,
@@ -91,14 +92,11 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   protected attendanceSessions = new PaginatedDataSource<RichAttendanceSession>()
   protected attendanceStats = new ReplaySubject<AttendanceStats>(1)
 
+  protected dateRangeChanges = new Subject<SelectedDateRange>();
+
   protected sessionColumns = ["checkInDate", "checkOutDate", "duration"];
 
   protected destructNotifier = new Subject<void>();
-
-  protected studentStatsOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 6})),
-    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
-  });
 
   constructor(
     studentService: StudentsService,
@@ -140,15 +138,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
       switchMap(it => this.usersService.getUser(it.registered_by))
     ).subscribe(this.registeredBy);
 
-    let dateRangeChanges = this.studentStatsOptions.controls['until'].valueChanges.pipe(
-      filter(it => it),
-      map(it => ({since: this.studentStatsOptions.controls['since'].value, until: it})),
-      startWith(this.studentStatsOptions.value),
-      map(it => ({since: it.since, until: it.until.plus({days: 1})}))
-    );
-
     combineLatest({
-      dateRange: dateRangeChanges,
+      dateRange: this.dateRangeChanges,
       student: this.student
     }).pipe(
       switchMap(({dateRange, student}) => this.attendanceService.getSessions({
@@ -164,8 +155,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
       this.attendanceSessions.setData(sessions);
     });
 
-    dateRangeChanges.pipe(
-      switchMap(dateRange => this.reportsService.getMeetingList({since: dateRange.since, until: dateRange.until}))
+    this.dateRangeChanges.pipe(
+      switchMap(dateRange => this.reportsService.getMeetingList(dateRange))
     ).subscribe(meetings => this.meetingsSubject.next(meetings));
 
     combineLatest({

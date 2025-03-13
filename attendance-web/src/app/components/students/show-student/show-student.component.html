@@ -17,18 +17,9 @@
                 <img id="student-profile" src="{{getProfileImageSrc(student)}}" alt="student profile image">
             </div>
 
-            <form [formGroup]="studentStatsOptions" id="statsOptionForm">
-                <mat-form-field appearance="outline" id="dateInputField">
-                    <mat-label>Enter a date range</mat-label>
-                    <mat-date-range-input [rangePicker]="picker">
-                        <input matStartDate formControlName="since" placeholder="Start date">
-                        <input matEndDate formControlName="until" placeholder="End date">
-                    </mat-date-range-input>
-                    <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
-                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                    <mat-date-range-picker #picker></mat-date-range-picker>
-                </mat-form-field>
-            </form>
+            <div id="statsOptionForm">
+            <app-date-picker [initialDuration]="{months: 6}" (dateRangeSelection)="dateRangeChanges.next($event)"></app-date-picker>
+            </div>
 
             <ng-container *ngIf="attendanceStats|async as stats">
                 <h2>Statistics</h2>

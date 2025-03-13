@@ -1,16 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { DateTime } from 'luxon';
-import { combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, take } from 'rxjs';
+import { combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, Subject, take } from 'rxjs';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
 import { User } from 'src/app/models/user.model';
-import { AuthService } from 'src/app/services/auth.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
-import { ConfirmDialogComponent } from '../reuse/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { PermissionsService } from 'src/app/services/permissions.service';
+import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 
 interface RichMeetingEvent {
   event: MeetingEvent,
@@ -28,10 +27,7 @@ export class MeetingEventsComponent implements OnInit {
 
   eventColumns = ["eventId", "registrar", "eventType", "eventDate"];
 
-  meetingEventListOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 1})),
-    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
-  });
+  dateRangeSelection = new Subject<SelectedDateRange>();
 
   loadingEvents = true;
   events = new ReplaySubject<Array<MeetingEvent>>(1);
@@ -43,12 +39,7 @@ export class MeetingEventsComponent implements OnInit {
     private usersService: UsersService,
     private dialog: MatDialog,
   ) {
-    this.meetingEventListOptions.controls['until'].valueChanges.pipe(
-      filter(it => it),
-      map(it => ({since: this.meetingEventListOptions.controls['since'].value, until: it})),
-      startWith(this.meetingEventListOptions.value),
-      map(dates => ({since: dates.since, until: dates.until.plus({days: 1})}))
-    ).subscribe(dates => {
+    this.dateRangeSelection.subscribe(dates => {
       this.loadingEvents = true;
       this.meetingsService.getEvents(dates).subscribe(events => {
         this.events.next(events);

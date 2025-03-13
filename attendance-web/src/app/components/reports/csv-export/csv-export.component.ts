@@ -3,10 +3,11 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { Papa } from 'ngx-papaparse';
 import { MapObject } from 'ngx-papaparse/lib/interfaces/unparse-data';
-import { forkJoin, map, take } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, take } from 'rxjs';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
+import { SelectedDateRange } from '../../reuse/date-picker/date-picker.component';
 
 @Component({
     selector: 'app-csv-export',
@@ -15,11 +16,7 @@ import { UsersService } from 'src/app/services/users.service';
     standalone: false
 })
 export class CsvExportComponent implements OnInit {
-
-  exportOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 6})),
-    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
-  });
+  dateRangeSelection : SelectedDateRange|null = null;
 
   constructor(
     private attendanceService: AttendanceService,
@@ -31,12 +28,13 @@ export class CsvExportComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onSubmit(value: any) {
+  downloadCsv() {
+    if(this.dateRangeSelection == null) {
+      return;
+    }
+
     forkJoin([
-      this.attendanceService.getEvents({
-        since: value.since,
-        until: value.until.plus({days: 1})
-      }),
+      this.attendanceService.getEvents(this.dateRangeSelection),
       this.studentsService.getAllStudents().pipe(take(1)),
       this.usersService.getAllUsers()
     ]).pipe(

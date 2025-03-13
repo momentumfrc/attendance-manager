@@ -1,15 +1,6 @@
-<form [formGroup]="dataDateRange" id="dateRangeForm">
-    <mat-form-field appearance="outline">
-        <mat-label>Enter a date range</mat-label>
-        <mat-date-range-input [rangePicker]="picker">
-            <input matStartDate formControlName="since" placeholder="Start date">
-            <input matEndDate formControlName="until" placeholder="End date">
-        </mat-date-range-input>
-        <mat-hint>MM/DD/YYYY - MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
-</form>
+<div id="dateRangeForm">
+<app-date-picker [initialDuration]="{months: 3}" (dateRangeSelection)="dateRangeSelection.next($event)"></app-date-picker>
+</div>
 
 <ng-container *ngIf="state|async as state">
 <div [style.display]="state == stateType.LOADED">

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { DateTime } from 'luxon';
-import { BehaviorSubject, combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, take, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, forkJoin, map, Observable, ReplaySubject, startWith, Subject, take, tap } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
 import { MeetingEvent } from 'src/app/models/meeting-event.model';
 import { Student } from 'src/app/models/student.model';
@@ -15,6 +15,7 @@ import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
+import { SelectedDateRange } from '../../reuse/date-picker/date-picker.component';
 
 interface EventLogEvent {
   eventId: string,
@@ -48,10 +49,7 @@ export class EventLogComponent implements OnInit {
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState;
 
-  listOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 1})),
-    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
-  });
+  dateRangeSelection = new Subject<SelectedDateRange>();
 
   showActions = new ReplaySubject<boolean>(1);
   eventColumnSubject = new ReplaySubject<string[]>(1);
@@ -68,12 +66,7 @@ export class EventLogComponent implements OnInit {
     private permissionsService: PermissionsService
   ) {
     combineLatest({
-      dates: this.listOptions.controls['until'].valueChanges.pipe(
-        filter(it => it),
-        map(it => ({since: this.listOptions.controls['since'].value, until: it})),
-        startWith(this.listOptions.value),
-        map(dates =>({since: dates.since, until: dates.until.plus({days: 1})}))
-      ),
+      dates: this.dateRangeSelection.pipe(debounceTime(1)),
       showActions: this.showActions
     }).subscribe(({dates, showActions}) => {
       this.state.next(PageState.LOADING);
