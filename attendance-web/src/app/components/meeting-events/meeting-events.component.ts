@@ -29,8 +29,8 @@ export class MeetingEventsComponent implements OnInit {
   eventColumns = ["eventId", "registrar", "eventType", "eventDate"];
 
   meetingEventListOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().minus({months: 1})),
-    until: new FormControl(DateTime.now())
+    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 1})),
+    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
   });
 
   loadingEvents = true;

@@ -17,8 +17,8 @@ import { UsersService } from 'src/app/services/users.service';
 export class CsvExportComponent implements OnInit {
 
   exportOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().minus({months: 6})),
-    until: new FormControl(DateTime.now())
+    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 6})),
+    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
   });
 
   constructor(
