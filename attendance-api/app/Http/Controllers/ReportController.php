@@ -80,4 +80,51 @@ class ReportController extends Controller
             "attendance_sessions" => $students
         );
     }
+
+    public function studentStats(Request $request) {
+        $request->validate([
+            'since' => 'date_format:U|lt:4294967295',
+            'until' => 'date_format:U|lt:4294967295'
+        ]);
+
+        $query = DB::table('students')->selectRaw('students.id AS student_id, IFNULL(checkins.count, 0) AS checkin_count, IFNULL(missed.count, 0) AS missed_checkout_count, IFNULL(times.meeting_time, 0) AS meeting_time');
+        $checkinQuery = DB::table('attendance_sessions')->selectRaw('student_id, COUNT(checkin_id) AS count');
+        $missedQuery = DB::table('attendance_sessions')->selectRaw('student_id, COUNT(checkin_id) AS count')->whereNull('checkout_id');
+        $timesQuery = DB::table('attendance_sessions')->selectRaw('student_id, SUM(TIMESTAMPDIFF(SECOND, checkin_date, checkout_date)) as meeting_time')->whereNotNull('checkout_id');
+
+        $query->whereNull('deleted_at');
+
+        if($request->has('since')) {
+            $since = Carbon::createFromTimestamp($request->since)->setTime(0, 0, 0);
+            $checkinQuery = $checkinQuery->where('checkin_date', '>=', $since);
+            $missedQuery = $missedQuery->where('checkin_date', '>=', $since);
+            $timesQuery = $timesQuery->where('checkin_date', '>=', $since);
+        }
+
+        if($request->has('until')) {
+            $until = Carbon::createFromTimestamp($request->until)->setTime(23, 59, 59);
+            $checkinQuery = $checkinQuery->where('checkin_date', '<=',  $until);
+            $missedQuery = $missedQuery->where('checkin_date', '<=',  $until);
+            $timesQuery = $timesQuery->where('checkin_date', '<=',  $until);
+        }
+
+        $checkinQuery->groupBy('student_id');
+        $missedQuery->groupBy('student_id');
+        $timesQuery->groupBy('student_id');
+
+        $query->leftJoinSub($checkinQuery, 'checkins', 'students.id', '=', 'checkins.student_id');
+        $query->leftJoinSub($missedQuery, 'missed', 'students.id', '=', 'missed.student_id');
+        $query->leftJoinSub($timesQuery, 'times', 'students.id', '=', 'times.student_id');
+
+        $query->orderBy('meeting_time', 'desc');
+
+        $result = $query->get();
+        foreach($result as $row) {
+            $row->student_id = (int)$row->student_id;
+            $row->checkin_count = (int)$row->checkin_count;
+            $row->missed_checkout_count = (int)$row->missed_checkout_count;
+            $row->meeting_time = (int)$row->meeting_time;
+        }
+        return $result;
+    }
 }

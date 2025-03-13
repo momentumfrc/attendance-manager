@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
     Route::get('reports/meeting-attendance', [ReportController::class, 'meetingAttendance']);
+    Route::get('reports/student-stats', [ReportController::class, 'studentStats']);
     Route::get('poll', [PollController::class, 'poll']);
 
 });
