@@ -55,6 +55,7 @@ import { ErrorComponent } from './components/error/error.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 import { CropImageComponent } from './components/crop-image/crop-image.component';
 import { DatePickerComponent } from './components/reuse/date-picker/date-picker.component';
+import { StudentStatsComponent } from './components/reports/student-stats/student-stats.component';
 
 
 @NgModule({ declarations: [
@@ -73,6 +74,7 @@ import { DatePickerComponent } from './components/reuse/date-picker/date-picker.
         SearchBoxComponent,
         ShowStudentComponent,
         SpinnerComponent,
+        StudentStatsComponent,
         ReportsComponent,
         CsvExportComponent,
         EventLogComponent,

@@ -19,6 +19,7 @@ import { MeetingEventsComponent } from './components/meeting-events/meeting-even
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
 import { ErrorComponent } from './components/error/error.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
+import { StudentStatsComponent } from './components/reports/student-stats/student-stats.component';
 
 const routes: Routes = [
   { path: 'students', component: StudentsComponent,
@@ -48,6 +49,7 @@ const routes: Routes = [
       { path: 'meetings', component: MeetingsReportComponent },
       { path: 'meetings/attendance', component: MeetingAttendanceReportComponent },
       { path: 'meetings/attendance/:date', component: MeetingAttendanceReportComponent },
+      { path: 'student-stats', component: StudentStatsComponent },
       { path: 'event-log', component: EventLogComponent },
       { path: 'export', component: CsvExportComponent }
     ]

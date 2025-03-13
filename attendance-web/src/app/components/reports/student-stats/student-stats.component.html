@@ -1,0 +1,34 @@
+<div id="datePicker">
+<app-date-picker [initialDuration]="{months: 6}" (dateRangeSelection)="updateDateSelection($event)"></app-date-picker>
+</div>
+
+<ng-container *ngIf="report|async as report; else spinner">
+    <mat-card>
+    <mat-card-content>
+        <table mat-table [dataSource]="report.report">
+            <ng-container matColumnDef="student-name">
+                <th mat-header-cell *matHeaderCellDef>Student Name</th>
+                <td mat-cell *matCellDef="let element">{{element.student.name}}</td>
+            </ng-container>
+            <ng-container matColumnDef="checkin-count">
+                <th mat-header-cell *matHeaderCellDef>Meetings Attended <br> (out of {{report.meeting_count}}) </th>
+                <td mat-cell *matCellDef="let element">{{element.stats.checkin_count}}</td>
+            </ng-container>
+            <ng-container matColumnDef="missed-checkout-count">
+                <th mat-header-cell *matHeaderCellDef>Missed Checkouts</th>
+                <td mat-cell *matCellDef="let element">{{element.stats.missed_checkout_count}}</td>
+            </ng-container>
+            <ng-container matColumnDef="meeting-time">
+                <th mat-header-cell *matHeaderCellDef>Time Spent at Meetings</th>
+                <td mat-cell *matCellDef="let element">{{formatTimeDiff(element.stats.meeting_time)}}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="studentStatsColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: studentStatsColumns;"></tr>
+        </table>
+    </mat-card-content>
+    </mat-card>
+</ng-container>
+<ng-template #spinner>
+    <app-spinner></app-spinner>
+</ng-template>
