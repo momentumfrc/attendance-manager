@@ -96,8 +96,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   protected destructNotifier = new Subject<void>();
 
   protected studentStatsOptions: FormGroup = new FormGroup({
-    since: new FormControl(DateTime.now().minus({months: 6})),
-    until: new FormControl(DateTime.now())
+    since: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).minus({months: 6})),
+    until: new FormControl(DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}))
   });
 
   constructor(
@@ -143,7 +143,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     let dateRangeChanges = this.studentStatsOptions.controls['until'].valueChanges.pipe(
       filter(it => it),
       map(it => ({since: this.studentStatsOptions.controls['since'].value, until: it})),
-      startWith(this.studentStatsOptions.value)
+      startWith(this.studentStatsOptions.value),
+      map(it => ({since: it.since, until: it.until.plus({days: 1})}))
     );
 
     combineLatest({
