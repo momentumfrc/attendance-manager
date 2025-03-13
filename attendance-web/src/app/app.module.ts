@@ -54,6 +54,7 @@ import { MeetingsReportComponent } from './components/reports/meetings-report/me
 import { ErrorComponent } from './components/error/error.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 import { CropImageComponent } from './components/crop-image/crop-image.component';
+import { DatePickerComponent } from './components/reuse/date-picker/date-picker.component';
 
 
 @NgModule({ declarations: [
@@ -61,6 +62,7 @@ import { CropImageComponent } from './components/crop-image/crop-image.component
         UpdateOrCreateStudentComponent,
         AddAttendanceEventListComponent,
         CropImageComponent,
+        DatePickerComponent,
         LoginComponent,
         ElevateUsersComponent,
         UserComponent,
@@ -80,7 +82,8 @@ import { CropImageComponent } from './components/crop-image/crop-image.component
         MeetingAttendanceReportComponent,
         ErrorComponent
     ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+    bootstrap: [AppComponent], imports: [
+        BrowserModule,
         AppRoutingModule,
         ReactiveFormsModule,
         BrowserAnimationsModule,
