@@ -41,7 +41,7 @@ export class StudentStatsComponent implements OnInit, OnDestroy {
       stats: this.dateRangeSelection.pipe(
         switchMap(range => this.reportsService.getStudentStats(range))
       ),
-      students: this.studentsService.getStudentMap(false)
+      students: this.studentsService.getStudentMap(true)
     }).subscribe(({meetings, stats, students}) => {
         this.report.next({
           meeting_count: meetings.length,

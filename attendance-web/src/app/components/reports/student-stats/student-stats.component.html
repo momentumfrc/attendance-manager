@@ -8,7 +8,12 @@
         <table mat-table [dataSource]="report.report">
             <ng-container matColumnDef="student-name">
                 <th mat-header-cell *matHeaderCellDef>Student Name</th>
-                <td mat-cell *matCellDef="let element">{{element.student.name}}</td>
+                <td mat-cell *matCellDef="let element">
+                    <div class="student-name-container">
+                        <div *ngIf="element.student.deleted_at" class="deletedIcon"><mat-icon>delete</mat-icon></div>
+                        <div class="student-name">{{element.student.name}}</div>
+                    </div>
+                </td>
             </ng-container>
             <ng-container matColumnDef="checkin-count">
                 <th mat-header-cell *matHeaderCellDef>Meetings Attended <br> (out of {{report.meeting_count}}) </th>

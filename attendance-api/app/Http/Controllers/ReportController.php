@@ -92,20 +92,20 @@ class ReportController extends Controller
         $missedQuery = DB::table('attendance_sessions')->selectRaw('student_id, COUNT(checkin_id) AS count')->whereNull('checkout_id');
         $timesQuery = DB::table('attendance_sessions')->selectRaw('student_id, SUM(TIMESTAMPDIFF(SECOND, checkin_date, checkout_date)) as meeting_time')->whereNotNull('checkout_id');
 
-        $query->whereNull('deleted_at');
-
         if($request->has('since')) {
             $since = Carbon::createFromTimestamp($request->since)->setTime(0, 0, 0);
-            $checkinQuery = $checkinQuery->where('checkin_date', '>=', $since);
-            $missedQuery = $missedQuery->where('checkin_date', '>=', $since);
-            $timesQuery = $timesQuery->where('checkin_date', '>=', $since);
+            $checkinQuery->where('checkin_date', '>=', $since);
+            $missedQuery->where('checkin_date', '>=', $since);
+            $timesQuery->where('checkin_date', '>=', $since);
+
+            $query->whereNull('deleted_at')->orWhere('deleted_at', '>=', $since);
         }
 
         if($request->has('until')) {
             $until = Carbon::createFromTimestamp($request->until)->setTime(23, 59, 59);
-            $checkinQuery = $checkinQuery->where('checkin_date', '<=',  $until);
-            $missedQuery = $missedQuery->where('checkin_date', '<=',  $until);
-            $timesQuery = $timesQuery->where('checkin_date', '<=',  $until);
+            $checkinQuery->where('checkin_date', '<=',  $until);
+            $missedQuery->where('checkin_date', '<=',  $until);
+            $timesQuery->where('checkin_date', '<=',  $until);
         }
 
         $checkinQuery->groupBy('student_id');
