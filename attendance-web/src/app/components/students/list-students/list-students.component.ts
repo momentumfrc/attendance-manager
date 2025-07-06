@@ -17,11 +17,6 @@ import { PermissionsService } from 'src/app/services/permissions.service';
     standalone: false
 })
 export class ListStudentsComponent implements OnInit, OnDestroy {
-  private readonly graduationTimeInYear = Duration.fromObject({
-    months: 6,
-    days: 18
-  });
-
   private readonly bulkConfirmThreshold = 3;
 
   studentSearch = new Subject<string>();
@@ -141,7 +136,7 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
   }
 
-  selectAllGraduatedStudents(): void {
+  selectAllGraduatingStudents(): void {
     combineLatest({
       students: this.filteredStudents,
       controls: this.studentCheckControls
@@ -149,11 +144,11 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     .subscribe(({
       students: [indices, filteredStudents],
       controls: [allStudents, controls]}) => {
-      const now = DateTime.now();
+      const nowYear = DateTime.now().year;
       for(let i = 0; i < indices.length; ++i) {
-        if(filteredStudents.students[i].graduation_year) {
-          const gradDate = DateTime.fromObject({year: filteredStudents.students[i].graduation_year}).plus(this.graduationTimeInYear);
-          controls.at(indices[i]).setValue(gradDate <= now, {emitEvent: i == indices.length-1});
+        const student = filteredStudents.students[i];
+        if(student.graduation_year) {
+          controls.at(indices[i]).setValue(nowYear >= student.graduation_year, {emitEvent: i == indices.length-1});
         } else {
           controls.at(indices[i]).setValue(false, {emitEvent: i == indices.length-1});
         }
@@ -180,8 +175,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
         let dialogref = this.dialog.open(ConfirmDialogComponent, {
           width: '320px',
           data: {
-            action: 'Deletion',
-            message: `This will delete ${toDelete.length} students!`,
+            action: 'Delete',
+            message: `This will delete ${toDelete.length} students.`,
             closeColor: 'warn'
           }
         });
