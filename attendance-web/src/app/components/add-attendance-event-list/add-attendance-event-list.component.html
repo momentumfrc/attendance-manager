@@ -1,40 +1,51 @@
-<mat-card id="not-authorized-warn" *ngIf="notAuthorized()|async">
+@if (notAuthorized()|async) {
+  <mat-card id="not-authorized-warn">
     <mat-card-content>
-        Note: You are not authorized to perform this action. This view is read-only.
+      Note: You are not authorized to perform this action. This view is read-only.
     </mat-card-content>
-</mat-card>
+  </mat-card>
+}
 
 <div id="searchbar">
-    <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
-    <button mat-fab color="primary" [matMenuTriggerFor]="filterMenu" aria-label="Filters">
-        <mat-icon>tune</mat-icon>
-    </button>
+  <app-search-box (searchUpdatedEvent)="searchValue.next($event)"></app-search-box>
+  <button mat-fab color="primary" [matMenuTriggerFor]="filterMenu" aria-label="Filters">
+    <mat-icon>tune</mat-icon>
+  </button>
 </div>
 
 <mat-menu #filterMenu="matMenu">
-    <div id="filterMenuContainer">
-        <mat-slide-toggle [formControl]="showProfileImagesControl">Show profile images</mat-slide-toggle>
-    </div>
+  <div id="filterMenuContainer">
+    <mat-slide-toggle [formControl]="showProfileImagesControl">Show profile images</mat-slide-toggle>
+  </div>
 </mat-menu>
 
-<div id="studentResults" *ngIf="filteredStudents | async as filteredStudents; else loading">
-    <ng-container *ngFor="let student of filteredStudents[0].students; index as i; last as isLast">
-        <div class="studentRow">
-        <img *ngIf="showProfileImages|async" class="student-profile" src="{{getProfileImageSrc(student)}}">
+@if (filteredStudents | async; as filteredStudents) {
+  <div id="studentResults">
+    @for (student of filteredStudents[0].students; track student; let i = $index; let isLast = $last) {
+      <div class="studentRow">
+        @if (showProfileImages|async) {
+          <img class="student-profile" src="{{getProfileImageSrc(student)}}">
+        }
         <div class="studentName">{{filteredStudents[0].getQualifiedName(student)}}</div>
-        <mat-spinner [diameter]="45" [strokeWidth]="8" *ngIf="filteredStudents[1][i]"></mat-spinner>
+        @if (filteredStudents[1][i]) {
+          <mat-spinner [diameter]="45" [strokeWidth]="8"></mat-spinner>
+        }
         <button class="studentActionButton"
-                mat-raised-button
-                color="{{actionColor()}}"
-                [disabled]="cannotPerformAction(student)|async"
-                (click)="performAction(student)">
-                    {{actionText()}}
+          mat-raised-button
+          color="{{actionColor()}}"
+          [disabled]="cannotPerformAction(student)|async"
+          (click)="performAction(student)">
+          {{actionText()}}
         </button>
-        </div>
-        <mat-divider *ngIf="!isLast" class="studentDivider"></mat-divider>
-    </ng-container>
-    <div *ngIf="filteredStudents[0]?.students?.length == 0" id="noStudentsWarn">No matching students found!</div>
-</div>
-<ng-template #loading>
-    <app-spinner></app-spinner>
-</ng-template>
+      </div>
+      @if (!isLast) {
+        <mat-divider class="studentDivider"></mat-divider>
+      }
+    }
+    @if (filteredStudents[0]?.students?.length == 0) {
+      <div id="noStudentsWarn">No matching students found!</div>
+    }
+  </div>
+} @else {
+  <app-spinner></app-spinner>
+}

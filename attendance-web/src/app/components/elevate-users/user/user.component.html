@@ -1,16 +1,17 @@
 <mat-list-item>
-<div class="userItem">
+  <div class="userItem">
     <div class="userName">{{user.name}}</div>
-    <ng-container *ngIf="(loggedInUser | async)?.id != user.id; else selfButton">
-        <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">{{getRoleFromRoles(user.role_names)}}</button>
-    </ng-container>
-    <ng-template #selfButton>
-        <button mat-stroked-button matTooltip="Cannot modify self" disabled>{{getRoleFromRoles(user.role_names)}}</button>
-    </ng-template>
+    @if ((loggedInUser | async)?.id != user.id) {
+      <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">{{getRoleFromRoles(user.role_names)}}</button>
+    } @else {
+      <button mat-stroked-button matTooltip="Cannot modify self" disabled>{{getRoleFromRoles(user.role_names)}}</button>
+    }
     <mat-menu #roleMenu="matMenu" (closed)="menuClosed()">
-        <mat-radio-group (click)="$event.stopPropagation()" [formControl]="selectedRole" class="roleGroup">
-            <mat-radio-button *ngFor="let role of roles | async" [value]="role" class="roleOption">{{role}}</mat-radio-button>
-        </mat-radio-group>
+      <mat-radio-group (click)="$event.stopPropagation()" [formControl]="selectedRole" class="roleGroup">
+        @for (role of roles | async; track role) {
+          <mat-radio-button [value]="role" class="roleOption">{{role}}</mat-radio-button>
+        }
+      </mat-radio-group>
     </mat-menu>
-</div>
+  </div>
 </mat-list-item>

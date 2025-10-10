@@ -1,39 +1,42 @@
 <div id="dateRangeForm">
-<app-date-picker [initialDuration]="{months: 1}" (dateRangeSelection)="dateRangeSelection.next($event)"></app-date-picker>
+  <app-date-picker [initialDuration]="{months: 1}" (dateRangeSelection)="dateRangeSelection.next($event)"></app-date-picker>
 </div>
 
-<ng-container *ngIf="state|async as state">
-<div [style.display]="state == stateType.LOADED">
-<mat-card>
-<mat-card-content>
-
-    <h3 *ngIf="meetingData|async as meetings" class="chart-title">Attendance for {{meetings.length}} Meetings</h3>
-    <canvas id="lineChart">{{chart}}</canvas>
-</mat-card-content>
-</mat-card>
-<mat-card>
-<mat-card-content>
-    <table mat-table [dataSource]="meetingData">
-        <ng-container matColumnDef="attendance-detail">
+@if (state|async; as state) {
+  <!-- Can't use @if here because we need the canvas to always exist in the DOM so chart.js can use it -->
+  <div [style.display]="state == stateType.LOADED">
+    <mat-card>
+      <mat-card-content>
+        @if (meetingData|async; as meetings) {
+          <h3 class="chart-title">Attendance for {{meetings.length}} Meetings</h3>
+        }
+        <canvas id="lineChart">{{chart}}</canvas>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <table mat-table [dataSource]="meetingData">
+          <ng-container matColumnDef="attendance-detail">
             <th mat-header-cell *matHeaderCellDef>Attendance</th>
             <td mat-cell *matCellDef="let element">
-                <button class="attendance-detail-button" mat-icon-button aria-label="View attendance details" [routerLink]='["attendance", element.meeting_date.toISODate()]'><mat-icon>pending_actions</mat-icon></button>
+              <button class="attendance-detail-button" mat-icon-button aria-label="View attendance details" [routerLink]='["attendance", element.meeting_date.toISODate()]'><mat-icon>pending_actions</mat-icon></button>
             </td>
-        </ng-container>
-        <ng-container matColumnDef="date">
+          </ng-container>
+          <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
             <td mat-cell *matCellDef="let element">{{element.meeting_date.toLocaleString(dateFormat)}}</td>
-        </ng-container>
-        <ng-container matColumnDef="student-count">
+          </ng-container>
+          <ng-container matColumnDef="student-count">
             <th mat-header-cell *matHeaderCellDef>Student Count</th>
             <td mat-cell *matCellDef="let element">{{element.student_count}}</td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="meetingStatsColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: meetingStatsColumns;"></tr>
-    </table>
-</mat-card-content>
-</mat-card>
-</div>
-<app-spinner *ngIf="state == stateType.LOADING"></app-spinner>
-</ng-container>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="meetingStatsColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: meetingStatsColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  @if (state == stateType.LOADING) {
+    <app-spinner></app-spinner>
+  }
+}

@@ -1,13 +1,18 @@
 <app-search-box></app-search-box>
-<mat-list *ngIf="users | async as users; else loading">
-    <ng-container *ngFor="let user of users; last as isLast">
-        <app-user-role-selector [user]="user"></app-user-role-selector>
-        <mat-divider *ngIf="!isLast"></mat-divider>
-    </ng-container>
-    <mat-list-item *ngIf="(noUsers() | async) == true" id="noResults">
+@if (users | async; as users) {
+  <mat-list>
+    @for (user of users; track user; let isLast = $last) {
+      <app-user-role-selector [user]="user"></app-user-role-selector>
+      @if (!isLast) {
+        <mat-divider></mat-divider>
+      }
+    }
+    @if ((noUsers() | async) == true) {
+      <mat-list-item id="noResults">
         No matching users found!
-    </mat-list-item>
-</mat-list>
-<ng-template #loading>
-    <app-spinner></app-spinner>
-</ng-template>
+      </mat-list-item>
+    }
+  </mat-list>
+} @else {
+  <app-spinner></app-spinner>
+}

@@ -1,63 +1,75 @@
 <div id="rootContainer">
-    <mat-toolbar color="primary" class="mainToolBar" id="mainToolBar">
-        <div id="mainToolBarContainer">
-            <div id="toolBarLeftContainer">
-                <button mat-icon-button *ngIf="authService.checkLoggedIn() | async" aria-label="Button to open the navigation menu" (click)="sidenav.toggle()">
-                    <mat-icon>menu</mat-icon>
-                </button>
-                <a routerLink="/" id="title">Attendance Manager</a>
-            </div>
-            <span id="userName" *ngIf="getFirstName() | async as name">Welcome, {{name}}</span>
-            </div>
-    </mat-toolbar>
-    <mat-sidenav-container>
-        <mat-sidenav #sidenav mode="over" autoFocus="false">
-            <div id="sidebar-container">
-            <mat-action-list>
-                <mat-list-item>
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/">
-                        <mat-icon class="nav-icon">home</mat-icon>
-                        <p class="nav-label">Home</p>
-                    </a>
-                </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['list meeting events', 'add meeting events']) | async" >
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/meetings">
-                        <mat-icon class="nav-icon">date_range</mat-icon>
-                        <p class="nav-label">Meetings</p>
-                    </a>
-                </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view stats']) | async">
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/reports">
-                        <mat-icon class="nav-icon">description</mat-icon>
-                        <p class="nav-label">Reports</p>
-                    </a>
-                </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['list students', 'view student images']) | async" >
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/students">
-                        <mat-icon class="nav-icon">groups</mat-icon>
-                        <p class="nav-label">Students</p>
-                    </a>
-                </mat-list-item>
-                <mat-list-item *ngIf="permissionsService.checkPermissions(['elevate users']) | async">
-                    <a class="nav-list-item" (click)="sidenav.close()" routerLink="/users">
-                        <mat-icon class="nav-icon">person</mat-icon>
-                        <p class="nav-label">Users</p>
-                    </a>
-                </mat-list-item>
-                <mat-list-item>
-                    <a class="nav-list-item" (click)="sidenav.close()" href="{{logoutUrl}}">
-                        <mat-icon class="nav-icon">logout</mat-icon>
-                        <p class="nav-label">Log out</p>
-                    </a>
-                </mat-list-item>
-            </mat-action-list>
-            <div id="info-bar">C:{{client_hash}} | S:{{server_hash | async}}</div>
-            </div>
-        </mat-sidenav>
-        <mat-sidenav-content>
-            <div id="mainPage">
-                <router-outlet></router-outlet>
-            </div>
-        </mat-sidenav-content>
-    </mat-sidenav-container>
+  <mat-toolbar color="primary" class="mainToolBar" id="mainToolBar">
+    <div id="mainToolBarContainer">
+      <div id="toolBarLeftContainer">
+        @if (authService.checkLoggedIn() | async) {
+          <button mat-icon-button aria-label="Button to open the navigation menu" (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+        <a routerLink="/" id="title">Attendance Manager</a>
+      </div>
+      @if (getFirstName() | async; as name) {
+        <span id="userName">Welcome, {{name}}</span>
+      }
+    </div>
+  </mat-toolbar>
+  <mat-sidenav-container>
+    <mat-sidenav #sidenav mode="over" autoFocus="false">
+      <div id="sidebar-container">
+        <mat-action-list>
+          <mat-list-item>
+            <a class="nav-list-item" (click)="sidenav.close()" routerLink="/">
+              <mat-icon class="nav-icon">home</mat-icon>
+              <p class="nav-label">Home</p>
+            </a>
+          </mat-list-item>
+          @if (permissionsService.checkPermissions(['list meeting events', 'add meeting events']) | async) {
+            <mat-list-item >
+              <a class="nav-list-item" (click)="sidenav.close()" routerLink="/meetings">
+                <mat-icon class="nav-icon">date_range</mat-icon>
+                <p class="nav-label">Meetings</p>
+              </a>
+            </mat-list-item>
+          }
+          @if (permissionsService.checkPermissions(['list students', 'view stats']) | async) {
+            <mat-list-item>
+              <a class="nav-list-item" (click)="sidenav.close()" routerLink="/reports">
+                <mat-icon class="nav-icon">description</mat-icon>
+                <p class="nav-label">Reports</p>
+              </a>
+            </mat-list-item>
+          }
+          @if (permissionsService.checkPermissions(['list students', 'view student images']) | async) {
+            <mat-list-item >
+              <a class="nav-list-item" (click)="sidenav.close()" routerLink="/students">
+                <mat-icon class="nav-icon">groups</mat-icon>
+                <p class="nav-label">Students</p>
+              </a>
+            </mat-list-item>
+          }
+          @if (permissionsService.checkPermissions(['elevate users']) | async) {
+            <mat-list-item>
+              <a class="nav-list-item" (click)="sidenav.close()" routerLink="/users">
+                <mat-icon class="nav-icon">person</mat-icon>
+                <p class="nav-label">Users</p>
+              </a>
+            </mat-list-item>
+          }
+          <mat-list-item>
+            <a class="nav-list-item" (click)="sidenav.close()" href="{{logoutUrl}}">
+              <mat-icon class="nav-icon">logout</mat-icon>
+              <p class="nav-label">Log out</p>
+            </a>
+          </mat-list-item>
+        </mat-action-list>
+        <div id="info-bar">C:{{client_hash}} | S:{{server_hash | async}}</div>
+      </div>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <div id="mainPage">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </div>

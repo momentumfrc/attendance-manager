@@ -2,54 +2,50 @@
 
 <h2>Actions</h2>
 <mat-card>
-    <mat-card-content id="actions">
+  <mat-card-content id="actions">
     <button mat-raised-button color="primary" class="meetingAction" (click)="registerEndOfMeeting()">End Meeting</button>
-    </mat-card-content>
+  </mat-card-content>
 </mat-card>
 
 <div id="listTitleWrapper">
-<h2>Event Log</h2>
-<app-date-picker [initialDuration]="{months: 1}" (dateRangeSelection)="dateRangeSelection.next($event)"></app-date-picker>
+  <h2>Event Log</h2>
+  <app-date-picker [initialDuration]="{months: 1}" (dateRangeSelection)="dateRangeSelection.next($event)"></app-date-picker>
 </div>
 <mat-card id="logCard">
-    <mat-card-content>
-    <ng-container *ngIf="!loadingEvents; else loadingLog">
-        <table mat-table [dataSource]="richMeetingEvents" id="logTable">
-            <ng-container matColumnDef="eventId">
-                <th mat-header-cell *matHeaderCellDef>Id</th>
-                <td mat-cell *matCellDef="let event">{{event.event.id}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="registrar">
-                <th mat-header-cell *matHeaderCellDef>Registered By</th>
-                <td mat-cell *matCellDef="let event">{{event.registrar.name}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="eventType">
-                <th mat-header-cell *matHeaderCellDef>Event Type</th>
-                <td mat-cell *matCellDef="let event">{{event.event.type}}</td>
-            </ng-container>
-            <ng-container matColumnDef="eventDate">
-                <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let event">{{event.event.created_at.toLocaleString(dateTimeFormatShort)}}</td>
-            </ng-container>
-            <ng-container matColumnDef="removeAction">
-                <th mat-header-cell *matHeaderCellDef>Remove</th>
-                <td mat-cell *matCellDef="let event"><button mat-flat-button color="warn" (click)="removeEvent(event)">Remove</button></td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
-        </table>
-        <mat-paginator [pageSizeOptions]="richMeetingEvents.pageSizeOptions"
-            [length]="richMeetingEvents.getDataSize()"
-            (page)="richMeetingEvents.paginate($event)"
-            showFirstLastButtons
-            aria-label="Select page of meeting events">
-        </mat-paginator>
-    </ng-container>
-    <ng-template #loadingLog>
-        <app-spinner></app-spinner>
-    </ng-template>
-</mat-card-content>
+  <mat-card-content>
+    @if (!loadingEvents) {
+      <table mat-table [dataSource]="richMeetingEvents" id="logTable">
+        <ng-container matColumnDef="eventId">
+          <th mat-header-cell *matHeaderCellDef>Id</th>
+          <td mat-cell *matCellDef="let event">{{event.event.id}}</td>
+        </ng-container>
+        <ng-container matColumnDef="registrar">
+          <th mat-header-cell *matHeaderCellDef>Registered By</th>
+          <td mat-cell *matCellDef="let event">{{event.registrar.name}}</td>
+        </ng-container>
+        <ng-container matColumnDef="eventType">
+          <th mat-header-cell *matHeaderCellDef>Event Type</th>
+          <td mat-cell *matCellDef="let event">{{event.event.type}}</td>
+        </ng-container>
+        <ng-container matColumnDef="eventDate">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let event">{{event.event.created_at.toLocaleString(dateTimeFormatShort)}}</td>
+        </ng-container>
+        <ng-container matColumnDef="removeAction">
+          <th mat-header-cell *matHeaderCellDef>Remove</th>
+          <td mat-cell *matCellDef="let event"><button mat-flat-button color="warn" (click)="removeEvent(event)">Remove</button></td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="richMeetingEvents.pageSizeOptions"
+        [length]="richMeetingEvents.getDataSize()"
+        (page)="richMeetingEvents.paginate($event)"
+        showFirstLastButtons
+        aria-label="Select page of meeting events">
+      </mat-paginator>
+    } @else {
+      <app-spinner></app-spinner>
+    }
+  </mat-card-content>
 </mat-card>

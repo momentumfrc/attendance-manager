@@ -1,52 +1,74 @@
 <div id="mainPage">
-<ng-container *ngIf="uploading|async ; else uploadForm">
+  @if (uploading|async ) {
     <h1>Uploading...</h1>
     <mat-progress-bar mode="determinate" [value]="uploadProgress|async"></mat-progress-bar>
-</ng-container>
-<ng-template #uploadForm>
+  } @else {
     <div id="uploadElement">
-        <button mat-raised-button color="primary" (click)="fileInput.click()">Choose File</button>
-        <input (change)="onFileSelected($event)" #fileInput type="file">
-        <p *ngIf="(fileInput.files?.length ?? 0) > 0">{{fileInput.files![0].name}}</p>
+      <button mat-raised-button color="primary" (click)="fileInput.click()">Choose File</button>
+      <input (change)="onFileSelected($event)" #fileInput type="file">
+      @if ((fileInput.files?.length ?? 0) > 0) {
+        <p>{{fileInput.files![0].name}}</p>
+      }
     </div>
-
-    <ng-container *ngIf="validatedData|async as data; else fileReqs">
-        <div id="previewData" *ngIf="data.length > 0; else fileReqs">
-            <button *ngIf="data.length > 10" mat-raised-button color="primary" (click)="submit()" >Submit</button>
-            <div id="header-container">
-                <div class="col-header">Student Name</div>
-                <div class="col-header col-header-valid">Valid?</div>
-            </div>
-            <mat-list>
-                <ng-container *ngFor="let row of data ; last as isLast">
-                    <mat-list-item>
-                        <div class="import-item-row">
-                            <div class="import-name">{{row.info.name}}</div>
-                            <div *ngIf="row.valid" class="import-valid-indicator import-is-valid">
-                                <mat-icon>check_circle</mat-icon>
-                            </div>
-                            <div *ngIf="!row.valid" class="import-valid-indicator import-is-invalid">
-                                <mat-icon>cancel</mat-icon>
-                            </div>
-                        </div>
-                    </mat-list-item>
-                    <mat-divider *ngIf="!isLast"></mat-divider>
-                </ng-container>
-            </mat-list>
-            <button mat-raised-button color="primary" (click)="submit()" [disabled]="!isAnyInfoValid(data)">Submit</button>
+    @if (validatedData|async; as data) {
+      @if (data.length > 0) {
+        <div id="previewData">
+          @if (data.length > 10) {
+            <button mat-raised-button color="primary" (click)="submit()" >Submit</button>
+          }
+          <div id="header-container">
+            <div class="col-header">Student Name</div>
+            <div class="col-header col-header-valid">Valid?</div>
+          </div>
+          <mat-list>
+            @for (row of data ; track row; let isLast = $last) {
+              <mat-list-item>
+                <div class="import-item-row">
+                  <div class="import-name">{{row.info.name}}</div>
+                  @if (row.valid) {
+                    <div class="import-valid-indicator import-is-valid">
+                      <mat-icon>check_circle</mat-icon>
+                    </div>
+                  }
+                  @if (!row.valid) {
+                    <div class="import-valid-indicator import-is-invalid">
+                      <mat-icon>cancel</mat-icon>
+                    </div>
+                  }
+                </div>
+              </mat-list-item>
+              @if (!isLast) {
+                <mat-divider></mat-divider>
+              }
+            }
+          </mat-list>
+          <button mat-raised-button color="primary" (click)="submit()" [disabled]="!isAnyInfoValid(data)">Submit</button>
         </div>
-    </ng-container>
-
-    <ng-template #fileReqs>
+      } @else {
         <div id="fileReqs">
-            <p>Note: The input CSV must follow these requirements:</p>
-            <ol>
-                <li>The first row of the input shall consist of headers.</li>
-                <li>There shall be exactly one column with the 'Name' header.</li>
-                <li>There shall be exactly one column with the 'Graduation Year' header.</li>
-            </ol>
-            <p id="validationError" *ngIf="parseError | async as error">{{error}}</p>
+          <p>Note: The input CSV must follow these requirements:</p>
+          <ol>
+            <li>The first row of the input shall consist of headers.</li>
+            <li>There shall be exactly one column with the 'Name' header.</li>
+            <li>There shall be exactly one column with the 'Graduation Year' header.</li>
+          </ol>
+          @if (parseError | async; as error) {
+            <p id="validationError">{{error}}</p>
+          }
         </div>
-    </ng-template>
-</ng-template>
+      }
+    } @else {
+      <div id="fileReqs">
+        <p>Note: The input CSV must follow these requirements:</p>
+        <ol>
+          <li>The first row of the input shall consist of headers.</li>
+          <li>There shall be exactly one column with the 'Name' header.</li>
+          <li>There shall be exactly one column with the 'Graduation Year' header.</li>
+        </ol>
+        @if (parseError | async; as error) {
+          <p id="validationError">{{error}}</p>
+        }
+      </div>
+    }
+  }
 </div>
