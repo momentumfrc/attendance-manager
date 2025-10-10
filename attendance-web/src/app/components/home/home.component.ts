@@ -1,9 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterEvent } from '@angular/router';
-import { filter, map, Observable, Subscription, take } from 'rxjs';
-import { AuthService } from 'src/app/services/auth.service';
+import { filter, map, Observable, startWith, Subscription } from 'rxjs';
 import { PermissionsService } from 'src/app/services/permissions.service';
-import { UsersService } from 'src/app/services/users.service';
 
 @Component({
     selector: 'app-home',
@@ -33,8 +31,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {
   }
 
-  protected shouldShowAttendanceEvents(): Observable<boolean> {
-    return this.permissionsService.checkPermissions(['list attendance events']);
+  protected shouldShowAttendanceEvents(): Observable<string> {
+    return this.permissionsService.checkPermissions(['list attendance events']).pipe(
+      startWith("loading"),
+      map(allowed => allowed ? "allowed" : "denied")
+    );
   }
 
   ngOnInit(): void {
