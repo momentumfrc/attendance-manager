@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { Papa } from 'ngx-papaparse';
-import { MapObject } from 'ngx-papaparse/lib/interfaces/unparse-data';
 import { BehaviorSubject, forkJoin, map, take } from 'rxjs';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { StudentsService } from 'src/app/services/students.service';
@@ -55,7 +54,7 @@ export class CsvExportComponent implements OnInit {
             event.type as string,
             event.created_at.toISO() ?? "UNKNOWN"
           ]);
-        const unparseData : MapObject = {
+        const unparseData = {
           fields: keys,
           data: values
         };
