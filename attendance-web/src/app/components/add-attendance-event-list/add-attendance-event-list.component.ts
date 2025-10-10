@@ -1,21 +1,20 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, ReplaySubject, startWith, Subject, takeUntil, timer } from 'rxjs';
-import { StudentsService } from 'src/app/services/students.service';
-import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
-import { AttendanceService } from 'src/app/services/attendance.service';
-import { environment } from 'src/environments/environment';
-import { AttendanceEventType } from 'src/app/models/attendance-event.model';
-import { ActivatedRoute } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { AuthService } from 'src/app/services/auth.service';
-import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
-import { MeetingsService } from 'src/app/services/meetings.service';
-import { DateTime } from 'luxon';
-import { PollService } from 'src/app/services/poll.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorService } from 'src/app/services/error.service';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
+import { DateTime } from 'luxon';
+import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, ReplaySubject, startWith, Subject, takeUntil, timer } from 'rxjs';
+import { AttendanceEventType } from 'src/app/models/attendance-event.model';
+import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
+import { compareStudents, Student, StudentList } from 'src/app/models/student.model';
+import { AttendanceService } from 'src/app/services/attendance.service';
+import { ErrorService } from 'src/app/services/error.service';
+import { MeetingsService } from 'src/app/services/meetings.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
+import { PollService } from 'src/app/services/poll.service';
+import { StudentsService } from 'src/app/services/students.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-add-attendance-event-list',
@@ -65,7 +64,6 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
   ngOnInit(): void {
     this.showProfileImagesControl.valueChanges.subscribe(shouldShow => {
-      console.log("Set show-profile-images to " + shouldShow.toString());
       localStorage.setItem("show-profile-images", shouldShow ? "true" : "false");
     })
 

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DateTime, DurationLike } from 'luxon';
-import { combineLatest, filter, map, startWith, Subscription, tap } from 'rxjs';
+import { filter, map, Subscription } from 'rxjs';
 
 export interface SelectedDateRange {
   since: DateTime,
@@ -31,7 +31,6 @@ export class DatePickerComponent implements OnInit, OnDestroy {
     });
 
     this.changesSub = this.dateGroup.valueChanges.pipe(
-      tap(console.log),
       filter(it => it && it['since'] && it['until']),
       map(it => (it as SelectedDateRange))
     ).subscribe(it => this.emitDateRange(it))

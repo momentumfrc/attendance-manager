@@ -1,15 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, AsyncValidatorFn, FormGroupDirective } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { StudentsService } from 'src/app/services/students.service';
-import { Student } from 'src/app/models/student.model';
-import { BehaviorSubject, forkJoin, map, Observable, ReplaySubject, Subscription, take, filter, takeUntil, Subject, combineLatest, tap, concatMap } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { DateTime } from 'luxon';
+import { AsyncValidatorFn, FormControl, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { environment } from 'src/environments/environment';
-import { ProfileImagesService, UploadStatus, UploadValidationError } from 'src/app/services/profile-images.service';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DateTime } from 'luxon';
+import { BehaviorSubject, concatMap, filter, forkJoin, map, Observable, ReplaySubject, Subject, Subscription, take, takeUntil } from 'rxjs';
+import { Student } from 'src/app/models/student.model';
+import { ProfileImagesService, UploadStatus } from 'src/app/services/profile-images.service';
+import { StudentsService } from 'src/app/services/students.service';
+import { environment } from 'src/environments/environment';
 import { CropImageComponent } from '../../crop-image/crop-image.component';
 
 enum ComponentState {
@@ -289,22 +289,5 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         }
       });
     });
-
-    /*try {
-      this.profilePhotosService.uploadImage(student.id, file).subscribe(response => {
-        if(response.status == UploadStatus.IN_PROGRESS) {
-          this.uploadStatus.next({upload_in_progress: true, progress: response.progress});
-        } else if(response.status == UploadStatus.DONE) {
-          this.uploadStatus.next({upload_in_progress: false, progress: 100});
-          this.studentsService.refreshSingleStudent(student.id);
-        }
-      });
-    } catch(error) {
-      if(error instanceof UploadValidationError) {
-        this.snackBar.open(error.message, "", {
-          duration: 4000
-        });
-      }
-    }*/
   }
 }

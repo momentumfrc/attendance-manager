@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
 import { Chart } from 'chart.js/auto';
 import 'chartjs-adapter-luxon';
 import { DateTime, Interval } from 'luxon';
-import { BehaviorSubject, combineLatest, filter, map, ReplaySubject, share, startWith, Subject, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, ReplaySubject, Subject } from 'rxjs';
 import { MeetingStudentCount } from 'src/app/models/report-models';
 import { ReportsService } from 'src/app/services/reports.service';
 import { SelectedDateRange } from '../../reuse/date-picker/date-picker.component';
@@ -83,9 +82,5 @@ export class MeetingsReportComponent {
         });
       }
     });
-  }
-
-  clog(arg: any) {
-    console.log(arg);
   }
 }

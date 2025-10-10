@@ -2,13 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { DateTime, Duration } from 'luxon';
-import { BehaviorSubject, combineLatest, debounceTime, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
-import { Student, StudentList, compareStudents } from 'src/app/models/student.model';
-import { AuthService } from 'src/app/services/auth.service';
-import { StudentsService } from 'src/app/services/students.service';
+import { DateTime } from 'luxon';
+import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
+import { compareStudents, Student, StudentList } from 'src/app/models/student.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
+import { StudentsService } from 'src/app/services/students.service';
 
 @Component({
     selector: 'app-list-students',
@@ -124,8 +124,6 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
         startWith([]),
       ).subscribe(students => this.checkedStudents.next(students));
     });
-
-    this.checkedStudents.subscribe(console.log);
   }
 
   ngOnDestroy(): void {
