@@ -87,7 +87,7 @@ class ReportController extends Controller
             'until' => 'date_format:U|lt:4294967295'
         ]);
 
-        $query = DB::table('students')->selectRaw('students.id AS student_id, IFNULL(checkins.count, 0) AS checkin_count, IFNULL(missed.count, 0) AS missed_checkout_count, IFNULL(times.meeting_time, 0) AS meeting_time');
+        $query = DB::table('students')->selectRaw('students.id AS student_id, students.name AS student_name, IFNULL(checkins.count, 0) AS checkin_count, IFNULL(missed.count, 0) AS missed_checkout_count, IFNULL(times.meeting_time, 0) AS meeting_time');
         $checkinQuery = DB::table('attendance_sessions')->selectRaw('student_id, COUNT(checkin_id) AS count');
         $missedQuery = DB::table('attendance_sessions')->selectRaw('student_id, COUNT(checkin_id) AS count')->whereNull('checkout_id');
         $timesQuery = DB::table('attendance_sessions')->selectRaw('student_id, SUM(TIMESTAMPDIFF(SECOND, checkin_date, checkout_date)) as meeting_time')->whereNotNull('checkout_id');
@@ -116,7 +116,7 @@ class ReportController extends Controller
         $query->leftJoinSub($missedQuery, 'missed', 'students.id', '=', 'missed.student_id');
         $query->leftJoinSub($timesQuery, 'times', 'students.id', '=', 'times.student_id');
 
-        $query->orderBy('meeting_time', 'desc');
+        $query->orderBy('meeting_time', 'desc')->orderBy('checkin_count', 'desc')->orderBy('student_name', 'asc');
 
         $result = $query->get();
         foreach($result as $row) {
@@ -124,6 +124,7 @@ class ReportController extends Controller
             $row->checkin_count = (int)$row->checkin_count;
             $row->missed_checkout_count = (int)$row->missed_checkout_count;
             $row->meeting_time = (int)$row->meeting_time;
+            unset($row->student_name);
         }
         return $result;
     }
