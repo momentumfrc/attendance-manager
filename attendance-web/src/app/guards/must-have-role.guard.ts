@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { forkJoin, map, Observable, take } from 'rxjs';
+import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { map, Observable } from 'rxjs';
 import { PermissionsService } from 'src/app/services/permissions.service';
 
 @Injectable({
@@ -8,7 +8,7 @@ import { PermissionsService } from 'src/app/services/permissions.service';
 })
 export class MustHavePermissionGuard implements CanActivate, CanActivateChild {
 
-  constructor(private permissionsService: PermissionsService) {}
+  constructor(private permissionsService: PermissionsService, private router: Router) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -21,9 +21,11 @@ export class MustHavePermissionGuard implements CanActivate, CanActivateChild {
     return this.checkPermissions(childRoute);
   }
 
-  private checkPermissions(route: ActivatedRouteSnapshot) : Observable<boolean> {
+  private checkPermissions(route: ActivatedRouteSnapshot) : Observable<boolean | UrlTree> {
     let routePermissions = route.data['permissions'] as Array<string>;
-    return this.permissionsService.checkPermissions(routePermissions);
+    return this.permissionsService.checkPermissions(routePermissions).pipe(
+      map(hasPermission => hasPermission ? true : this.router.parseUrl("/"))
+    );
   }
 
 }
