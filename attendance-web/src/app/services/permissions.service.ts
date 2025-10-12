@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, ReplaySubject, switchMap, take } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { map, Observable, of, ReplaySubject, switchMap, take } from 'rxjs';
 import { Permission, Role, RolesResponse } from 'src/app/models/role.model';
+import { environment } from 'src/environments/environment';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -26,24 +26,19 @@ export class PermissionsService {
   public checkPermissions(permissions: string[]): Observable<boolean> {
     return this.authService.getUser().pipe(
       take(1),
-      switchMap(user => this.roles.pipe(map(roles => {
-        if(user === null) {
-          return false;
-        }
-
-        return user.role_names.reduce((prev, role) => {
-          if(prev) {
+      switchMap(user => user === null ? of(false) : this.roles.pipe(map(roles =>
+        user.role_names.reduce((prev, role) => {
+          if (prev) {
             return true;
           }
 
-          if(!roles.has(role)) {
+          if (!roles.has(role)) {
             return false;
           }
 
           const role_permissions = roles.get(role)!!.permissions;
           return permissions.reduce((prev, permission) => prev && role_permissions.includes(permission), true);
-        }, false);
-      }
+        }, false)
       ))
     ));
   }

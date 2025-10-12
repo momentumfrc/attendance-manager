@@ -54,7 +54,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     route: ActivatedRoute) {
       let id = route.snapshot.paramMap.get('studentId');
-      this.students = this.studentsService.getAllStudents(true).pipe(takeUntil(this.unsubscribe));
+      this.students = this.studentsService.getAllStudents(true);
       if(route.snapshot.url[0].path == 'edit' && id != null) {
         let parsedId = parseInt(id);
         this.students.pipe(takeUntil(this.unsubscribe), map( (students: Array<Student>) => {
@@ -101,7 +101,9 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if(this.state.getValue() != ComponentState.NO_STUDENT_PROVIDED) {
-      this.editStudent.subscribe((student) => {
+      this.editStudent.pipe(
+        takeUntil(this.unsubscribe)
+      ).subscribe((student) => {
         if(student != null) {
           this.mainForm.controls['name'].setValue(student.name);
           if(student.graduation_year) {
@@ -114,7 +116,6 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.unsubscribe.next(true);
-    this.unsubscribe.complete();
   }
 
   private nameTakenValidator : AsyncValidatorFn = (control) => {
