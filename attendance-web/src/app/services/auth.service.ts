@@ -1,9 +1,9 @@
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http'
 import { environment } from 'src/environments/environment';
 
+import { catchError, map, Observable, of, ReplaySubject } from 'rxjs';
 import { User } from 'src/app/models/user.model';
-import { AsyncSubject, BehaviorSubject, catchError, map, Observable, of, ReplaySubject, Subject, tap, throwError } from 'rxjs';
 import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 import { ErrorService } from './error.service';
 
@@ -16,17 +16,16 @@ export class UnauthenticatedError implements Error {
   providedIn: 'root'
 })
 export class AuthService {
-  private cachedUser = new AsyncSubject<User | null>();
+  private cachedUser = new ReplaySubject<User | null>(1);
 
   constructor(
     private httpClient: HttpClient,
     private errorService: ErrorService
   ) {
-    this.invalidateUserCache();
+    this.refreshUser();
   }
 
-  public invalidateUserCache() {
-    this.cachedUser = new AsyncSubject<User | null>();
+  public refreshUser() {
     this.httpClient.get<User | null>(environment.apiRoot + '/user', {
       context: new HttpContext().set(CATCH_ERRORS, false)
     }).pipe(

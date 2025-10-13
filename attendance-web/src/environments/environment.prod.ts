@@ -4,6 +4,7 @@ export const environment = {
   apiRoot: "/attendance/api",
   authRoot: "/attendance/auth",
   pollInterval: 500,
+  cacheTTL: 60_000,
   updateLockoutInterval: 100,
   gitHash: "UNKNOWN"
 };

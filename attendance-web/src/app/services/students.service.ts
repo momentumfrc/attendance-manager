@@ -1,11 +1,11 @@
+import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular/common/http'
 
 import { catchError, filter, map, Observable, of, OperatorFunction, ReplaySubject, share, shareReplay, switchMap, take, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-import { areStudentsEqual, Student } from 'src/app/models/student.model';
 import { DateTime } from 'luxon';
+import { areStudentsEqual, Student } from 'src/app/models/student.model';
 import { CATCH_ERRORS } from '../http-interceptors/error-interceptor';
 import { ErrorService } from './error.service';
 import { PollService } from './poll.service';
@@ -40,7 +40,7 @@ export class StudentsService {
       return;
     }
 
-    if(now.diff(this.lastRefresh).toMillis() > environment.pollInterval) {
+    if(now.diff(this.lastRefresh).toMillis() > environment.cacheTTL) {
       this.pollService.getUpdates({since: this.lastRefresh}).subscribe(response => {
         this.lastRefresh = now;
         this.updateStudentsInCache(response.updated_students);
