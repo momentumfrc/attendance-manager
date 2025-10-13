@@ -53,11 +53,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/student-stats', [ReportController::class, 'studentStats']);
     Route::get('poll', [PollController::class, 'poll']);
 
+    Route::get('roles', fn () => collect([
+        "roles" => Role::all()->map(fn ($role) => ['name'=>$role->name, 'permissions'=>$role->permissions->pluck("name")]),
+        "permissions" => Permission::all()->pluck("name")
+    ]));
 });
 
-Route::get('roles', fn () => collect([
-    "roles" => Role::all()->map(fn ($role) => ['name'=>$role->name, 'permissions'=>$role->permissions->pluck("name")]),
-    "permissions" => Permission::all()->pluck("name")
-]));
 Route::get('info', fn () => ['git_hash' => config('app.git_hash')]);
-

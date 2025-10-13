@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, of, ReplaySubject, switchMap, take } from 'rxjs';
-import { Permission, Role, RolesResponse } from 'src/app/models/role.model';
+import { map, Observable, of, shareReplay, switchMap } from 'rxjs';
+import { Role, RolesResponse } from 'src/app/models/role.model';
 import { environment } from 'src/environments/environment';
 import { AuthService } from './auth.service';
 
@@ -9,37 +9,34 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class PermissionsService {
-  private readonly roles = new ReplaySubject<Map<string, Role>>(1);
-  private readonly permissions = new ReplaySubject<Permission[]>(1);
+  private readonly roles: Observable<Map<string, Role>>;
 
   constructor(private httpClient: HttpClient, private authService: AuthService) {
-    this.httpClient.get<RolesResponse>(environment.apiRoot + '/roles').subscribe(roles => {
-      this.roles.next(new Map(roles.roles.map(role => [role.name, role])));
-      this.permissions.next(roles.permissions);
-    });
+    this.roles = this.httpClient.get<RolesResponse>(environment.apiRoot + '/roles').pipe(
+      map(rolesResponse => new Map(rolesResponse.roles.map(role => [role.name, role]))),
+      shareReplay(1)
+    );
   }
 
   public getAllRoles(): Observable<Role[]> {
     return this.roles.pipe(map(roles => Array.from(roles.values())));
   }
 
-  public checkPermissions(permissions: string[]): Observable<boolean> {
+  public getCurrentUserPermissions(): Observable<string[]> {
     return this.authService.getUser().pipe(
-      take(1),
-      switchMap(user => user === null ? of(false) : this.roles.pipe(map(roles =>
-        user.role_names.reduce((prev, role) => {
-          if (prev) {
-            return true;
-          }
+      switchMap(user => user === null ? of([])
+        : this.roles.pipe(
+          map(roles => user.role_names.flatMap(role => roles.get(role)?.permissions ?? []))
+        )
+      )
+    );
+  }
 
-          if (!roles.has(role)) {
-            return false;
-          }
-
-          const role_permissions = roles.get(role)!!.permissions;
-          return permissions.reduce((prev, permission) => prev && role_permissions.includes(permission), true);
-        }, false)
-      ))
-    ));
+  public checkPermissions(neededPermissions: string[]): Observable<boolean> {
+    return this.getCurrentUserPermissions().pipe(
+      map(userPermissions => {
+        return neededPermissions.reduce((allowed, neededPermission) => allowed && userPermissions.includes(neededPermission), true);
+      })
+    );
   }
 }
