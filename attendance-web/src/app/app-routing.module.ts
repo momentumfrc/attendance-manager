@@ -30,7 +30,7 @@ const routes: Routes = [
       {path: 'detail/:studentId', component: ShowStudentComponent},
       { path: 'edit/:studentId', component: UpdateOrCreateStudentComponent,
         canActivate: [MustHavePermissionGuard],
-        data: { permissions: ['modify students', 'modify student images', 'remove students'] }},
+        data: { permissions: ['modify students', 'modify student images'] }},
       {path: 'list', component: ListStudentsComponent},
       {path: 'add', component: UpdateOrCreateStudentComponent,
         canActivate: [MustHavePermissionGuard],

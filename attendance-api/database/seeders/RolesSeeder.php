@@ -69,9 +69,12 @@ class RolesSeeder extends Seeder
         Role::create(['name' => 'student-lead'])
             ->givePermissionTo([
                 'list students',
+                'add students',
+                'view student images',
+                'modify students',
+                'modify student images',
                 'list attendance events',
                 'student check in',
-                'view student images',
                 'undo attendance event',
                 'list users',
                 'list roles',

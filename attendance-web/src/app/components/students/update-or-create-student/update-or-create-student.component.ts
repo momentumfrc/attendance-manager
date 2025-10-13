@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, concatMap, filter, forkJoin, map, Observable, ReplaySubject, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { Student } from 'src/app/models/student.model';
+import { PermissionsService } from 'src/app/services/permissions.service';
 import { ProfileImagesService, UploadStatus } from 'src/app/services/profile-images.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { environment } from 'src/environments/environment';
@@ -35,6 +36,8 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
   protected state: BehaviorSubject<ComponentState>
   private students : Observable<Array<Student>>
 
+  protected userMayNotDeleteStudents: Observable<boolean>
+
   editStudent = new ReplaySubject<Student|null>(1)
   isDeleted: Observable<Boolean>
 
@@ -51,10 +54,14 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private profilePhotosService: ProfileImagesService,
+    private permissionsService: PermissionsService,
     private dialog: MatDialog,
     route: ActivatedRoute) {
       let id = route.snapshot.paramMap.get('studentId');
       this.students = this.studentsService.getAllStudents(true);
+
+      this.userMayNotDeleteStudents = permissionsService.checkPermissions(["remove students"]).pipe(map(it => !it));
+
       if(route.snapshot.url[0].path == 'edit' && id != null) {
         let parsedId = parseInt(id);
         this.students.pipe(takeUntil(this.unsubscribe), map( (students: Array<Student>) => {
@@ -62,6 +69,7 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
         })).subscribe(this.editStudent);
 
         this.state = new BehaviorSubject<ComponentState>(ComponentState.LOADING_STUDENT);
+
         this.editStudent.pipe(map(student => {
           if(student != null) {
             return ComponentState.LOADED;

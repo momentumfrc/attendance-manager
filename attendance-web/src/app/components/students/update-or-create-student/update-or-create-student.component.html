@@ -9,21 +9,21 @@
     <ng-container *ngTemplateOutlet="student_details"></ng-container>
   }
   @case (stateType.LOADED) {
+    <ng-container *ngTemplateOutlet="student_details"></ng-container>
     <mat-card>
-      <mat-card-header>Student Actions</mat-card-header>
+      <mat-card-header>Actions</mat-card-header>
       <mat-card-content>
         @if (editStudent|async; as student) {
           <div class="actionRow">
             @if (this.isDeleted|async) {
-              <button  mat-raised-button color="primary" (click)="undoDelete(student)">Restore Student</button>
+              <button [disabled]="userMayNotDeleteStudents|async" mat-raised-button color="primary" (click)="undoDelete(student)">Restore Student</button>
             } @else {
-              <button mat-raised-button color="warn" (click)="doDelete(student)">Delete Student</button>
+              <button [disabled]="userMayNotDeleteStudents|async" mat-raised-button color="warn" (click)="doDelete(student)">Delete Student</button>
             }
           </div>
         }
       </mat-card-content>
     </mat-card>
-    <ng-container *ngTemplateOutlet="student_details"></ng-container>
   }
 }
 

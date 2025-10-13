@@ -171,8 +171,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     return this.student.pipe(map(student => student.deleted_at != null));
   }
 
-  canDelete(): Observable<boolean> {
-    return this.permissionsService.checkPermissions(['modify students', 'modify student images', 'remove students']);
+  mayEditStudent(): Observable<boolean> {
+    return this.permissionsService.checkPermissions(['modify students', 'modify student images']);
   }
 
   getProfileImageSrc(student: Student): string {

@@ -15,7 +15,7 @@
             <mat-icon id="deletedIndicator">delete</mat-icon>
           }
           <h1>{{ student.name }}</h1>
-          @if (canDelete()|async) {
+          @if (mayEditStudent()|async) {
             <div><a mat-raised-button color="primary" [routerLink]="['/', 'students', 'edit', student.id]">Edit</a></div>
           }
         </div>

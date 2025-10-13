@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { Observable, ReplaySubject, map } from 'rxjs';
-import { AuthService } from 'src/app/services/auth.service';
+import { ReplaySubject } from 'rxjs';
+import { PermissionsService } from 'src/app/services/permissions.service';
 
 interface Tab {
   path: string;
@@ -17,9 +17,10 @@ export class StudentsComponent {
   tabs = new ReplaySubject<Tab[]>(1);
 
   constructor(
-    authService: AuthService
+    permissionsService: PermissionsService
   ) {
-    authService.getUser().subscribe(user => {
+
+    permissionsService.checkPermissions(["add students"]).subscribe(userMayAddStudents => {
       let tabs: Tab[] = [
         {
           path: './list',
@@ -27,7 +28,7 @@ export class StudentsComponent {
         }
       ];
 
-      if(user?.role_names.includes("mentor")) {
+      if(userMayAddStudents) {
         tabs.push({
           path: './add',
           name: 'Add Student'
