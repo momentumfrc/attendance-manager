@@ -16,7 +16,8 @@ class Student extends Model
     protected $with = ['profileImage'];
 
     protected $casts = [
-        'graduation_year' => 'integer'
+        'graduation_year' => 'integer',
+        'registered_by' => 'integer'
     ];
 
     public function attendanceEvents() {
