@@ -82,7 +82,7 @@ php artisan storage:link
 
 7. Open the attendance-web folder in a separate vscode window.
 ```
-code attendance-api
+code attendance-web
 ```
 
 8. Again, when prompted, choose to reopen in container.
