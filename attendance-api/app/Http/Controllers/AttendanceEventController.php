@@ -84,7 +84,7 @@ class AttendanceEventController extends Controller
         $event->registered_by = Auth::id();
 
         $last_event = $student->attendanceEvents()->orderBy('created_at', 'desc')->first();
-        if($last_event != null && Carbon::now()->diffInSeconds($last_event->created_at) < config('config.simultaneous_interval')) {
+        if($last_event != null && Carbon::now()->diffInSeconds($last_event->created_at, true) < config('config.simultaneous_interval')) {
             if($request->type == $last_event->type) {
                 throw ValidationException::withMessages([
                     'student_id' => ['A recent '.$request->type.' already exists for this student.']
@@ -125,7 +125,7 @@ class AttendanceEventController extends Controller
         } else {
             Gate::authorize('undo attendance event');
 
-            if(Carbon::now()->diffInSeconds($event->created_at) > config('config.undo_window')) {
+            if(Carbon::now()->diffInSeconds($event->created_at, true) > config('config.undo_window')) {
                 throw ValidationException::withMessages([
                     'id' => ['The record cannot be removed as the undo window has elapsed.']
                 ]);

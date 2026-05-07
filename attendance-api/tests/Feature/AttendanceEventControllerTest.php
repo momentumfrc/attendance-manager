@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 use App\Models\User;
 use App\Models\Student;
 use App\Models\AttendanceEvent;
+
+use Carbon\Carbon;
 
 use Database\Seeders\RolesSeeder;
 
@@ -71,5 +74,71 @@ class AttendanceEventControllerTest extends TestCase
 
         $response = $this->actingAs($user)->json('GET', '/api/attendance/events', ['limit' => '2']);
         $response->assertSimilarJson($events->take(2)->values()->toArray());
+    }
+
+    public function test_simultaneous_events() {
+        $this->seed(RolesSeeder::class);
+        $this->assertDatabaseCount('users', 1);
+        $user = User::first();
+
+        $student = Student::factory()
+            ->count(1)
+            ->CREATE([
+                'registered_by' => $user->id
+        ])[0];
+
+        Config::set('config.simultaneous_interval', 60);
+
+        $event = new AttendanceEvent();
+        $event->type = 'check-out';
+        $event->created_at = Carbon::now()->subSeconds(120);
+        $event->student_id = $student->id;
+        $event->registered_by = $user->id;
+        $event->save();
+
+        $this->assertDatabaseCount('attendance_events', 1);
+
+        // check-in works when no other recent check-in
+        $response = $this->actingAs($user)->postJson('/api/attendance/events', [
+            'type' => 'check-in',
+            'student_id' => $student->id
+        ]);
+        $response->assertStatus(201)->assertJson([
+            'type' => 'check-in',
+            'student_id' => $student->id
+        ])->assertJsonMissingPath('deleted_at');
+        $checkin_id = $response['id'];
+
+        $this->assertDatabaseCount('attendance_events', 2);
+        $this->assertNull(AttendanceEvent::findOrFail($checkin_id)->deleted_at);
+
+        // check-in rejected when recent check-in exists
+        $this->actingAs($user)
+            ->json('POST', '/api/attendance/events', [
+                'type' => 'check-in',
+                'student_id' => $student->id
+            ])
+            ->assertStatus(422)
+            ->assertJson([
+                'message'=> 'A recent check-in already exists for this student.'
+            ])->assertJsonMissingPath('deleted_at');
+
+        // check-out cancels recent check-in
+        $response = $this->actingAs($user)
+            ->json('POST', '/api/attendance/events', [
+                'type' => 'check-out',
+                'student_id' => $student->id
+            ]);
+        $response->assertStatus(201)
+            ->assertJson([
+                'type' => 'check-out',
+                'student_id' => $student->id
+            ]);
+        $this->assertLessThan(5, Carbon::now()->diffInSeconds(Carbon::parse($response['deleted_at']), true));
+        $checkout_id = $response['id'];
+
+        $this->assertDatabaseCount('attendance_events', 3);
+        $this->assertTrue(AttendanceEvent::withTrashed()->findOrFail($checkin_id)->trashed());
+        $this->assertTrue(AttendanceEvent::withTrashed()->findOrFail($checkout_id)->trashed());
     }
 }

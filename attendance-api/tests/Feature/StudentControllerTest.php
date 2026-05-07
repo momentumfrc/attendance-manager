@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\AttendanceEvent;
 
+use Carbon\Carbon;
+
 use Database\Seeders\RolesSeeder;
 
 class StudentControllerTest extends TestCase
@@ -201,5 +203,107 @@ class StudentControllerTest extends TestCase
         $response->assertStatus(404);
         $this->assertDatabaseCount('students', 5);
         $this->assertSoftDeleted($student);
+    }
+
+    public function test_last_event() {
+        // GIVEN
+        $this->seed(RolesSeeder::class);
+        $this->assertDatabaseCount('users', 1);
+        $user = User::first();
+
+        $students = Student::factory()->count(5)->CREATE([
+            'registered_by' => $user->id,
+            'deleted_at' => null
+        ]);
+        $this->assertDatabaseCount('students', 5);
+        $this->assertDatabaseCount('attendance_events', 0);
+
+        $student = $students[0];
+
+        $checkin_ids = array();
+
+        foreach($students as $student) {
+            $this->actingAs($user)
+                ->getJson('/api/students/'.$student->id)
+                ->assertStatus(200)
+                ->assertJson([
+                    'last_check_in' => null,
+                    'last_check_out' => null
+                ]);
+
+            // WHEN
+            $response = $this->actingAs($user)->json('POST', '/api/attendance/events', [
+                'type' => 'check-in',
+                'student_id' => $student->id
+            ]);
+
+            $now = Carbon::now();
+
+            // THEN
+            $response->assertStatus(201)->assertJson([
+                'type' => 'check-in',
+                'student_id' => $student->id,
+            ])->assertJsonMissingPath('deleted_at');
+            $checkin_id = $response['id'];
+
+            $response = $this->actingAs($user)
+                ->getJson('/api/attendance/events/' . $checkin_id)
+                ->assertStatus(200)
+                ->assertJson([
+                    'id' => $checkin_id,
+                    'type' => 'check-in',
+                    'registered_by' => $user->id,
+                    'student_id' => $student->id,
+                    'deleted_at' => null
+                ]);
+
+            $this->assertLessThan(5, $now->diffInSeconds(Carbon::parse($response['created_at']), true));
+            $this->assertLessThan(5, $now->diffInSeconds(Carbon::parse($response['updated_at']), true));
+
+            $this->actingAs($user)
+                ->getJson('/api/students/'.$student->id)
+                ->assertStatus(200)
+                ->assertJson([
+                    'last_check_in' => [
+                        'id' => $checkin_id,
+                        'type' => 'check-in',
+                        'registered_by' => $user->id,
+                        'student_id' => $student->id,
+                        'deleted_at' => null
+                    ]
+                ]);
+
+            $checkin_ids[$student->id] = $checkin_id;
+        }
+
+        $this->assertDatabaseCount('attendance_events', $students->count());
+
+        foreach($students as $student) {
+            $checkin_id = $checkin_ids[$student->id];
+
+            $this->actingAs($user)
+                ->getJson('/api/attendance/events/' . $checkin_id)
+                ->assertStatus(200)
+                ->assertJson([
+                    'id' => $checkin_id,
+                    'type' => 'check-in',
+                    'registered_by' => $user->id,
+                    'student_id' => $student->id,
+                    'deleted_at' => null
+                ]);
+
+            $this->actingAs($user)
+                ->getJson('/api/students/'.$student->id)
+                ->assertStatus(200)
+                ->assertJson([
+                    'last_check_in' => [
+                        'id' => $checkin_id,
+                        'type' => 'check-in',
+                        'registered_by' => $user->id,
+                        'student_id' => $student->id,
+                        'deleted_at' => null
+                    ]
+                ]);
+        }
     }
 }
