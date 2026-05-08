@@ -6,11 +6,22 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
+use Spatie\Permission\Models\Role;
+
 /**
  * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
+    public function configure(): static {
+        return $this->afterCreating(function(User $user) {
+            if(rand(0, 5) < 2) {
+                $role = Role::all('name')->pluck('name')->random();
+                $user->syncRoles([$role]);
+            }
+        });
+    }
+
     /**
      * Define the model's default state.
      *
