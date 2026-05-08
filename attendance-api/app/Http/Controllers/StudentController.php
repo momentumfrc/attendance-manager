@@ -62,8 +62,6 @@ class StudentController extends Controller
         $checkins = $this->getMostRecentAttendanceEventsForAllStudents("check-in")->keyBy('student_id');
         $checkouts = $this->getMostRecentAttendanceEventsForAllStudents("check-out")->keyBy('student_id');
 
-        Log::debug($checkins);
-
         foreach($students as $student) {
             if($checkins->has($student->id)) {
                 $student->last_check_in = $checkins[$student->id];
