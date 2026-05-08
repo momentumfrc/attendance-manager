@@ -24,11 +24,10 @@ class AttendanceEventControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
         $students = Student::factory()
+            ->registeredBy($user)
             ->count(2)
             ->has(AttendanceEvent::factory()->count(4))
-            ->CREATE([
-                'registered_by' => $user->id
-        ]);
+            ->create();
         $this->assertDatabaseCount('students', 2);
         $this->assertDatabaseCount('attendance_events', 8);
 
@@ -43,11 +42,10 @@ class AttendanceEventControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
         $students = Student::factory()
+            ->registeredBy($user)
             ->count(2)
             ->has(AttendanceEvent::factory()->count(4))
-            ->CREATE([
-                'registered_by' => $user->id
-        ]);
+            ->create();
         $this->assertDatabaseCount('students', 2);
         $this->assertDatabaseCount('attendance_events', 8);
 
@@ -82,10 +80,9 @@ class AttendanceEventControllerTest extends TestCase
         $user = User::first();
 
         $student = Student::factory()
+            ->registeredBy($user)
             ->count(1)
-            ->CREATE([
-                'registered_by' => $user->id
-        ])[0];
+            ->CREATE()[0];
 
         Config::set('config.simultaneous_interval', 60);
 

@@ -5,6 +5,8 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 
+use App\Models\User;
+
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
  */
@@ -21,7 +23,7 @@ class StudentFactory extends Factory
 
         $values = [
             'name' => $faker->name(),
-            'registered_by' => 1,
+            'registered_by' => User::all('id')->pluck('id')->random(),
             'deleted_at' => null,
             'graduation_year' => null
         ];
@@ -35,5 +37,9 @@ class StudentFactory extends Factory
         }
 
         return $values;
+    }
+
+    public function registeredBy(User $user) {
+        return $this->state(fn($attribute) => ['registered_by' => $user->id]);
     }
 }

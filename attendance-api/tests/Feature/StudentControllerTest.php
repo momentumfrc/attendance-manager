@@ -24,9 +24,10 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
 
-        $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id
-        ]);
+        $students = Student::factory()
+            ->registeredBy($user)
+            ->count(5)
+            ->create();
 
         $this->assertDatabaseCount('students', 5);
 
@@ -109,9 +110,10 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
 
-        $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id
-        ]);
+        $students = Student::factory()
+            ->registeredBy($user)
+            ->count(5)
+            ->create();
         $this->assertDatabaseCount('students', 5);
 
         $student = $students[2];
@@ -129,9 +131,10 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
 
-        $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id
-        ]);
+        $students = Student::factory()
+            ->registeredBy($user)
+            ->count(5)
+            ->create();
         $this->assertDatabaseCount('students', 5);
 
         $student = $students[2];
@@ -185,10 +188,10 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
 
-        $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id,
-            'deleted_at' => null
-        ]);
+        $students = Student::factory()
+            ->registeredBy($user)
+            ->count(5)
+            ->create();
         $this->assertDatabaseCount('students', 5);
 
         $student = $students[3];
@@ -211,10 +214,10 @@ class StudentControllerTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $user = User::first();
 
-        $students = Student::factory()->count(5)->CREATE([
-            'registered_by' => $user->id,
-            'deleted_at' => null
-        ]);
+        $students = Student::factory()
+            ->registeredBy($user)
+            ->count(5)
+            ->create();
         $this->assertDatabaseCount('students', 5);
         $this->assertDatabaseCount('attendance_events', 0);
 

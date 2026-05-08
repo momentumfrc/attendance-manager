@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\User;
 
 class MeetingEventFactory extends Factory
 {
@@ -19,8 +20,12 @@ class MeetingEventFactory extends Factory
         return [
             'created_at' => $eventDate,
             'updated_at' => $eventDate,
-            'registered_by' => '1',
+            'registered_by' => User::all('id')->pluck('id')->random(),
             'type' => $type,
         ];
+    }
+
+    public function registeredBy(User $user) {
+        return $this->state(fn($attribute) => ['registered_by' => $user->id]);
     }
 }
