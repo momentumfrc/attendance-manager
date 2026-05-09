@@ -8,4 +8,5 @@ export interface User {
     created_at: DateTime,
     updated_at: DateTime,
     role_names: Array<string>
+    deleted_at?: DateTime,
 }

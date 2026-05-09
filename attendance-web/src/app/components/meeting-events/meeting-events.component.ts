@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DateTime } from 'luxon';
-import { combineLatest, filter, forkJoin, map, Observable, ReplaySubject, startWith, Subject, take } from 'rxjs';
+import { forkJoin, map, ReplaySubject, Subject, switchMap, take } from 'rxjs';
+import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
+import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
 import { User } from 'src/app/models/user.model';
 import { MeetingsService } from 'src/app/services/meetings.service';
+import { PermissionsService } from 'src/app/services/permissions.service';
 import { UsersService } from 'src/app/services/users.service';
 import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
-import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
-import { PermissionsService } from 'src/app/services/permissions.service';
-import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 
 interface RichMeetingEvent {
   event: MeetingEvent,
@@ -58,16 +58,17 @@ export class MeetingEventsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    combineLatest({
-      events: this.events,
-      users: this.usersService.getAllUsers().pipe(
-        map(users => new Map(users.map(user => [user.id, user])))
-      )
-    }).pipe(
-      map(({events, users}) => events.map(event => ({
-        event: event,
-        registrar: users.get(event.registered_by)
-      } as RichMeetingEvent)))
+    this.events.pipe(
+      switchMap(events => {
+        const userIds = [...new Set(events.map(event => event.registered_by))];
+        return this.usersService.getSomeUsers(userIds).pipe(map(users => ({events, users})))
+      }),
+      map(({events, users}) => {
+        return events.map(event => ({
+          event,
+          registrar: users.get(event.registered_by)
+        } as RichMeetingEvent));
+      })
     ).subscribe(events => {
       this.richMeetingEvents.setData(events);
     });
