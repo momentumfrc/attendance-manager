@@ -31,11 +31,12 @@ class AuthController extends Controller
     public function callback() {
         $slackuser = Socialite::driver('slack')->user();
 
-        $dbuser = User::updateOrCreate([
+        $dbuser = User::withTrashed()->updateOrCreate([
             'slack_id' => $slackuser->id
         ], [
             'name' => $slackuser->name,
-            'avatar' => $slackuser->avatar
+            'avatar' => $slackuser->avatar,
+            'deleted_at' => null
         ]);
 
         return $this->do_login($dbuser);

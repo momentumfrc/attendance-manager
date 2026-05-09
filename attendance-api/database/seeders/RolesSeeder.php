@@ -41,6 +41,7 @@ class RolesSeeder extends Seeder
         Permission::create(['name' => 'list users']);
         Permission::create(['name' => 'list roles']);
         Permission::create(['name' => 'elevate users']);
+        Permission::create(['name' => 'delete users']);
 
         Permission::create(['name' => 'view stats']);
 
@@ -60,6 +61,7 @@ class RolesSeeder extends Seeder
                 'list users',
                 'list roles',
                 'elevate users',
+                'delete users',
                 'list meeting events',
                 'add meeting events',
                 'remove meeting events',

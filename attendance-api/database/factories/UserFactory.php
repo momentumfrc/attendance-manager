@@ -36,7 +36,8 @@ class UserFactory extends Factory
             'avatar' => '',
             'remember_token' => Str::random(10),
             'created_at' => $now,
-            'updated_at' => $now
+            'updated_at' => $now,
+            'deleted_at' => null
         ];
     }
 }

@@ -42,8 +42,8 @@ index ecc30da..79b9b48 100644
          return Socialite::driver('slack')->redirect();
      }
  
-@@ -25,11 +38,7 @@ public function callback() {
-             'avatar' => $slackuser->avatar
+@@ -26,11 +39,7 @@ public function callback() {
+             'deleted_at' => null
          ]);
  
 -        Auth::guard('web')->login($dbuser, $remember = true);

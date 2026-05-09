@@ -13,6 +13,7 @@ class UserController extends Controller
     public function __construct() {
         $this->middleware('can:list users')->only(['index', 'show']);
         $this->middleware('can:elevate users')->only('update');
+        $this->middleware('can:delete users')->only('destroy');
     }
 
     /**
@@ -31,9 +32,9 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show(String $id)
     {
-        return $user;
+        return User::withTrashed()->findOrFail($id);
     }
 
     /**
@@ -61,6 +62,29 @@ class UserController extends Controller
         Log::channel('admin')->notice('user '.$user->id.' roles updated by user '.Auth::id().' to '.json_encode($request->roles));
 
         $user->syncRoles($request->roles);
+
+        return $user;
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\Student  $student
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(User $user)
+    {
+        if($user->id == Auth::id()) {
+            return response([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => ['The user_id must not be the currently authetnicated user.']
+                ]
+            ], 422);
+        }
+
+        Log::channel('admin')->notice('user '.$user->id.' deleted by user '.Auth::id());
+        $user->delete();
 
         return $user;
     }

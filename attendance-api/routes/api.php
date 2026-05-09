@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('users', UserController::class)->only([
-        'index', 'show', 'update'
+        'index', 'show', 'update', 'destroy'
     ]);
 
     Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
