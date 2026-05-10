@@ -1,3 +1,14 @@
+@use '@angular/material' as mat;
+@use "media";
+
+mat-list-item {
+    @include media.mobile {
+        @include mat.list-overrides((
+            list-item-one-line-container-height: 72px
+        ))
+    }
+}
+
 .userItem {
     display: flex;
     justify-content: space-between;
@@ -7,15 +18,29 @@
 }
 
 .userName {
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: 300;
     line-height: 1.1em;
 
     margin-right: 15px;
 }
 
-button {
-    width: 120px;
+.userRole {
+    @include media.desktop {
+        @include mat.theme((
+            density: -5
+        ));
+    }
+
+    @include media.mobile {
+        @include mat.theme((
+            density: -2
+        ));
+    }
+
+    display:flex;
+    min-width: 90px;
+    max-width: 180px;
 }
 
 .roleGroup {

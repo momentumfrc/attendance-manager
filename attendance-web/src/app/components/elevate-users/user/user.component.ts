@@ -1,8 +1,7 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { MatSelectionList } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, map } from 'rxjs';
+import { map, take } from 'rxjs';
 import { User } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
@@ -38,7 +37,13 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.selectedRole = new FormControl(this.getRoleFromRoles(this.user.role_names));
+    this.selectedRole = new FormControl({value: this.getRoleFromRoles(this.user.role_names), disabled: true});
+
+    this.loggedInUser.pipe(take(1)).subscribe(loggedInUser => {
+      if(loggedInUser && loggedInUser.id != this.user.id) {
+        this.selectedRole.enable();
+      }
+    })
   }
 
   menuClosed(): void {

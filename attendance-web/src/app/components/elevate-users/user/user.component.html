@@ -1,17 +1,15 @@
 <mat-list-item>
   <div class="userItem">
     <div class="userName">{{user.name}}</div>
-    @if ((loggedInUser | async)?.id != user.id) {
-      <button mat-stroked-button [matMenuTriggerFor]="roleMenu" [matMenuTriggerData]="{user: user}">{{getRoleFromRoles(user.role_names)}}</button>
-    } @else {
-      <button mat-stroked-button matTooltip="Cannot modify self" disabled>{{getRoleFromRoles(user.role_names)}}</button>
-    }
-    <mat-menu #roleMenu="matMenu" (closed)="menuClosed()">
-      <mat-radio-group (click)="$event.stopPropagation()" [formControl]="selectedRole" class="roleGroup">
+    <div class="userRole">
+      <mat-form-field subscriptSizing="dynamic">
+      <mat-label>Role</mat-label>
+      <mat-select (closed)="menuClosed()" [formControl]="selectedRole">
         @for (role of roles | async; track role) {
-          <mat-radio-button [value]="role" class="roleOption">{{role}}</mat-radio-button>
-        }
-      </mat-radio-group>
-    </mat-menu>
+            <mat-option [value]="role" class="roleOption">{{role}}</mat-option>
+          }
+      </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 </mat-list-item>
