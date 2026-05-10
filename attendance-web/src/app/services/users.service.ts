@@ -82,4 +82,15 @@ export class UsersService {
       roles: roles
     });
   }
+
+  public deleteUser(userId: number): Observable<void> {
+    return this.httpClient.delete<User>(environment.apiRoot + '/users/' + userId).pipe(
+      tap(user => {
+        this.cachedUsers.pipe(take(1)).subscribe(users => {
+          this.cachedUsers.next(new Map([...users.entries()].map(entry => entry[0] != user.id ? entry : [user.id, user])));
+        });
+      }),
+      map(user => void 0)
+    );
+  }
 }

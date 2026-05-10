@@ -1,7 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { map, take } from 'rxjs';
+import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { User } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
@@ -25,7 +27,8 @@ export class UserComponent implements OnInit {
     private authService: AuthService,
     private usersService: UsersService,
     private permissionsService: PermissionsService,
-    private snackbar: MatSnackBar
+    private snackbar: MatSnackBar,
+    private dialog: MatDialog,
   ) { }
 
   getRoleFromRoles(roles: Array<string>): string {
@@ -72,6 +75,19 @@ export class UserComponent implements OnInit {
       this.snackbar.open("Updated role for " + updatedUser.name + " to " + role, '', {
         duration: 4000
       });
+    });
+  }
+
+  deleteUser(): void {
+    let dialogref = this.dialog.open(ConfirmDialogComponent, {
+      width: '320px',
+      data: {action: 'Deletion', message: 'Continue deleting user ' + this.user.name + '?', closeColor: 'warn'}
+    });
+    dialogref.afterClosed().subscribe((confirmed: boolean) => {
+      if(!confirmed) {
+        return;
+      }
+      this.usersService.deleteUser(this.user.id).subscribe();
     });
   }
 

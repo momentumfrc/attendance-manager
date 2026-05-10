@@ -25,7 +25,7 @@ mat-list-item {
     margin-right: 15px;
 }
 
-.userRole {
+.userActions {
     @include media.desktop {
         @include mat.theme((
             density: -5
@@ -39,8 +39,11 @@ mat-list-item {
     }
 
     display:flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
     min-width: 90px;
-    max-width: 180px;
+    max-width: 200px;
 }
 
 .roleGroup {
