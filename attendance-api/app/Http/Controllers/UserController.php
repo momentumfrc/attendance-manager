@@ -74,11 +74,20 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $errors = [];
         if($user->id == Auth::id()) {
+            $errors[] = 'The user_id must not be the currently authenticated user.';
+        }
+
+        if($user->roles()->count() > 0) {
+            $errors[] = 'The user must not hold any roles.';
+        }
+
+        if(empty($errors) == false) {
             return response([
                 'message' => 'The given data was invalid.',
                 'errors' => [
-                    'user_id' => ['The user_id must not be the currently authetnicated user.']
+                    'user_id' => $errors
                 ]
             ], 422);
         }

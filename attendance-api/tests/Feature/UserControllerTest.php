@@ -126,11 +126,19 @@ class UserControllerTest extends TestCase
 
     public function test_delete() {
         $user = User::first();
-        $user2 = User::factory()->create();
+        $users = User::factory()->count(2)->create();
 
-        $this->assertDatabaseCount('users', 2);
+        /**
+         * @var \App\Models\User $user2
+         * @var \App\Models\User $user3
+         */
+        $user2 = $users[0];
+        $user3 = $users[1];
 
-        $this->assertNull($user2->deleted_at);
+        $this->assertDatabaseCount('users', 3);
+
+        $user2->syncRoles([]);
+        $this->assertNotSoftDeleted($user2);
 
         $this->actingAs($user)->delete('/api/users/'.$user2->id)->assertStatus(200);
         $user2->refresh();
@@ -138,11 +146,41 @@ class UserControllerTest extends TestCase
         $this->assertNotNull($user2->deleted_at);
         $this->assertLessThan(5, now()->diffInSeconds($user2->deleted_at));
 
-        $this->assertNull($user->deleted_at);
-        $this->actingAs($user)->delete('/api/users/'.$user->id)->assertStatus(422);
+        $this->assertNotSoftDeleted($user);
+        $this->actingAs($user)
+            ->deleteJson('/api/users/'.$user->id)
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => [
+                        'The user_id must not be the currently authenticated user.',
+                        'The user must not hold any roles.'
+                    ]
+                ]
+        ]);
 
         $user->refresh();
-        $this->assertNull($user->deleted_at);
+        $this->assertNotSoftDeleted($user);
+
+        $role = \Spatie\Permission\Models\Role::all('name')->pluck('name')->random();
+        $user3->syncRoles([$role]);
+
+        $this->assertNotSoftDeleted($user3);
+        $this->actingAs($user)
+            ->deleteJson('/api/users/'.$user3->id)
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => [
+                        'The user must not hold any roles.'
+                    ]
+                ]
+        ]);
+
+        $user->refresh();
+        $this->assertNotSoftDeleted($user3);
     }
 
     public function test_delete_permissions() {
@@ -159,11 +197,11 @@ class UserControllerTest extends TestCase
 
         $this->assertDatabaseCount('users', 3);
 
-        $this->assertNull($user2->deleted_at);
+        $this->assertNotSoftDeleted($user2);
 
         $this->actingAs($user1)->delete('/api/users/'.$user2->id)->assertStatus(403);
         $user2->refresh();
 
-        $this->assertNull($user2->deleted_at);
+        $this->assertNotSoftDeleted($user2);
     }
 }
