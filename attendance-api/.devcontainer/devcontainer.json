@@ -12,7 +12,8 @@
 				"remote.autoForwardPorts": false
 			},
 			"extensions": [
-				"bmewburn.vscode-intelephense-client"
+				"bmewburn.vscode-intelephense-client",
+				"streetsidesoftware.code-spell-checker"
 			]
 		}
 	},

@@ -17,7 +17,8 @@
 			},
 			"extensions": [
 				"dbaeumer.vscode-eslint",
-				"Angular.ng-template"
+				"Angular.ng-template",
+				"streetsidesoftware.code-spell-checker"
 			]
 		}
 	},
