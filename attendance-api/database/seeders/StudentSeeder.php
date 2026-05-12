@@ -46,7 +46,7 @@ class StudentSeeder extends Seeder
         $currYear = Carbon::now()->year;
         $meetingDates = [];
         for($i = 0; $i < 100; $i++) {
-            $meetingDates[] = (new Carbon($faker->dateTimeBetween('-2 years', 'now'), 'America/Los_Angeles'))
+            $meetingDates[] = (new Carbon($faker->dateTimeBetween('-2 years', '-1 day'), 'America/Los_Angeles'))
                 ->setTime(16, 0, 0);
         }
 
