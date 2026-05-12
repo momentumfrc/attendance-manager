@@ -10,7 +10,9 @@
           }
       </mat-select>
       </mat-form-field>
-      <button matIconButton aria-label="Delete user" (click)="deleteUser()" [disabled]="(loggedInUser|async)?.id == user.id"><mat-icon>delete</mat-icon></button>
+      @if(this.canDeleteUser() | async) {
+        <button matIconButton aria-label="Delete user" (click)="deleteUser()"><mat-icon>delete</mat-icon></button>
+      }
     </div>
   </div>
 </mat-list-item>

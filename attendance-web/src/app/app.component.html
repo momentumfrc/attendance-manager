@@ -48,7 +48,7 @@
               </a>
             </mat-list-item>
           }
-          @if (permissionsService.checkPermissions(['elevate users']) | async) {
+          @if (permissionsService.checkPermissions(['list users']) | async) {
             <mat-list-item>
               <a class="nav-list-item" (click)="sidenav.close()" routerLink="/users">
                 <mat-icon class="nav-icon">person</mat-icon>

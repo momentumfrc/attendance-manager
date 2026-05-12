@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { map, take } from 'rxjs';
+import { combineLatest, map, Observable, take } from 'rxjs';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { User } from 'src/app/models/user.model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -39,14 +39,36 @@ export class UserComponent implements OnInit {
     }
   }
 
+  currentUserIsLoggedInUser(): Observable<Boolean> {
+    return this.loggedInUser.pipe(map(loggedInUser => loggedInUser?.id == this.user.id));
+  }
+
+  canElevateUser(): Observable<Boolean> {
+    return combineLatest({
+      currentUserIsLoggedInUser: this.currentUserIsLoggedInUser(),
+      canPromoteUsers: this.permissionsService.checkPermissions(['elevate users'])
+    }).pipe(
+      map(({currentUserIsLoggedInUser, canPromoteUsers}) => currentUserIsLoggedInUser == false && canPromoteUsers)
+    );
+  }
+
+  canDeleteUser(): Observable<Boolean> {
+    return combineLatest({
+      currentUserIsLoggedInUser: this.currentUserIsLoggedInUser(),
+      canDeleteUsers: this.permissionsService.checkPermissions(['delete users'])
+    }).pipe(
+      map(({currentUserIsLoggedInUser, canDeleteUsers}) => currentUserIsLoggedInUser == false && canDeleteUsers && this.user.role_names.length == 0)
+    );
+  }
+
   ngOnInit(): void {
     this.selectedRole = new FormControl({value: this.getRoleFromRoles(this.user.role_names), disabled: true});
 
-    this.loggedInUser.pipe(take(1)).subscribe(loggedInUser => {
-      if(loggedInUser && loggedInUser.id != this.user.id) {
+    this.canElevateUser().pipe(take(1)).subscribe(canElevate => {
+      if(canElevate) {
         this.selectedRole.enable();
       }
-    })
+    });
   }
 
   menuClosed(): void {

@@ -59,7 +59,7 @@ const routes: Routes = [
     data: { permissions: ['list meeting events', 'add meeting events']}
   },
   { path: 'users', component: ElevateUsersComponent, canActivate: [MustBeLoggedInGuard, MustHavePermissionGuard],
-    data: { permissions: ['elevate users'] }},
+    data: { permissions: ['list users'] }},
   { path: 'login', component: LoginComponent, canActivate: [MustNotBeLoggedInGuard] },
   { path: '', component: HomeComponent,
     canActivate: [MustBeLoggedInGuard],
