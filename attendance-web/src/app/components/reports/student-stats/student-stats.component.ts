@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, ReplaySubject, Subject, Subscription, switchMap, tap } from 'rxjs';
+import { combineLatest, ReplaySubject, Subject, Subscription, switchMap } from 'rxjs';
+import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 import { StudentStats } from 'src/app/models/report-models';
 import { Student } from 'src/app/models/student.model';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
-import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 
 interface StudentStatsReport {
   meeting_count: number,
@@ -21,7 +21,7 @@ interface StudentStatsReport {
   standalone: false
 })
 export class StudentStatsComponent implements OnInit, OnDestroy {
-  studentStatsColumns = ["student-name", "checkin-count", "missed-checkout-count", "meeting-time"];
+  studentStatsColumns = ["student-name", "grad-year", "checkin-count", "missed-checkout-count", "meeting-time"];
 
   dateRangeSelection = new Subject<SelectedDateRange>();
 
