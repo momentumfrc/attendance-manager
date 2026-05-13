@@ -29,13 +29,15 @@ class StudentSeeder extends Seeder
             $student = new Student;
             $student->name = $faker->firstName() . ' ' . $faker->lastName();
             $student->registered_by = $users->random()->id;
+            $student->created_at = $faker->dateTimeBetween('-4 years', 'now');
+            $student->updated_at = $student->created_at;
 
             if(rand(0, 10) < 7) {
                 $student->graduation_year = Carbon::instance($faker->dateTimeBetween('-2 years', '+4 years'))->year;
             }
 
             if(rand(0, 10) < 2) {
-                $student->deleted_at = $faker->dateTimeBetween('-1 years', 'now');
+                $student->deleted_at = $faker->dateTimeBetween($student->created_at, 'now');
             }
 
             $student->save();
