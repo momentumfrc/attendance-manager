@@ -21,7 +21,7 @@ interface StudentStatsReport {
   standalone: false
 })
 export class StudentStatsComponent implements OnInit, OnDestroy {
-  studentStatsColumns = ["student-name", "grad-year", "checkin-count", "missed-checkout-count", "meeting-time"];
+  studentStatsColumns = ["student-name", "checkin-count", "missed-checkout-count", "meeting-time"];
 
   dateRangeSelection = new Subject<SelectedDateRange>();
 

@@ -1,0 +1,33 @@
+@use '@angular/material' as mat;
+@use 'media';
+
+#options {
+    margin-top: 30px;
+    margin-bottom: 30px;
+
+    display: inline-block;
+}
+
+#options > mat-slide-toggle {
+    @include mat.slide-toggle-overrides((
+        label-text-size: 1.2em
+    ));
+}
+
+#reportCard {
+    @include media.mobile {
+        overflow-x: scroll;
+    }
+}
+
+.student-name-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.deletedIcon {
+    margin-top: 4px;
+    margin-right: 4px;
+}

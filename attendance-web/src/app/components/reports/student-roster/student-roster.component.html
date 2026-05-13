@@ -1,0 +1,50 @@
+<mat-card id="options" appearance="outlined">
+    <mat-card-content>
+    <mat-slide-toggle [formControl]="showDeleted">Include deleted</mat-slide-toggle>
+    </mat-card-content>
+</mat-card>
+
+
+@if (studentReport|async; as report) {
+    <mat-card id="reportCard">
+        <mat-card-content>
+            <table mat-table [dataSource]="report.students">
+                <ng-container matColumnDef="student-name">
+                    <th mat-header-cell *matHeaderCellDef>Student Name</th>
+                    <td mat-cell *matCellDef="let enriched">
+                        <div class="student-name-container">
+                        @if (enriched.student.deleted_at) {
+                            <div class="deletedIcon"><mat-icon>delete</mat-icon></div>
+                        }
+                        <div class="student-name">{{enriched.student.name}}</div>
+                        </div>
+                    </td>
+                </ng-container>
+                <ng-container matColumnDef="grad-year">
+                    <th mat-header-cell *matHeaderCellDef>Expected Graduation</th>
+                    <td mat-cell *matCellDef="let enriched">{{enriched.student.graduation_year ?? '-'}}</td>
+                </ng-container>
+                <ng-container matColumnDef="registered-by">
+                    <th mat-header-cell *matHeaderCellDef>Registered By</th>
+                    <td mat-cell *matCellDef="let enriched">{{enriched.registered_by.name}}</td>
+                </ng-container>
+                <ng-container matColumnDef="registered-at">
+                    <th mat-header-cell *matHeaderCellDef>Registered</th>
+                    <td mat-cell *matCellDef="let enriched">{{enriched.student.created_at.toLocaleString(dateShort)}}</td>
+                </ng-container>
+                <ng-container matColumnDef="last-updated">
+                    <th mat-header-cell *matHeaderCellDef>Last Updated</th>
+                    <td mat-cell *matCellDef="let enriched">{{enriched.student.updated_at.toLocaleString(dateShort)}}</td>
+                </ng-container>
+                <ng-container matColumnDef="deleted-at">
+                    <th mat-header-cell *matHeaderCellDef>Deleted</th>
+                    <td mat-cell *matCellDef="let enriched">{{enriched.student.deleted_at?.toLocaleString(dateShort) ?? '-'}}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="report.columns"></tr>
+                <tr mat-row *matRowDef="let row; columns: report.columns"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+} @else {
+    <app-spinner></app-spinner>
+}

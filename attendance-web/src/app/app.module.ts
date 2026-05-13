@@ -34,6 +34,7 @@ import { AppComponent } from './app.component';
 import { AddAttendanceEventListComponent } from './components/add-attendance-event-list/add-attendance-event-list.component';
 
 import { MatSelectModule } from '@angular/material/select';
+import { SpinnerComponent } from 'src/app/components/reuse/spinner/spinner.component';
 import { CropImageComponent } from './components/crop-image/crop-image.component';
 import { ElevateUsersComponent } from './components/elevate-users/elevate-users.component';
 import { UserComponent } from './components/elevate-users/user/user.component';
@@ -50,7 +51,6 @@ import { StudentStatsComponent } from './components/reports/student-stats/studen
 import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confirm-dialog.component';
 import { DatePickerComponent } from './components/reuse/date-picker/date-picker.component';
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
-import { SpinnerComponent } from './components/reuse/spinner/spinner.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
@@ -74,7 +74,6 @@ import { httpInterceptorProviders } from './http-interceptors';
         ImportStudentsComponent,
         SearchBoxComponent,
         ShowStudentComponent,
-        SpinnerComponent,
         StudentStatsComponent,
         ReportsComponent,
         CsvExportComponent,
@@ -86,6 +85,7 @@ import { httpInterceptorProviders } from './http-interceptors';
         ErrorComponent
     ],
     bootstrap: [AppComponent], imports: [
+        SpinnerComponent,
         BrowserModule,
         AppRoutingModule,
         ReactiveFormsModule,

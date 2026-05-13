@@ -17,10 +17,6 @@
             </div>
           </td>
         </ng-container>
-        <ng-container matColumnDef="grad-year">
-          <th mat-header-cell *matHeaderCellDef>Expected Graduation</th>
-          <td mat-cell *matCellDef="let element">{{element.student.graduation_year ?? "-"}}</td>
-        </ng-container>
         <ng-container matColumnDef="checkin-count">
           <th mat-header-cell *matHeaderCellDef>Meetings Attended <br> (out&nbsp;of&nbsp;{{report.meeting_count}}) </th>
           <td mat-cell *matCellDef="let element">{{element.stats.checkin_count}}</td>

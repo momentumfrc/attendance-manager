@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
+import { StudentRosterComponent } from 'src/app/components/reports/student-roster/student-roster.component';
 import { AddAttendanceEventListComponent } from './components/add-attendance-event-list/add-attendance-event-list.component';
 import { ElevateUsersComponent } from './components/elevate-users/elevate-users.component';
 import { ErrorComponent } from './components/error/error.component';
@@ -50,6 +51,7 @@ const routes: Routes = [
       { path: 'meetings/attendance', component: MeetingAttendanceReportComponent },
       { path: 'meetings/attendance/:date', component: MeetingAttendanceReportComponent },
       { path: 'student-stats', component: StudentStatsComponent },
+      { path: 'student-roster', component: StudentRosterComponent },
       { path: 'event-log', component: EventLogComponent },
       { path: 'export', component: CsvExportComponent }
     ]
