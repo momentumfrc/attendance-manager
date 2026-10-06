@@ -42,4 +42,8 @@ class StudentFactory extends Factory
     public function registeredBy(User $user) {
         return $this->state(fn($attribute) => ['registered_by' => $user->id]);
     }
+
+    public function untrashed() {
+        return $this->state(fn($attribute) => ['deleted_at' => null]);
+    }
 }

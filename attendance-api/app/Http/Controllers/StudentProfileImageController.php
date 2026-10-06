@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
 use Spatie\Image\Image;
-use Spatie\Image\Manipulations;
+use Spatie\Image\Enums\Fit;
 
 class StudentProfileImageController extends Controller
 {
@@ -46,14 +46,18 @@ class StudentProfileImageController extends Controller
             Storage::makeDirectory('public/student_profiles');
         }
 
-        $path = 'public/student_profiles/'.Str::random(40).'.png';
+        $path = 'public/student_profiles/'.Str::uuid().'.png';
         $fullpath = Storage::path($path);
+
+        if(Storage::exists($fullpath)) {
+            throw new \Exception("Conflicting UUIDs (you should buy a lottery ticket!)");
+        }
 
         $resize_size = config('config.profile_image_resolution');
 
-        Image::load($request->file('image')->path())
-            ->useImageDriver('gd')
-            ->fit(Manipulations::FIT_CONTAIN, $resize_size, $resize_size)
+        Image::useImageDriver('gd')
+            ->load($request->file('image')->path())
+            ->fit(Fit::Contain, $resize_size, $resize_size)
             ->save($fullpath);
 
         $photoModel = new StudentProfileImage;
