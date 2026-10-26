@@ -16,7 +16,7 @@ jobs:
         image: 'mariadb:10.9'
         env:
           MARIADB_RANDOM_ROOT_PASSWORD: 'yes'
-          MARIADB_DATABASE: 'attendance_api'
+          MARIADB_DATABASE: 'attendance_api_testing'
           MARIADB_USER: 'attendance_user'
           MARIADB_PASSWORD: 'password'
         options: >-

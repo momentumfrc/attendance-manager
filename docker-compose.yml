@@ -33,6 +33,7 @@ services:
       MARIADB_PASSWORD: 'password'
     volumes:
       - 'sail-mariadb:/var/lib/mysql'
+      - './attendance-api/.devcontainer/mariadb/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro'
     networks:
       - attendance
   angular.test:
