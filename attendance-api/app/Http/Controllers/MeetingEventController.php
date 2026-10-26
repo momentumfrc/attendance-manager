@@ -89,7 +89,7 @@ class MeetingEventController extends Controller
      */
     public function show($id)
     {
-        return $meetingEvent::find($id);
+        return MeetingEvent::findOrFail($id);
     }
 
     /**
@@ -100,6 +100,9 @@ class MeetingEventController extends Controller
      */
     public function destroy($id)
     {
-        $event = MeetingEvent::find($id)->delete();
+        $event = MeetingEvent::findOrFail($id);
+        $event->delete();
+
+        return $event;
     }
 }

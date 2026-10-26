@@ -161,4 +161,152 @@ class AttendanceEventControllerTest extends TestCase
 
         $this->assertDatabaseCount('attendance_events', 0);
     }
+
+    private function userWithRole(string $role): User {
+        $user = User::factory()->create();
+        $user->syncRoles([$role]);
+        return $user;
+    }
+
+    private function makeEvent(Student $student, User $user, string $type, Carbon $date): AttendanceEvent {
+        return AttendanceEvent::forceCreate([
+            'student_id' => $student->id,
+            'registered_by' => $user->id,
+            'type' => $type,
+            'created_at' => $date,
+            'updated_at' => $date
+        ]);
+    }
+
+    public function test_show() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $event = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subHour());
+        $trashed = $this->makeEvent($student, $user, 'check-out', Carbon::now()->subMinutes(30));
+        $trashed->delete();
+
+        $this->actingAs($user)->getJson('/api/attendance/events/'.$event->id)
+            ->assertStatus(200)
+            ->assertJson(['id' => $event->id, 'type' => 'check-in']);
+
+        // show includes soft-deleted events
+        $response = $this->actingAs($user)->getJson('/api/attendance/events/'.$trashed->id)
+            ->assertStatus(200)
+            ->assertJson(['id' => $trashed->id, 'type' => 'check-out']);
+        $this->assertNotNull($response['deleted_at']);
+
+        $this->actingAs($user)->getJson('/api/attendance/events/9999')->assertStatus(404);
+    }
+
+    public function test_index_with_trashed() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $kept = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subHour());
+        $trashed = $this->makeEvent($student, $user, 'check-out', Carbon::now()->subMinutes(30));
+        $trashed->delete();
+
+        $ids = fn($response) => collect($response->json())->pluck('id')->all();
+
+        $this->assertEquals([$kept->id], $ids($this->actingAs($user)->getJson('/api/attendance/events')));
+        $this->assertEqualsCanonicalizing(
+            [$kept->id, $trashed->id],
+            $ids($this->actingAs($user)->getJson('/api/attendance/events?with_trashed=1'))
+        );
+    }
+
+    public function test_destroy_within_undo_window() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $event = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subSeconds(5));
+
+        $this->actingAs($user)->deleteJson('/api/attendance/events/'.$event->id)
+            ->assertStatus(200)
+            ->assertJson(['id' => $event->id]);
+
+        $this->assertSoftDeleted($event);
+    }
+
+    public function test_destroy_outside_undo_window() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $event = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subSeconds(config('config.undo_window') + 60));
+
+        $this->actingAs($user)->deleteJson('/api/attendance/events/'.$event->id)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('id');
+
+        $this->assertNotSoftDeleted($event);
+    }
+
+    public function test_destroy_force() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $event = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subDay());
+
+        // student-leads may undo, but may not force-delete
+        $lead = $this->userWithRole('student-lead');
+        $this->actingAs($lead)->deleteJson('/api/attendance/events/'.$event->id.'?force=1')->assertStatus(403);
+        $this->assertNotSoftDeleted($event);
+
+        $this->actingAs($user)->deleteJson('/api/attendance/events/'.$event->id.'?force=1')->assertStatus(200);
+        $this->assertSoftDeleted($event);
+    }
+
+    public function test_destroy_missing() {
+        $this->seed(RolesSeeder::class);
+        $this->actingAs(User::first())->deleteJson('/api/attendance/events/9999')->assertStatus(404);
+    }
+
+    public function test_update_restores_event() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $event = $this->makeEvent($student, $user, 'check-in', Carbon::now()->subHour());
+        $event->delete();
+        $this->assertSoftDeleted($event);
+
+        $lead = $this->userWithRole('student-lead');
+        $this->actingAs($lead)->putJson('/api/attendance/events/'.$event->id)->assertStatus(403);
+        $this->assertSoftDeleted($event);
+
+        $this->actingAs($user)->putJson('/api/attendance/events/'.$event->id)
+            ->assertStatus(200)
+            ->assertJson(['id' => $event->id]);
+        $this->assertNotSoftDeleted($event);
+
+        $this->actingAs($user)->putJson('/api/attendance/events/9999')->assertStatus(404);
+    }
+
+    public function test_store_permissions() {
+        $this->seed(RolesSeeder::class);
+        $student = Student::factory()->registeredBy(User::first())->untrashed()->create();
+        $checkIn = ['type' => 'check-in', 'student_id' => $student->id];
+        $checkOut = ['type' => 'check-out', 'student_id' => $student->id];
+
+        $readOnly = $this->userWithRole('read-only');
+        $this->actingAs($readOnly)->postJson('/api/attendance/events', $checkIn)->assertStatus(403);
+        $this->actingAs($readOnly)->postJson('/api/attendance/events', $checkOut)->assertStatus(403);
+        $this->assertDatabaseCount('attendance_events', 0);
+
+        // student-leads can check students in, but not out
+        $lead = $this->userWithRole('student-lead');
+        $this->actingAs($lead)->postJson('/api/attendance/events', $checkOut)->assertStatus(403);
+        $this->assertDatabaseCount('attendance_events', 0);
+        $this->actingAs($lead)->postJson('/api/attendance/events', $checkIn)->assertStatus(201);
+        $this->assertDatabaseCount('attendance_events', 1);
+    }
+
+    public function test_index_requires_permission() {
+        $this->seed(RolesSeeder::class);
+        $noRole = User::factory()->create();
+        $noRole->syncRoles([]);
+
+        $this->actingAs($noRole)->getJson('/api/attendance/events')->assertStatus(403);
+        $this->actingAs($noRole)->getJson('/api/attendance/events/1')->assertStatus(403);
+    }
 }

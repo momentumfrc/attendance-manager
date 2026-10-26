@@ -42,7 +42,7 @@ class EndMeeting extends Command
                     WHERE deleted_at IS NULL
                     GROUP BY student_id
                     HAVING latest_date > (
-                        SELECT MAX(created_at) as latest_eom
+                        SELECT COALESCE(MAX(created_at), '1970-01-01 00:00:00') as latest_eom
                         FROM meeting_events
                         WHERE `type` = 'end-of-meeting'
                     )
