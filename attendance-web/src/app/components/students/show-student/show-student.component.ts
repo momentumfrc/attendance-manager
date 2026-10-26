@@ -9,6 +9,7 @@ import { Student } from 'src/app/models/student.model';
 import { User } from 'src/app/models/user.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
+import { ProfileImagesService } from 'src/app/services/profile-images.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -100,7 +101,8 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     private usersService: UsersService,
     private attendanceService: AttendanceService,
     private permissionsService: PermissionsService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private profileImagesService: ProfileImagesService
   ) {
     const studentId = parseInt(route.snapshot.paramMap.get('studentId') ?? 'NaN' );
     let studentRequest: Observable<Student|null>;
@@ -175,8 +177,10 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     return this.permissionsService.checkPermissions(['modify students', 'modify student images']);
   }
 
-  getProfileImageSrc(student: Student): string {
-    return environment.apiRoot + '/storage/student_profiles/' + student.profile_image?.basename;
+  protected readonly profilePlaceholderSrc = environment.assetRoot + '/profile-placeholder.png';
+
+  getProfileImageSrc(student: Student): Observable<string|null> {
+    return this.profileImagesService.getImageUrl(student.profile_image);
   }
 
 }

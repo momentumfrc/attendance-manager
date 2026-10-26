@@ -6,8 +6,14 @@ export interface StudentProfileImage {
     created_at: DateTime,
     updated_at: DateTime,
     student_id: number,
-    uploaded_by: number,
-    basename: string
+    uploaded_by: number
+}
+
+export interface ProfileImageData {
+    id: number,
+    student_id: number,
+    // base64-encoded PNG
+    data: string
 }
 
 export interface Student {
