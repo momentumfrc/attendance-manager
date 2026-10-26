@@ -139,4 +139,26 @@ class AttendanceEventControllerTest extends TestCase
         $this->assertTrue(AttendanceEvent::withTrashed()->findOrFail($checkin_id)->trashed());
         $this->assertTrue(AttendanceEvent::withTrashed()->findOrFail($checkout_id)->trashed());
     }
+
+    public function test_store_rejects_soft_deleted_student() {
+        $this->seed(RolesSeeder::class);
+        $this->assertDatabaseCount('users', 1);
+        $user = User::first();
+
+        $student = Student::factory()
+            ->registeredBy($user)
+            ->count(1)
+            ->create(['deleted_at' => Carbon::now()])[0];
+        $this->assertSoftDeleted($student);
+
+        $this->actingAs($user)
+            ->json('POST', '/api/attendance/events', [
+                'type' => 'check-in',
+                'student_id' => $student->id
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('student_id');
+
+        $this->assertDatabaseCount('attendance_events', 0);
+    }
 }

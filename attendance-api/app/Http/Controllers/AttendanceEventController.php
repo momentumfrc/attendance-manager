@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\AttendanceEvent;
 use App\Models\Student;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 use Illuminate\Support\Facades\Log;
@@ -66,7 +67,7 @@ class AttendanceEventController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'required|exists:students,id',
+            'student_id' => ['required', Rule::exists('students', 'id')->whereNull('deleted_at')],
             'type' => 'required|string|in:'.join(',', config('enums.attendance_event_types'))
         ]);
 

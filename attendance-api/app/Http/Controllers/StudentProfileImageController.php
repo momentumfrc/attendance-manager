@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class StudentProfileImageController extends Controller
     {
         // Note: maximum file size of 1024kb
         $request->validate([
-            'student_id' => 'required|exists:students,id,deleted_at,NULL',
+            'student_id' => ['required', Rule::exists('students', 'id')->whereNull('deleted_at')],
             'image' => 'required|image|mimes:jpeg,png,jpg|max:1024'
         ]);
 
