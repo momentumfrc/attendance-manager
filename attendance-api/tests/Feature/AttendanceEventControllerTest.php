@@ -81,6 +81,7 @@ class AttendanceEventControllerTest extends TestCase
 
         $student = Student::factory()
             ->registeredBy($user)
+            ->untrashed()
             ->count(1)
             ->CREATE()[0];
 

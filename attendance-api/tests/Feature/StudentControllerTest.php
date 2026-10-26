@@ -190,6 +190,7 @@ class StudentControllerTest extends TestCase
 
         $students = Student::factory()
             ->registeredBy($user)
+            ->untrashed()
             ->count(5)
             ->create();
         $this->assertDatabaseCount('students', 5);
@@ -216,6 +217,7 @@ class StudentControllerTest extends TestCase
 
         $students = Student::factory()
             ->registeredBy($user)
+            ->untrashed()
             ->count(5)
             ->create();
         $this->assertDatabaseCount('students', 5);
