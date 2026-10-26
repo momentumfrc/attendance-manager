@@ -50,42 +50,7 @@ removed from the application.
 </p>
 
 
-# Setting up a development environment
+# Development
 
-## Prerequisites
-- [Docker](https://docs.docker.com/get-docker/)
-- [Visual Studio Code](https://code.visualstudio.com/), with the [Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
-
-## Steps
-1. Clone the repo and cd into the clone.
-```
-git clone git@github.com:momentumfrc/attendance-manager.git && cd attendance-manager
-```
-2. Open the attendance-api folder in vscode.
-```
-code attendance-api
-```
-3. When prompted, choose to reopen in container.
-![Reopen in container prompt](docs/assets/reopen-in-container.png)
-
-4. Wait for vscode to finish setting up the container.
-![Starting container prompt](docs/assets/starting-container.png)
-
-5. You may be prompted to install recommended extensions. You should do so.
-
-6. In the vscode console, run the following to set up the api.
-```bash
-php artisan key:generate
-php artisan migrate --seed
-php artisan storage:link
-```
-
-7. Open the attendance-web folder in a separate vscode window.
-```
-code attendance-web
-```
-
-8. Again, when prompted, choose to reopen in container.
-
-9. Open a web browser and navigate to <http://localhost/>. Note: it might take a while for the
-application to start up. If the page fails to load, try again in a few minutes.
+- [docs/development.md](docs/development.md): setting up a development environment and running the tests
+- [docs/architecture.md](docs/architecture.md): an overview of how the application is put together
