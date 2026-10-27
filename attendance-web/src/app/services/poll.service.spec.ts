@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { fakeAsync, tick } from "@angular/core/testing";
-import { of } from "rxjs";
+import { delay, of } from "rxjs";
 import { environment } from "src/environments/environment";
 import { PollService } from "./poll.service";
 
@@ -75,6 +75,34 @@ describe('PollService', () => {
             subscription.unsubscribe();
         }));
     }
+
+    it('should deliver responses slower than the poll interval without overlapping requests', fakeAsync(() => {
+        const latency = environment.pollInterval * 3;
+        httpClientSpy.get.and.returnValue(of({updated_students: [], meeting_events: []}).pipe(delay(latency)));
+        let responses = 0;
+        const subscription = service.getPollingObservable().subscribe(() => responses++);
+
+        tick(latency * 3);
+        expect(responses).toBeGreaterThanOrEqual(2);
+        expect(pollCount()).toBeLessThanOrEqual(responses + 1);
+
+        subscription.unsubscribe();
+    }));
+
+    it('should ask for changes since the previous request was sent, not when its response arrived', fakeAsync(() => {
+        const latency = 5000;
+        httpClientSpy.get.and.returnValue(of({updated_students: [], meeting_events: []}).pipe(delay(latency)));
+        const subscription = service.getPollingObservable().subscribe();
+
+        tick(0);
+        const firstRequestAt = Date.now();
+        tick(latency + environment.pollInterval);
+        expect(pollCount()).toBe(2);
+        expect(lastSince()).toBeLessThanOrEqual(Math.floor(firstRequestAt / 1000));
+
+        subscription.unsubscribe();
+        tick(latency);
+    }));
 
     it('should not restart polling on focus while already visible', fakeAsync(() => {
         const subscription = service.getPollingObservable().subscribe();

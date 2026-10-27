@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { DateTime } from 'luxon';
 import { Student } from '../models/student.model';
 import { MeetingEvent } from '../models/meeting-event.model';
-import { EMPTY, Observable, distinctUntilChanged, fromEvent, map, merge, startWith, switchMap, tap, timer } from 'rxjs';
+import { EMPTY, Observable, distinctUntilChanged, exhaustMap, fromEvent, map, merge, startWith, switchMap, tap, timer } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 export interface PollResponse {
@@ -37,11 +37,16 @@ class Poller {
 
     // Don't poll while the page is hidden. On becoming visible again, poll immediately: since
     // lastUpdate wasn't advanced while hidden, that poll catches up on everything we missed.
+    // exhaustMap skips ticks while a request is in flight, so slow responses aren't cancelled.
+    // lastUpdate is the time the request was sent, since that's when the server read the changes.
     return isVisible.pipe(
       switchMap(visible => visible ? timer(0, environment.pollInterval) : EMPTY),
-      switchMap(() => this.pollService.getUpdates({since: this.getSince()}).pipe(tap(() => {
-        this.lastUpdate = DateTime.now();
-      })))
+      exhaustMap(() => {
+        const requestTime = DateTime.now();
+        return this.pollService.getUpdates({since: this.getSince()}).pipe(tap(() => {
+          this.lastUpdate = requestTime;
+        }));
+      })
     );
   }
 }
