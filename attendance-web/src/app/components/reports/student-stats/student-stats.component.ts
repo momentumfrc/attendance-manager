@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, ReplaySubject, Subject, Subscription, switchMap } from 'rxjs';
+import { combineLatest, forkJoin, ReplaySubject, Subject, Subscription, switchMap } from 'rxjs';
 import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
 import { CsvColumn } from 'src/app/components/reuse/exportable-table/exportable-table.component';
 import { StudentStats } from 'src/app/models/report-models';
@@ -40,14 +40,15 @@ export class StudentStatsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reportSub = combineLatest({
-      meetings: this.dateRangeSelection.pipe(
-        switchMap(range => this.reportsService.getMeetingList(range))
-      ),
-      stats: this.dateRangeSelection.pipe(
-        switchMap(range => this.reportsService.getStudentStats(range))
+      // Both requests are joined per range, so a fast response can't be paired with a stale one from the previous range
+      range: this.dateRangeSelection.pipe(
+        switchMap(range => forkJoin({
+          meetings: this.reportsService.getMeetingList(range),
+          stats: this.reportsService.getStudentStats(range)
+        }))
       ),
       students: this.studentsService.getStudentMap(true)
-    }).subscribe(({meetings, stats, students}) => {
+    }).subscribe(({range: {meetings, stats}, students}) => {
         this.report.next({
           meeting_count: meetings.length,
           report: stats.map(stats => ({
