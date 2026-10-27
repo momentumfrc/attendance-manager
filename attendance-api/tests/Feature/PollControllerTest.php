@@ -175,6 +175,26 @@ class PollControllerTest extends TestCase
         $response->assertJsonCount(1, 'meeting_events');
     }
 
+    public function test_poll_uses_its_own_rate_limit() {
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertHeader('X-RateLimit-Limit', 600);
+
+        $this->actingAs($this->user)->getJson('/api/students')
+            ->assertStatus(200)
+            ->assertHeader('X-RateLimit-Limit', 120);
+    }
+
+    public function test_polling_does_not_consume_api_limit() {
+        for($i = 0; $i < 5; $i++) {
+            $this->poll(['since' => $this->since->timestamp])->assertStatus(200);
+        }
+
+        $this->actingAs($this->user)->getJson('/api/students')
+            ->assertStatus(200)
+            ->assertHeader('X-RateLimit-Remaining', 119);
+    }
+
     public function test_returns_meeting_events_in_window() {
         $this->makeMeeting($this->oldDate());
         $recent = $this->makeMeeting($this->since->copy()->addMinutes(10));

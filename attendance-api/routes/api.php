@@ -51,7 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/list-meetings', [ReportController::class, 'listMeetings']);
     Route::get('reports/meeting-attendance', [ReportController::class, 'meetingAttendance']);
     Route::get('reports/student-stats', [ReportController::class, 'studentStats']);
-    Route::get('poll', [PollController::class, 'poll']);
+    Route::get('poll', [PollController::class, 'poll'])
+        ->withoutMiddleware('throttle:api')
+        ->middleware('throttle:poll');
 
     Route::get('roles', fn () => collect([
         "roles" => Role::all()->map(fn ($role) => ['name'=>$role->name, 'permissions'=>$role->permissions->pluck("name")]),

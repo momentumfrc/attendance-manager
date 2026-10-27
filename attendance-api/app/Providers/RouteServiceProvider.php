@@ -66,7 +66,13 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting()
     {
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(180)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(120)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        // The check-in screen polls for near-realtime updates (twice per second per device), so the
+        // poll endpoint gets its own, more lenient limit that doesn't eat into the api limit
+        RateLimiter::for('poll', function (Request $request) {
+            return Limit::perMinute(600)->by(optional($request->user())->id ?: $request->ip());
         });
     }
 }
