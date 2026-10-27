@@ -1,17 +1,21 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, ReplaySubject, Subject, Subscription, switchMap } from 'rxjs';
 import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
+import { CsvColumn } from 'src/app/components/reuse/exportable-table/exportable-table.component';
 import { StudentStats } from 'src/app/models/report-models';
 import { Student } from 'src/app/models/student.model';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 
+interface StudentStatsRow {
+  student: Student,
+  stats: StudentStats
+}
+
 interface StudentStatsReport {
   meeting_count: number,
-  report: {
-    student: Student,
-    stats: StudentStats
-  }[]
+  report: StudentStatsRow[],
+  csvColumns: CsvColumn<StudentStatsRow>[]
 };
 
 @Component({
@@ -48,9 +52,21 @@ export class StudentStatsComponent implements OnInit, OnDestroy {
           report: stats.map(stats => ({
             student: students.get(stats.student_id)!!,
             stats: stats
-          })).filter(it => !!it.student)
+          })).filter(it => !!it.student),
+          csvColumns: this.getCsvColumns(meetings.length)
         });
     });
+  }
+
+  getCsvColumns(meetingCount: number): CsvColumn<StudentStatsRow>[] {
+    return [
+      { header: 'student_id', value: row => row.student.id },
+      { header: 'student_name', value: row => row.student.name },
+      { header: 'meetings_attended', value: row => row.stats.checkin_count },
+      { header: 'total_meetings', value: _ => meetingCount },
+      { header: 'missed_checkouts', value: row => row.stats.missed_checkout_count },
+      { header: 'meeting_time_seconds', value: row => row.stats.meeting_time }
+    ];
   }
 
   ngOnDestroy(): void {

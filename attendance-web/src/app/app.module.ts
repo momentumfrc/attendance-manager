@@ -42,7 +42,6 @@ import { ErrorComponent } from './components/error/error.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
-import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
@@ -50,6 +49,7 @@ import { ReportsComponent } from './components/reports/reports.component';
 import { StudentStatsComponent } from './components/reports/student-stats/student-stats.component';
 import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confirm-dialog.component';
 import { DatePickerComponent } from './components/reuse/date-picker/date-picker.component';
+import { ExportableTableComponent } from './components/reuse/exportable-table/exportable-table.component';
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
@@ -76,7 +76,6 @@ import { httpInterceptorProviders } from './http-interceptors';
         ShowStudentComponent,
         StudentStatsComponent,
         ReportsComponent,
-        CsvExportComponent,
         EventLogComponent,
         MeetingEventsComponent,
         ConfirmDialogComponent,
@@ -86,6 +85,7 @@ import { httpInterceptorProviders } from './http-interceptors';
     ],
     bootstrap: [AppComponent], imports: [
         SpinnerComponent,
+        ExportableTableComponent,
         BrowserModule,
         AppRoutingModule,
         ReactiveFormsModule,

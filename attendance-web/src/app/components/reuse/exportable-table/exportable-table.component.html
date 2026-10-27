@@ -1,0 +1,27 @@
+<mat-card class="table-card">
+  <mat-card-content>
+    <div class="table-actions">
+      <button mat-stroked-button (click)="exportCsv()" [disabled]="data.length == 0">
+        <mat-icon>download</mat-icon>
+        Export CSV
+      </button>
+    </div>
+    <div class="table-container">
+      <table mat-table [dataSource]="paginated ? pagedData : data">
+        <ng-content></ng-content>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+      </table>
+    </div>
+    @if (paginated) {
+      <mat-paginator [pageSizeOptions]="pagedData.pageSizeOptions"
+        [length]="pagedData.getDataSize()"
+        [pageIndex]="pagedData.pageIndex"
+        [pageSize]="pagedData.pageSize"
+        (page)="pagedData.paginate($event)"
+        showFirstLastButtons
+        aria-label="Select page">
+      </mat-paginator>
+    }
+  </mat-card-content>
+</mat-card>

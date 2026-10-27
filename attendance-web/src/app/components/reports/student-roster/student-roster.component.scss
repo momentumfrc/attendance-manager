@@ -1,5 +1,4 @@
 @use '@angular/material' as mat;
-@use 'media';
 
 #options {
     margin-top: 30px;
@@ -12,12 +11,6 @@
     @include mat.slide-toggle-overrides((
         label-text-size: 1.2em
     ));
-}
-
-#reportCard {
-    @include media.mobile {
-        overflow-x: scroll;
-    }
 }
 
 .student-name-container {

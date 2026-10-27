@@ -1,6 +1,6 @@
 import { MatDialog } from "@angular/material/dialog";
 import { DateTime } from "luxon";
-import { of, ReplaySubject, take } from "rxjs";
+import { combineLatest, of, ReplaySubject, take } from "rxjs";
 import { AttendanceEventType } from "src/app/models/attendance-event.model";
 import { MeetingEventType } from "src/app/models/meeting-event.model";
 import { Student } from "src/app/models/student.model";
@@ -48,7 +48,7 @@ describe('EventLogComponent', () => {
         );
     });
 
-    it('should show the registrar of events registered by deleted users', () => {
+    function emitEvents() {
         component.ngOnInit();
         component.events.next({
             attendance: [{
@@ -67,12 +67,34 @@ describe('EventLogComponent', () => {
                 updated_at: created.plus({ hours: 1 })
             }]
         });
+    }
+
+    it('should show the registrar of events registered by deleted users', () => {
+        emitEvents();
 
         let registrars: Array<string|undefined> = [];
-        component.richEvents.connect(null!).pipe(take(1)).subscribe(events => {
+        component.richEvents.pipe(take(1)).subscribe(events => {
             registrars = events.map(event => event.registrar?.name);
         });
 
         expect(registrars).toEqual(['Active User', 'Deleted User']);
+    });
+
+    it('should export the events as csv rows', () => {
+        emitEvents();
+
+        let headers: Array<string> = [];
+        let rows: Array<Array<unknown>> = [];
+        combineLatest([component.richEvents, component.csvColumnSubject]).pipe(take(1)).subscribe(([events, csvColumns]) => {
+            headers = csvColumns.map(column => column.header);
+            rows = events.map(event => csvColumns.map(column => column.value(event)));
+        });
+
+        expect(headers).toEqual(
+            ['event_id', 'student_id', 'student_name', 'registered_by_id', 'registered_by_name', 'event_type', 'created_at']);
+        expect(rows).toEqual([
+            ['m-5', undefined, undefined, activeUser.id, 'Active User', 'end-of-meeting', created.plus({ hours: 1 }).toISO()],
+            ['a-1', 2, 'Student Two', deletedUser.id, 'Deleted User', 'check-in', created.toISO()]
+        ]);
     });
 });

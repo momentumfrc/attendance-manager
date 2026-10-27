@@ -2,17 +2,20 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { ReplaySubject, Subscription, combineLatest } from 'rxjs';
+import { CsvColumn } from 'src/app/components/reuse/exportable-table/exportable-table.component';
 import { Student } from 'src/app/models/student.model';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 
+interface MeetingAttendanceSession {
+  student: Student,
+  checkin_date: DateTime,
+  checkout_date: DateTime|null
+}
+
 interface MeetingAttendanceReport {
   date: DateTime,
-  attendance_sessions: {
-    student: Student,
-    checkin_date: DateTime,
-    checkout_date: DateTime|null
-  }[]
+  attendance_sessions: MeetingAttendanceSession[]
 };
 
 @Component({
@@ -26,6 +29,12 @@ export class MeetingAttendanceReportComponent implements OnInit, OnDestroy {
   DATETIME_SHORT_FMT = DateTime.DATETIME_SHORT;
 
   meetingAttendanceColumns = ["student-name", "checkin-date", "checkout-date"];
+  csvColumns: CsvColumn<MeetingAttendanceSession>[] = [
+    { header: 'student_id', value: session => session.student.id },
+    { header: 'student_name', value: session => session.student.name },
+    { header: 'checkin_at', value: session => session.checkin_date.toISO() },
+    { header: 'checkout_at', value: session => session.checkout_date?.toISO() }
+  ];
 
   report = new ReplaySubject<MeetingAttendanceReport>(1);
 

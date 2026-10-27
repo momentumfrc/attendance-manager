@@ -7,7 +7,6 @@ import { ErrorComponent } from './components/error/error.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
-import { CsvExportComponent } from './components/reports/csv-export/csv-export.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
@@ -52,8 +51,7 @@ const routes: Routes = [
       { path: 'meetings/attendance/:date', component: MeetingAttendanceReportComponent },
       { path: 'student-stats', component: StudentStatsComponent },
       { path: 'student-roster', component: StudentRosterComponent },
-      { path: 'event-log', component: EventLogComponent },
-      { path: 'export', component: CsvExportComponent }
+      { path: 'event-log', component: EventLogComponent }
     ]
   },
   { path: 'meetings', component: MeetingEventsComponent,

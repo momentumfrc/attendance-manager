@@ -28,7 +28,7 @@ attendance sessions.
 </p>
 
 ### Export to CSV
-Student attendance data can be exported to csv for external processing.
+Every report can be exported to csv for external processing, using the "Export CSV" button above the report's table.
 <p align="center">
 <img src="docs/assets/feat-csv.png" height="400px">
 </p>

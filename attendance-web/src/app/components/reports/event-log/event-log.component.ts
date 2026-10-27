@@ -11,7 +11,7 @@ import { AttendanceService } from 'src/app/services/attendance.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
-import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
+import { CsvColumn } from 'src/app/components/reuse/exportable-table/exportable-table.component';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
@@ -53,9 +53,10 @@ export class EventLogComponent implements OnInit {
 
   showActions = new ReplaySubject<boolean>(1);
   eventColumnSubject = new ReplaySubject<string[]>(1);
+  csvColumnSubject = new ReplaySubject<CsvColumn<EventLogEvent>[]>(1);
 
   events = new ReplaySubject<AttendanceAndMeetingData>(1);
-  richEvents = new PaginatedDataSource<EventLogEvent>();
+  richEvents = new ReplaySubject<Array<EventLogEvent>>(1);
 
   constructor(
     private dialog: MatDialog,
@@ -90,6 +91,7 @@ export class EventLogComponent implements OnInit {
       } else {
         this.eventColumnSubject.next(["eventId", "studentId", "registrarId", "eventType", "eventDate"]);
       }
+      this.csvColumnSubject.next(this.getCsvColumns(shouldShow));
     })
 
     permissionsService.checkPermissions(['delete attendance event']).subscribe(
@@ -135,8 +137,24 @@ export class EventLogComponent implements OnInit {
           return out;
         })
     ).subscribe((events) => {
-      this.richEvents.setData(events);
+      this.richEvents.next(events);
     })
+  }
+
+  getCsvColumns(includeDeleted: boolean): CsvColumn<EventLogEvent>[] {
+    let columns: CsvColumn<EventLogEvent>[] = [
+      { header: 'event_id', value: event => event.eventId },
+      { header: 'student_id', value: event => event.student?.id },
+      { header: 'student_name', value: event => event.student?.name },
+      { header: 'registered_by_id', value: event => event.originalEvent.registered_by },
+      { header: 'registered_by_name', value: event => event.registrar?.name },
+      { header: 'event_type', value: event => event.event_type },
+      { header: 'created_at', value: event => event.date.toISO() }
+    ];
+    if(includeDeleted) {
+      columns.push({ header: 'deleted', value: event => String(event.deleted) });
+    }
+    return columns;
   }
 
   action(event: EventLogEvent) {

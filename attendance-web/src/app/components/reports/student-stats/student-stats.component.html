@@ -3,37 +3,35 @@
 </div>
 
 @if (report|async; as report) {
-  <mat-card id="reportCard">
-    <mat-card-content>
-      <table mat-table [dataSource]="report.report">
-        <ng-container matColumnDef="student-name">
-          <th mat-header-cell *matHeaderCellDef>Student Name</th>
-          <td mat-cell *matCellDef="let element">
-            <div class="student-name-container">
-              @if (element.student.deleted_at) {
-                <div class="deletedIcon"><mat-icon>delete</mat-icon></div>
-              }
-              <div class="student-name">{{element.student.name}}</div>
-            </div>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="checkin-count">
-          <th mat-header-cell *matHeaderCellDef>Meetings Attended <br> (out&nbsp;of&nbsp;{{report.meeting_count}}) </th>
-          <td mat-cell *matCellDef="let element">{{element.stats.checkin_count}}</td>
-        </ng-container>
-        <ng-container matColumnDef="missed-checkout-count">
-          <th mat-header-cell *matHeaderCellDef>Missed Checkouts</th>
-          <td mat-cell *matCellDef="let element">{{element.stats.missed_checkout_count}}</td>
-        </ng-container>
-        <ng-container matColumnDef="meeting-time">
-          <th mat-header-cell *matHeaderCellDef>Time Spent at Meetings</th>
-          <td mat-cell *matCellDef="let element">{{formatTimeDiff(element.stats.meeting_time)}}</td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="studentStatsColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: studentStatsColumns;"></tr>
-      </table>
-    </mat-card-content>
-  </mat-card>
+  <app-exportable-table
+    [data]="report.report"
+    [columns]="studentStatsColumns"
+    [csvColumns]="report.csvColumns"
+    csvFilename="student-stats">
+    <ng-container matColumnDef="student-name">
+      <th mat-header-cell *matHeaderCellDef>Student Name</th>
+      <td mat-cell *matCellDef="let element">
+        <div class="student-name-container">
+          @if (element.student.deleted_at) {
+            <div class="deletedIcon"><mat-icon>delete</mat-icon></div>
+          }
+          <div class="student-name">{{element.student.name}}</div>
+        </div>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="checkin-count">
+      <th mat-header-cell *matHeaderCellDef>Meetings Attended <br> (out&nbsp;of&nbsp;{{report.meeting_count}}) </th>
+      <td mat-cell *matCellDef="let element">{{element.stats.checkin_count}}</td>
+    </ng-container>
+    <ng-container matColumnDef="missed-checkout-count">
+      <th mat-header-cell *matHeaderCellDef>Missed Checkouts</th>
+      <td mat-cell *matCellDef="let element">{{element.stats.missed_checkout_count}}</td>
+    </ng-container>
+    <ng-container matColumnDef="meeting-time">
+      <th mat-header-cell *matHeaderCellDef>Time Spent at Meetings</th>
+      <td mat-cell *matCellDef="let element">{{formatTimeDiff(element.stats.meeting_time)}}</td>
+    </ng-container>
+  </app-exportable-table>
 } @else {
   <app-spinner></app-spinner>
 }

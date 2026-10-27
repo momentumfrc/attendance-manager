@@ -6,6 +6,7 @@ import { BehaviorSubject, combineLatest, ReplaySubject, Subject } from 'rxjs';
 import { MeetingStudentCount } from 'src/app/models/report-models';
 import { ReportsService } from 'src/app/services/reports.service';
 import { SelectedDateRange } from '../../reuse/date-picker/date-picker.component';
+import { CsvColumn } from '../../reuse/exportable-table/exportable-table.component';
 
 enum PageState {
   LOADING = 1,
@@ -22,6 +23,10 @@ export class MeetingsReportComponent {
   readonly dateFormat = DateTime.DATE_SHORT;
 
   meetingStatsColumns = ['attendance-detail', 'date', 'student-count'];
+  csvColumns: CsvColumn<MeetingStudentCount>[] = [
+    { header: 'meeting_date', value: meeting => meeting.meeting_date.toISODate() },
+    { header: 'student_count', value: meeting => meeting.student_count }
+  ];
 
   state = new BehaviorSubject<PageState>(PageState.LOADING);
   stateType = PageState
