@@ -49,6 +49,8 @@
         }
         <mat-paginator [pageSizeOptions]="richEvents.pageSizeOptions"
           [length]="richEvents.getDataSize()"
+          [pageIndex]="richEvents.pageIndex"
+          [pageSize]="richEvents.pageSize"
           (page)="richEvents.paginate($event)"
           showFirstLastButtons
           aria-label="Select page of attendance events">

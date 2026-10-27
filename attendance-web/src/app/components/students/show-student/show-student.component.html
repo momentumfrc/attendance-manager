@@ -76,6 +76,8 @@
               </table>
               <mat-paginator [pageSizeOptions]="attendanceSessions.pageSizeOptions"
                 [length]="attendanceSessions.getDataSize()"
+                [pageIndex]="attendanceSessions.pageIndex"
+                [pageSize]="attendanceSessions.pageSize"
                 (page)="attendanceSessions.paginate($event)"
                 showFirstLastButtons
                 aria-label="Select page of attendance sessions">

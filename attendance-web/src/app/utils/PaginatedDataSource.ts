@@ -9,24 +9,30 @@ export class PaginatedDataSource<DataType> implements DataSource<DataType> {
 
     private paginatedData = new ReplaySubject<Array<DataType>>(1);
 
-    private lastPageSize = this.pageSizeOptions[0];
+    public pageIndex = 0;
+    public pageSize = this.pageSizeOptions[0];
 
     public setData(data: Array<DataType>): void {
       this.data = data;
-      this.updateSlice(0, this.lastPageSize);
+      // Stay on the current page, unless the data no longer reaches it
+      const lastPageIndex = Math.max(0, Math.ceil(data.length / this.pageSize) - 1);
+      this.pageIndex = Math.min(this.pageIndex, lastPageIndex);
+      this.updateSlice();
     }
 
     public paginate(event: PageEvent) {
-      this.lastPageSize = event.pageSize;
-      this.updateSlice(event.pageSize * event.pageIndex, event.pageSize * (event.pageIndex + 1));
+      this.pageIndex = event.pageIndex;
+      this.pageSize = event.pageSize;
+      this.updateSlice();
     }
 
     public getDataSize(): number {
       return this.data.length;
     }
 
-    private updateSlice(startIdx: number, endIdx: number) {
-      this.paginatedData.next(this.data.slice(startIdx, endIdx));
+    private updateSlice() {
+      const startIdx = this.pageSize * this.pageIndex;
+      this.paginatedData.next(this.data.slice(startIdx, startIdx + this.pageSize));
     }
 
     connect(collectionViewer: CollectionViewer): Observable<readonly DataType[]> {

@@ -40,6 +40,8 @@
       </table>
       <mat-paginator [pageSizeOptions]="richMeetingEvents.pageSizeOptions"
         [length]="richMeetingEvents.getDataSize()"
+        [pageIndex]="richMeetingEvents.pageIndex"
+        [pageSize]="richMeetingEvents.pageSize"
         (page)="richMeetingEvents.paginate($event)"
         showFirstLastButtons
         aria-label="Select page of meeting events">
