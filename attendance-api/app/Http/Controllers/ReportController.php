@@ -16,60 +16,82 @@ class ReportController extends Controller
         $this->middleware('can:view stats');
     }
 
+    /**
+     * Validation rule for a client timezone: either a UTC offset (e.g. "-08:00") or an IANA name (e.g. "America/Los_Angeles").
+     * Only IANA names account for daylight saving time.
+     */
+    private static function timezoneRule() {
+        return function(string $attribute, mixed $value, \Closure $fail) {
+            $isOffset = is_string($value) && preg_match('/^[+-]\d{2}:\d{2}$/', $value);
+            $isName = is_string($value) && in_array($value, \DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC), true);
+            if(!$isOffset && !$isName) {
+                $fail("The $attribute must be a UTC offset or an IANA timezone name.");
+            }
+        };
+    }
+
+    private static function clientTimezone(Request $request): CarbonTimeZone {
+        return new CarbonTimeZone($request->input('timezone', config('config.default_client_timezone')));
+    }
+
     public function listMeetings(Request $request) {
         $request->validate([
             'since' => 'date_format:U|lt:4294967295',
             'until' => 'date_format:U|lt:4294967295',
-            'timezone' => 'date_format:P',
+            'timezone' => self::timezoneRule(),
             'limit' => 'integer|min:1'
         ]);
 
-        $query = DB::table('attendance_sessions')
-            ->selectRaw(
-                'CAST(CONVERT_TZ(checkin_date, "+0:00", ?) AS DATE) as meeting_date, COUNT(DISTINCT student_id) AS student_count',
-                [$request->input('timezone', config('config.default_client_timezone'))]
-            );
+        $timezone = self::clientTimezone($request);
+
+        $query = DB::table('attendance_sessions')->select(['checkin_date', 'student_id']);
 
         if($request->has('since')) {
-            $query = $query->where('checkin_date', '>=', Carbon::createFromTimestamp($request->since)->setTime(0, 0, 0));
+            $query = $query->where('checkin_date', '>=', Carbon::createFromTimestamp($request->since));
         }
 
         if($request->has('until')) {
-            $query = $query->where('checkin_date', '<=',  Carbon::createFromTimestamp($request->until)->setTime(23, 59, 59));
+            $query = $query->where('checkin_date', '<=',  Carbon::createFromTimestamp($request->until));
         }
+
+        // Group by date in PHP, since the database may not have named timezones loaded for CONVERT_TZ
+        $meetings = $query->get()
+            ->groupBy(fn($session) => Carbon::parse($session->checkin_date, 'UTC')->setTimezone($timezone)->toDateString())
+            ->map(fn($sessions, $date) => [
+                'meeting_date' => $date,
+                'student_count' => $sessions->pluck('student_id')->unique()->count()
+            ])
+            ->sortKeysDesc()
+            ->values();
 
         if($request->has('limit')) {
-            $query = $query->limit($request->limit);
+            $meetings = $meetings->take((int)$request->limit);
         }
 
-        $query->groupBy('meeting_date');
-        $query->orderBy('meeting_date', 'desc');
-
-        return $query->get();
+        return $meetings;
     }
 
     public function meetingAttendance(Request $request) {
         $request->validate([
             'on' => 'date_format:Y-m-d',
-            'timezone' => 'date_format:P'
+            'timezone' => self::timezoneRule()
         ]);
 
-        $timezone = $request->input('timezone', config('config.default_client_timezone'));
+        $timezone = self::clientTimezone($request);
 
         $query = DB::table('attendance_sessions')->select(['student_id', 'checkin_id', 'checkin_date', 'checkout_id', 'checkout_date']);
 
         if($request->has('on')) {
-            $on = $request->on;
+            $on = Carbon::createFromFormat('Y-m-d', $request->on, $timezone);
         } else {
-            $on = DB::table('attendance_sessions')
-                ->selectRaw('CAST(MAX(CONVERT_TZ(checkin_date, "+0:00", ?)) AS DATE) AS max_meeting_date',
-                [$timezone]
-            )->value('max_meeting_date');
+            $latest = DB::table('attendance_sessions')->max('checkin_date');
+            $on = $latest ? Carbon::parse($latest, 'UTC')->setTimezone($timezone) : Carbon::now($timezone);
         }
 
-        $on = Carbon::createFromFormat('Y-m-d', $on, $timezone)->setTime(0, 0, 0);
+        $on = $on->startOfDay();
 
-        $query->whereRaw('CAST(CONVERT_TZ(checkin_date, "+0:00", ?) AS DATE) = ?', [$request->input('timezone', config('config.default_client_timezone')), $on->toDateString()]);
+        $query->where('checkin_date', '>=', $on->copy()->utc())
+            ->where('checkin_date', '<', $on->copy()->addDay()->utc());
 
         $query->orderBy('checkin_date', 'ASC');
 
@@ -93,7 +115,7 @@ class ReportController extends Controller
         $timesQuery = DB::table('attendance_sessions')->selectRaw('student_id, SUM(TIMESTAMPDIFF(SECOND, checkin_date, checkout_date)) as meeting_time')->whereNotNull('checkout_id');
 
         if($request->has('since')) {
-            $since = Carbon::createFromTimestamp($request->since)->setTime(0, 0, 0);
+            $since = Carbon::createFromTimestamp($request->since);
             $checkinQuery->where('checkin_date', '>=', $since);
             $missedQuery->where('checkin_date', '>=', $since);
             $timesQuery->where('checkin_date', '>=', $since);
@@ -102,7 +124,7 @@ class ReportController extends Controller
         }
 
         if($request->has('until')) {
-            $until = Carbon::createFromTimestamp($request->until)->setTime(23, 59, 59);
+            $until = Carbon::createFromTimestamp($request->until);
             $checkinQuery->where('checkin_date', '<=',  $until);
             $missedQuery->where('checkin_date', '<=',  $until);
             $timesQuery->where('checkin_date', '<=',  $until);

@@ -12,12 +12,20 @@ export class ReportsService {
 
   constructor(private httpClient: HttpClient) { }
 
+  /**
+   * Meetings are grouped by date in the browser's timezone. An IANA name (rather than the current offset) lets the
+   * server account for daylight saving time.
+   */
+  private timezoneParams(): HttpParams {
+    return new HttpParams().set('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }
+
   getMeetingList(options?: {
     since?: DateTime,
     until?: DateTime,
     limit?: number
   }): Observable<Array<MeetingStudentCount>> {
-    let params = new HttpParams();
+    let params = this.timezoneParams();
     if(options?.since) {
       params = params.set('since', Math.floor(options.since.toMillis() / 1000));
     }
@@ -34,7 +42,7 @@ export class ReportsService {
   getMeetingAttendance(options?: {
     meeting_date?: DateTime
   }): Observable<MeetingAttendance> {
-    let params = new HttpParams();
+    let params = this.timezoneParams();
     if(options?.meeting_date) {
       const formatted = options.meeting_date.toISODate();
       if(formatted) {

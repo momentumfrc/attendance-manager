@@ -78,8 +78,46 @@ class ReportControllerTest extends TestCase
         $response = $this->report('/api/reports/list-meetings', ['timezone' => '+00:00', 'since' => $this->ts('2024-01-08 00:00:00')]);
         $this->assertEquals(['2024-01-15', '2024-01-08'], collect($response->json())->pluck('meeting_date')->all());
 
-        $response = $this->report('/api/reports/list-meetings', ['timezone' => '+00:00', 'until' => $this->ts('2024-01-08 00:00:00')]);
+        $response = $this->report('/api/reports/list-meetings', ['timezone' => '+00:00', 'until' => $this->ts('2024-01-09 00:00:00')]);
         $this->assertEquals(['2024-01-08', '2024-01-01'], collect($response->json())->pluck('meeting_date')->all());
+    }
+
+    public function test_list_meetings_uses_exact_range() {
+        $a = $this->makeStudent();
+        // Dec 31 19:00 and Jan 31 19:00 in Pacific time
+        $this->makeSession($a, '2024-01-01 03:00:00', '2024-01-01 04:00:00');
+        $this->makeSession($a, '2024-01-15 20:00:00', '2024-01-15 22:00:00');
+        $this->makeSession($a, '2024-02-01 03:00:00', '2024-02-01 04:00:00');
+
+        // Jan 1 - Jan 31 in Pacific time
+        $response = $this->report('/api/reports/list-meetings', [
+            'timezone' => '-08:00',
+            'since' => $this->ts('2024-01-01 08:00:00'),
+            'until' => $this->ts('2024-02-01 08:00:00')
+        ]);
+        $this->assertEquals(['2024-01-31', '2024-01-15'], collect($response->json())->pluck('meeting_date')->all());
+
+        $response = $this->report('/api/reports/list-meetings', [
+            'timezone' => '-08:00',
+            'since' => $this->ts('2024-01-01 04:00:00'),
+            'until' => $this->ts('2024-02-01 02:00:00')
+        ]);
+        $this->assertEquals(['2024-01-15'], collect($response->json())->pluck('meeting_date')->all());
+    }
+
+    public function test_list_meetings_named_timezone_follows_dst() {
+        $a = $this->makeStudent();
+        // 00:30 PDT on Jul 2, but 23:30 on Jul 1 at -08:00
+        $this->makeSession($a, '2024-07-02 07:30:00', '2024-07-02 08:30:00');
+        // 23:30 PST on Jan 1
+        $this->makeSession($a, '2024-01-02 07:30:00', '2024-01-02 08:30:00');
+
+        $response = $this->report('/api/reports/list-meetings', ['timezone' => 'America/Los_Angeles'])->assertStatus(200);
+        $this->assertEquals(['2024-07-02', '2024-01-01'], collect($response->json())->pluck('meeting_date')->all());
+
+        // Pacific time is the default
+        $response = $this->report('/api/reports/list-meetings')->assertStatus(200);
+        $this->assertEquals(['2024-07-02', '2024-01-01'], collect($response->json())->pluck('meeting_date')->all());
     }
 
     public function test_list_meetings_timezone_shifts_date() {
@@ -97,6 +135,7 @@ class ReportControllerTest extends TestCase
         $this->report('/api/reports/list-meetings', ['since' => '01-01-2024'])->assertStatus(422);
         $this->report('/api/reports/list-meetings', ['limit' => 0])->assertStatus(422);
         $this->report('/api/reports/list-meetings', ['timezone' => 'PST'])->assertStatus(422);
+        $this->report('/api/reports/list-meetings', ['timezone' => 'Not/A_Zone'])->assertStatus(422);
     }
 
     public function test_meeting_attendance() {
@@ -124,6 +163,26 @@ class ReportControllerTest extends TestCase
         $response = $this->report('/api/reports/meeting-attendance', ['timezone' => '+00:00'])->assertStatus(200);
         $this->assertStringStartsWith('2024-01-08', $response['meeting_date']);
         $this->assertCount(1, $response['attendance_sessions']);
+    }
+
+    public function test_meeting_attendance_named_timezone_follows_dst() {
+        $a = $this->makeStudent();
+        $b = $this->makeStudent();
+        // 00:30 and 23:30 PDT on Jul 2
+        $this->makeSession($a, '2024-07-02 07:30:00', '2024-07-02 08:30:00');
+        $this->makeSession($b, '2024-07-03 06:30:00', '2024-07-03 07:00:00');
+        // 00:30 PDT on Jul 3
+        $this->makeSession($a, '2024-07-03 07:30:00', '2024-07-03 08:30:00');
+
+        $response = $this->report('/api/reports/meeting-attendance', ['on' => '2024-07-02', 'timezone' => 'America/Los_Angeles'])
+            ->assertStatus(200);
+        $this->assertEquals([$a->id, $b->id], collect($response['attendance_sessions'])->pluck('student_id')->all());
+        $this->assertEquals(Carbon::parse('2024-07-02 07:00:00'), Carbon::parse($response['meeting_date']));
+
+        // Defaults to the latest meeting, in Pacific time
+        $response = $this->report('/api/reports/meeting-attendance')->assertStatus(200);
+        $this->assertEquals(Carbon::parse('2024-07-03 07:00:00'), Carbon::parse($response['meeting_date']));
+        $this->assertEquals([$a->id], collect($response['attendance_sessions'])->pluck('student_id')->all());
     }
 
     public function test_meeting_attendance_validation() {
@@ -176,10 +235,24 @@ class ReportControllerTest extends TestCase
         $this->assertEquals(3600, $since[$a->id]['meeting_time']);
         $this->assertEquals(0, $since[$b->id]['checkin_count']);
 
-        $until = collect($this->report('/api/reports/student-stats', ['until' => $this->ts('2024-01-01 00:00:00')])->json())->keyBy('student_id');
+        $until = collect($this->report('/api/reports/student-stats', ['until' => $this->ts('2024-01-02 00:00:00')])->json())->keyBy('student_id');
         $this->assertEquals(1, $until[$a->id]['checkin_count']);
         $this->assertEquals(7200, $until[$a->id]['meeting_time']);
         $this->assertEquals(1, $until[$b->id]['checkin_count']);
+    }
+
+    public function test_student_stats_uses_exact_range() {
+        $a = $this->makeStudent();
+        $this->makeSession($a, '2024-01-01 03:00:00', '2024-01-01 04:00:00');
+        $this->makeSession($a, '2024-01-15 20:00:00', '2024-01-15 22:00:00');
+        $this->makeSession($a, '2024-02-01 03:00:00', '2024-02-01 04:00:00');
+
+        $stats = collect($this->report('/api/reports/student-stats', [
+            'since' => $this->ts('2024-01-01 08:00:00'),
+            'until' => $this->ts('2024-02-01 08:00:00')
+        ])->json())->keyBy('student_id');
+        $this->assertEquals(2, $stats[$a->id]['checkin_count']);
+        $this->assertEquals(7200 + 3600, $stats[$a->id]['meeting_time']);
     }
 
     public function test_student_stats_excludes_students_deleted_before_since() {
