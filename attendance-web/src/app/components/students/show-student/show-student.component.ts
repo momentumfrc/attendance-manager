@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, combineLatest, filter, map, Observable, of, ReplaySubject, shareReplay, startWith, Subject, switchMap, takeUntil } from 'rxjs';
 import { SelectedDateRange } from 'src/app/components/reuse/date-picker/date-picker.component';
+import { CsvColumn } from 'src/app/components/reuse/exportable-table/exportable-table.component';
 import { AttendanceSession } from 'src/app/models/attendance-session.model';
 import { MeetingStudentCount } from 'src/app/models/report-models';
 import { Student } from 'src/app/models/student.model';
@@ -13,7 +14,6 @@ import { ProfileImagesService } from 'src/app/services/profile-images.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
-import { PaginatedDataSource } from 'src/app/utils/PaginatedDataSource';
 import { environment } from 'src/environments/environment';
 
 enum PageState {
@@ -36,13 +36,17 @@ class RichAttendanceSession {
     public session: AttendanceSession
   ) {}
 
-  public getDurationStr(): string {
+  public getDurationSeconds(): number|null {
     if(!this.session.checkout_date) {
-      return "-";
+      return null;
     }
     const diff = this.session.checkout_date.toMillis() - this.session.checkin_date.toMillis();
-    const diffSeconds = Math.floor(diff / 1000);
-    return formatTimeDiff(diffSeconds);
+    return Math.floor(diff / 1000);
+  }
+
+  public getDurationStr(): string {
+    const diffSeconds = this.getDurationSeconds();
+    return diffSeconds == null ? "-" : formatTimeDiff(diffSeconds);
   }
 }
 
@@ -86,7 +90,16 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
   protected sessionsSubject = new ReplaySubject<AttendanceSession[]|null>(1);
   protected meetingsSubject = new ReplaySubject<MeetingStudentCount[]>(1);
 
-  protected attendanceSessions = new PaginatedDataSource<RichAttendanceSession>()
+  protected attendanceSessions = new ReplaySubject<RichAttendanceSession[]>(1)
+  protected sessionCsvColumns: Observable<CsvColumn<RichAttendanceSession>[]> = this.student.pipe(
+    map((student): CsvColumn<RichAttendanceSession>[] => [
+      { header: 'student_id', value: _ => student.id },
+      { header: 'student_name', value: _ => student.name },
+      { header: 'checkin_at', value: session => session.session.checkin_date.toISO() },
+      { header: 'checkout_at', value: session => session.session.checkout_date?.toISO() },
+      { header: 'duration_seconds', value: session => session.getDurationSeconds() }
+    ])
+  )
   protected attendanceStats = new ReplaySubject<AttendanceStats|null>(1)
 
   protected dateRangeChanges = new Subject<SelectedDateRange>();
@@ -149,9 +162,7 @@ export class ShowStudentComponent implements OnInit, OnDestroy {
     this.sessionsSubject.pipe(
       filter(it => it != null),
       map(sessions => sessions.map(session => new RichAttendanceSession(session))),
-    ).subscribe((sessions) => {
-      this.attendanceSessions.setData(sessions);
-    });
+    ).subscribe(this.attendanceSessions);
 
     this.dateRangeChanges.pipe(
       switchMap(dateRange => this.reportsService.getMeetingList(dateRange))
