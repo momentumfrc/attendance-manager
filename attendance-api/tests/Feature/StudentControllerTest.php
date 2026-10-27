@@ -40,8 +40,8 @@ class StudentControllerTest extends TestCase
 
         foreach($students as $student) {
             $student->profile_image = null;
-            $student->last_check_in = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('updated_at', 'desc')->first();
-            $student->last_check_out = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('updated_at', 'desc')->first();
+            $student->last_check_in = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_IN'])->orderBy('created_at', 'desc')->first();
+            $student->last_check_out = $student->attendanceEvents()->where('type', '=', config('enums.attendance_event_types')['CHECK_OUT'])->orderBy('created_at', 'desc')->first();
 
             if($student->last_check_in !== null) {
                 $student->last_check_in = $student->last_check_in->toArray();
@@ -310,5 +310,41 @@ class StudentControllerTest extends TestCase
                     ]
                 ]);
         }
+    }
+
+    public function test_last_event_ignores_updated_at() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+
+        $student = Student::factory()
+            ->registeredBy($user)
+            ->untrashed()
+            ->create();
+
+        $type = config('enums.attendance_event_types')['CHECK_IN'];
+
+        $older = new AttendanceEvent;
+        $older->student_id = $student->id;
+        $older->registered_by = $user->id;
+        $older->type = $type;
+        $older->created_at = Carbon::now()->subHours(2);
+        $older->save();
+
+        $newer = new AttendanceEvent;
+        $newer->student_id = $student->id;
+        $newer->registered_by = $user->id;
+        $newer->type = $type;
+        $newer->created_at = Carbon::now()->subHour();
+        $newer->save();
+
+        // Deleting and restoring the older event bumps its updated_at past the newer one's
+        $this->travel(1)->minutes();
+        $older->delete();
+        $older->restore();
+
+        $this->actingAs($user)
+            ->getJson('/api/students/'.$student->id)
+            ->assertStatus(200)
+            ->assertJsonPath('last_check_in.id', $newer->id);
     }
 }

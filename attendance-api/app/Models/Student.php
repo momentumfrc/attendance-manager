@@ -48,7 +48,7 @@ class Student extends Model
 
         $ranked = AttendanceEvent::query()
             ->select('*')
-            ->selectRaw('ROW_NUMBER() OVER (PARTITION BY student_id, type ORDER BY updated_at DESC) AS rn')
+            ->selectRaw('ROW_NUMBER() OVER (PARTITION BY student_id, type ORDER BY created_at DESC, id DESC) AS rn')
             ->whereIn('student_id', $students->modelKeys())
             ->whereIn('type', [$types['CHECK_IN'], $types['CHECK_OUT']]);
 
