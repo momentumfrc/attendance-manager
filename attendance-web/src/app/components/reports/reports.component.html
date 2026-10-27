@@ -1,12 +1,10 @@
-<nav mat-tab-nav-bar [tabPanel]="reportTabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
-  @for (tab of tabs; track tab) {
-    <a mat-tab-link
-      [routerLink]="tab.path"
-      routerLinkActive #rla="routerLinkActive"
-    [active]="rla.isActive">{{tab.name}}</a>
-  }
-</nav>
-<mat-tab-nav-panel #reportTabPanel>
-  <mat-divider></mat-divider>
-  <router-outlet></router-outlet>
-</mat-tab-nav-panel>
+<mat-form-field id="reportSelect" appearance="outline" subscriptSizing="dynamic">
+  <mat-label>Report</mat-label>
+  <mat-select [value]="selectedTab()?.path" (selectionChange)="router.navigateByUrl($event.value)">
+    @for (tab of tabs; track tab.path) {
+      <mat-option [value]="tab.path">{{tab.name}}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>
+<mat-divider></mat-divider>
+<router-outlet></router-outlet>

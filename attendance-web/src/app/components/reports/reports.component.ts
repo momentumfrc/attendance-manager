@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed } from '@angular/core';
+import { isActive, Router } from '@angular/router';
 
 @Component({
     selector: 'app-reports',
@@ -6,32 +7,31 @@ import { Component, OnInit } from '@angular/core';
     styleUrls: ['./reports.component.scss'],
     standalone: false
 })
-export class ReportsComponent implements OnInit {
-  tabs = [
+export class ReportsComponent {
+  readonly tabs = [
     {
-      path: './meetings',
+      path: '/reports/meetings',
       name: 'Meetings'
     },
     {
-      path: './student-stats',
+      path: '/reports/student-stats',
       name: 'Student Stats'
     },
     {
-      path: './student-roster',
+      path: '/reports/student-roster',
       name: 'Student Roster'
     },
     {
-      path: './attendance-sessions',
+      path: '/reports/attendance-sessions',
       name: 'Attendance Sessions'
     },
     {
-      path: './event-log',
+      path: '/reports/event-log',
       name: 'Event Log'
     }
-  ]
-  constructor() { }
+  ].map(tab => ({...tab, active: isActive(tab.path, this.router)}));
 
-  ngOnInit(): void {
-  }
+  readonly selectedTab = computed(() => this.tabs.find(tab => tab.active()));
 
+  constructor(protected router: Router) { }
 }
