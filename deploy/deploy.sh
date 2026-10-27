@@ -64,6 +64,12 @@ mv attendance/attendance-web attendance/attendance-web-src
 
 source deploy.env
 
+if [ -z "${APP_KEY}" ]; then
+    echo "APP_KEY is not set in deploy.env. Copy it from the server's .env, or generate one with:"
+    echo "    docker compose exec laravel.test php artisan key:generate --show"
+    exit 1
+fi
+
 GIT_HASH=$(git rev-parse --short HEAD)
 
 pushd attendance/attendance-api
@@ -71,6 +77,7 @@ mv .env.example .env
 
 # The "//\//\\\/" wizardry just tells bash to substitute '/' with '\/'
 # This escapes the '/' so they're not interpreted as separators by sed
+sed -i "s/APP_KEY=.*/APP_KEY=${APP_KEY//\//\\\/}/g" .env
 sed -i "s/APP_URL=.*/APP_URL=${APP_URL//\//\\\/}/g" .env
 sed -i "s/APP_DEBUG=.*/APP_DEBUG=${APP_DEBUG//\//\\\/}/g" .env
 sed -i "s/APP_ENV=.*/APP_ENV=${APP_ENV//\//\\\/}/g" .env
@@ -139,7 +146,6 @@ php -d 'allow_url_fopen=1' composer-setup.php --quiet
 rm composer-setup.php
 
 php -d 'allow_url_fopen=1' composer.phar install --optimize-autoloader --no-dev
-php artisan key:generate
 php artisan config:cache
 php artisan migrate --force
 
@@ -168,12 +174,14 @@ chmod +x attendance/scripts/*.sh
 # -t   preserve modification times
 # -v   verbose
 # -z   compress files during transfer
+# Storage is protected rather than excluded so its tracked directory skeleton still gets
+# created, but nothing the server wrote there (logs, sessions, uploads) is ever deleted.
 rsync -rlptvz --progress --delete \
     -e 'ssh -i ~/.ssh/id_rsa_win' \
     ./attendance/ momentu2@momentum4999.com:~/public_html/attendance \
     --exclude backup/attendance_backups/ \
     --exclude scripts/logs \
-    --exclude attendance-api/storage/app/
+    --filter 'P attendance-api/storage/***'
 
 ssh -i ~/.ssh/id_rsa_win momentu2@momentum4999.com 'bash -l -c "~/public_html/attendance/install.sh"'
 
