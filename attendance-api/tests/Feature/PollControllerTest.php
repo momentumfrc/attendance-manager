@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -12,6 +13,7 @@ use App\Models\AttendanceEvent;
 use App\Models\MeetingEvent;
 use App\Models\Student;
 use App\Models\User;
+use App\Support\PollChangeMarker;
 
 use Carbon\Carbon;
 
@@ -193,6 +195,48 @@ class PollControllerTest extends TestCase
         $this->actingAs($this->user)->getJson('/api/students')
             ->assertStatus(200)
             ->assertHeader('X-RateLimit-Remaining', 119);
+    }
+
+    public function test_poll_skips_queries_when_nothing_changed() {
+        $student = $this->makeOldStudent();
+        $this->makeEvent($student, 'check-in', $this->since->copy()->addMinutes(10));
+        Cache::forever(PollChangeMarker::CACHE_KEY, $this->since->copy()->subSecond()->timestamp);
+
+        DB::enableQueryLog();
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertExactJson(['updated_students' => [], 'meeting_events' => []]);
+
+        $polledTables = collect(DB::getQueryLog())->pluck('query')
+            ->filter(fn($query) => preg_match('/attendance_events|students|meeting_events/', $query));
+        $this->assertEmpty($polledTables);
+    }
+
+    public function test_writes_update_change_marker() {
+        $student = $this->makeOldStudent();
+        $event = $this->makeEvent($student, 'check-in', $this->oldDate());
+
+        $assertMarkerBumpedBy = function(callable $write) {
+            Cache::forever(PollChangeMarker::CACHE_KEY, $this->oldDate()->timestamp);
+            $write();
+            $this->assertGreaterThanOrEqual($this->since->timestamp, Cache::get(PollChangeMarker::CACHE_KEY));
+        };
+
+        $assertMarkerBumpedBy(fn() => $this->makeEvent($student, 'check-out', $this->oldDate()));
+        $assertMarkerBumpedBy(fn() => $event->delete());
+        $assertMarkerBumpedBy(fn() => $event->restore());
+        $assertMarkerBumpedBy(fn() => $student->update(['name' => 'Renamed']));
+        $assertMarkerBumpedBy(fn() => $this->makeMeeting($this->oldDate()));
+    }
+
+    public function test_cold_cache_falls_back_to_querying() {
+        $student = $this->makeOldStudent();
+        $this->makeEvent($student, 'check-in', $this->since->copy()->addMinutes(10));
+        Cache::forget(PollChangeMarker::CACHE_KEY);
+
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonCount(1, 'updated_students');
     }
 
     public function test_returns_meeting_events_in_window() {

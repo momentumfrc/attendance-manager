@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Models\Concerns\RecordsPollChanges;
+
 class Student extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use RecordsPollChanges;
 
     protected $fillable = ['name', 'graduation_year'];
     protected $with = ['profileImage'];

@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\AttendanceEvent;
 use App\Models\MeetingEvent;
 use App\Models\Student;
+use App\Support\PollChangeMarker;
 
 class PollController extends Controller
 {
@@ -17,6 +18,15 @@ class PollController extends Controller
             'since' => 'date_format:U|lt:4294967295|required',
             'until' => 'date_format:U|lt:4294967295'
         ]);
+
+        // Almost every poll finds nothing new, so skip the database entirely when we know nothing changed
+        $last_change = PollChangeMarker::lastChange();
+        if($last_change !== null && $last_change < $request->since) {
+            return [
+                'updated_students' => [],
+                'meeting_events' => []
+            ];
+        }
 
         $since_dt = Carbon::createFromTimestamp($request->since);
         $until_dt = null;
