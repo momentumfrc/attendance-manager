@@ -13,6 +13,10 @@ class StudentProfileImage extends Model
     // The path on disk is a sever-side implementation detail, it should not be sent to the client
     protected $hidden = ['path'];
 
+    // The image is part of the student's JSON, so changing it changes the student. Touching the student
+    // also lets polling clients see the change, including deletions, which leave no row behind.
+    protected $touches = ['student'];
+
     public function student(): BelongsTo {
         return $this->belongsTo(Student::class);
     }

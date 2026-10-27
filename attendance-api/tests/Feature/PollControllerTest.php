@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 use App\Models\AttendanceEvent;
@@ -65,6 +67,32 @@ class PollControllerTest extends TestCase
 
     private function poll(array $query) {
         return $this->actingAs($this->user)->getJson('/api/poll?'.http_build_query($query));
+    }
+
+    public function test_profile_image_changes_are_polled() {
+        Storage::fake();
+        $student = $this->makeOldStudent();
+
+        $imageId = $this->actingAs($this->user)->postJson('/api/student-profile-images', [
+            'student_id' => $student->id,
+            'image' => UploadedFile::fake()->image('avatar.jpg')
+        ])->assertStatus(201)['id'];
+
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonCount(1, 'updated_students')
+            ->assertJsonPath('updated_students.0.id', $student->id)
+            ->assertJsonPath('updated_students.0.profile_image.id', $imageId);
+
+        // Deletion must be visible too, so other clients stop showing the image
+        DB::table('students')->where('id', $student->id)->update(['updated_at' => $this->oldDate()]);
+        $this->actingAs($this->user)->deleteJson('/api/student-profile-images/'.$imageId)->assertStatus(200);
+
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonCount(1, 'updated_students')
+            ->assertJsonPath('updated_students.0.id', $student->id)
+            ->assertJsonPath('updated_students.0.profile_image', null);
     }
 
     public function test_since_is_required_and_validated() {
