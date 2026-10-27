@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     ]);
 
     Route::apiResource('student-profile-images', StudentProfileImageController::class)->only([
-        'show', 'store', 'destroy'
+        'index', 'show', 'store', 'destroy'
     ]);
 
     Route::apiResource('meetings', MeetingEventController::class)->only([

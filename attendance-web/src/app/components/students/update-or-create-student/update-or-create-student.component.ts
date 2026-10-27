@@ -237,8 +237,10 @@ export class UpdateOrCreateStudentComponent implements OnInit, OnDestroy {
     },
   }
 
-  getProfileSrc(student: Student) {
-    return environment.apiRoot + '/storage/student_profiles/' + student.profile_image?.basename;
+  protected readonly profilePlaceholderSrc = environment.assetRoot + '/profile-placeholder.png';
+
+  getProfileSrc(student: Student): Observable<string|null> {
+    return this.profilePhotosService.getImageUrl(student.profile_image);
   }
 
   deleteProfileImage(student: Student) {

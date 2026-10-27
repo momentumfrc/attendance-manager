@@ -141,7 +141,6 @@ rm composer-setup.php
 php -d 'allow_url_fopen=1' composer.phar install --optimize-autoloader --no-dev
 php artisan key:generate
 php artisan config:cache
-php artisan storage:link
 php artisan migrate --force
 
 if [ ${RESEED} = true ]; then

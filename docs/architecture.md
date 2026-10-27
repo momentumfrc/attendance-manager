@@ -31,7 +31,7 @@ Serving both from one origin means the browser can use cookie-based authenticati
 | Model | Description |
 | --- | --- |
 | `Student` | A team member. Students are records, not users, and cannot log in. Soft-deleted. Holds graduation year and other details. |
-| `StudentProfileImage` | A student's photo, stored under `storage/app/public/student_profiles` and processed with `spatie/image`. |
+| `StudentProfileImage` | A student's photo, stored under `storage/app/student_profiles` and processed with `spatie/image`. Images are not publicly accessible; clients fetch many at once, as base64, from the authenticated `student-profile-images` index endpoint. |
 | `AttendanceEvent` | A `check-in` or `check-out` for a student. Soft-deleted, so events can be undone. |
 | `AttendanceSession` | Not a table: a database **view** (see the `attendance_sessions` migrations) that pairs each check-in with the next check-out for the same student. A check-in with no check-out is a missed checkout. |
 | `MeetingEvent` | Marks the end of a meeting. Registering one checks out all students who are still checked in. |

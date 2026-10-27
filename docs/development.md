@@ -25,7 +25,6 @@ code attendance-api
 ```bash
 php artisan key:generate
 php artisan migrate --seed
-php artisan storage:link
 ```
 
 7. Open the attendance-web folder in a separate vscode window.

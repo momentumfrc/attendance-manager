@@ -13,6 +13,7 @@ import { ErrorService } from 'src/app/services/error.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
 import { PollService } from 'src/app/services/poll.service';
+import { ProfileImagesService } from 'src/app/services/profile-images.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { environment } from 'src/environments/environment';
 
@@ -47,6 +48,7 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     private attendanceService : AttendanceService,
     private meetingsService : MeetingsService,
     private permissionsService: PermissionsService,
+    private profileImagesService: ProfileImagesService,
     private errorService: ErrorService,
     private snackbar: MatSnackBar,
     route: ActivatedRoute
@@ -288,12 +290,10 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     return this.permissionsService.checkPermissions([this.getRequiredPermission()]).pipe(map(it => !it));
   }
 
-  getProfileImageSrc(student: Student): string {
-    if(!student.profile_image) {
-      return environment.assetRoot + "/profile-placeholder-small.png";
-    }
+  protected readonly profilePlaceholderSrc = environment.assetRoot + "/profile-placeholder-small.png";
 
-    return environment.apiRoot + '/storage/student_profiles/' + student.profile_image?.basename;
+  getProfileImageSrc(student: Student): Observable<string|null> {
+    return this.profileImagesService.getImageUrl(student.profile_image);
   }
 
 }

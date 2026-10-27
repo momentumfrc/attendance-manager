@@ -24,7 +24,7 @@
     @for (student of filteredStudents[0].students; track student; let i = $index; let isLast = $last) {
       <div class="studentRow">
         @if (showProfileImages|async) {
-          <img class="student-profile" src="{{getProfileImageSrc(student)}}">
+          <img class="student-profile" [src]="(getProfileImageSrc(student) | async) ?? profilePlaceholderSrc">
         }
         <div class="studentName">{{filteredStudents[0].getQualifiedName(student)}}</div>
         @if (filteredStudents[1][i]) {

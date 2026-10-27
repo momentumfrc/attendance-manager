@@ -70,7 +70,7 @@
       <mat-card-content>
         @if (student.profile_image !== null) {
           <div id="student-profile-container" >
-            <img id="student-profile" alt="student profile image" src="{{getProfileSrc(student)}}">
+            <img id="student-profile" alt="student profile image" [src]="(getProfileSrc(student) | async) ?? profilePlaceholderSrc">
           </div>
           @if (!(this.isDeleted|async)) {
             <div class="actionRow">

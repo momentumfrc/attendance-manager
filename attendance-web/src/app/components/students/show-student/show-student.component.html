@@ -21,7 +21,7 @@
         </div>
         @if (student.profile_image !== null) {
           <div id="student-profile-container">
-            <img id="student-profile" src="{{getProfileImageSrc(student)}}" alt="student profile image">
+            <img id="student-profile" [src]="(getProfileImageSrc(student) | async) ?? profilePlaceholderSrc" alt="student profile image">
           </div>
         }
         <div id="statsOptionForm">

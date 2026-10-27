@@ -6,8 +6,14 @@ export interface StudentProfileImage {
     created_at: DateTime,
     updated_at: DateTime,
     student_id: number,
-    uploaded_by: number,
-    basename: string
+    uploaded_by: number
+}
+
+export interface ProfileImageData {
+    id: number,
+    student_id: number,
+    // base64-encoded PNG
+    data: string
 }
 
 export interface Student {
@@ -44,7 +50,8 @@ export function areStudentsEqual(a: Student, b: Student): boolean {
         && a.updated_at.equals(b.updated_at)
         && compare_optional_dates(a.deleted_at, b.deleted_at)
         && compare_optional_events(a.last_check_in, b.last_check_in)
-        && compare_optional_events(a.last_check_out, b.last_check_out);
+        && compare_optional_events(a.last_check_out, b.last_check_out)
+        && a.profile_image?.id === b.profile_image?.id;
 }
 
 export function compareStudents(a: Student, b: Student): number {

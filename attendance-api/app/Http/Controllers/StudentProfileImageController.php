@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\StudentProfileImage;
 use App\Models\Student;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,8 +21,52 @@ use Spatie\Image\Enums\Fit;
 class StudentProfileImageController extends Controller
 {
     public function __construct() {
-        $this->middleware('can:view student images')->only('show');
+        $this->middleware('can:view student images')->only(['index', 'show']);
         $this->middleware('can:modify student images')->only(['store', 'destroy']);
+    }
+
+    /**
+     * Send the image data for many images in a single response.
+     *
+     * Serving each image with its own request would boot laravel once per image, which makes pages
+     * showing every student's image very slow. Images can be limited to a comma-separated list of ids.
+     */
+    public function index(Request $request)
+    {
+        $request->validate([
+            'ids' => ['sometimes', 'string', 'regex:/^\d+(,\d+)*$/']
+        ]);
+
+        $query = StudentProfileImage::query()->orderBy('id');
+        if($request->has('ids')) {
+            $query->whereIn('id', explode(',', $request->ids));
+        }
+        $images = $query->get(['id', 'student_id', 'path']);
+
+        // Paths are unique and never rewritten in place, so they identify the content of each image.
+        // This lets us answer revalidation requests without reading any files.
+        $response = new JsonResponse();
+        $response->setEtag(md5($images->map(fn($image) => $image->id.':'.$image->path)->join(',')));
+        $response->setPrivate();
+        $response->headers->addCacheControlDirective('no-cache');
+
+        if($response->isNotModified($request)) {
+            return $response;
+        }
+
+        return $response->setData($images->map(function ($image) {
+            $data = Storage::get($image->path);
+            if($data === null) {
+                Log::warning("Profile image {$image->id} is missing from disk", ['path' => $image->path]);
+                return null;
+            }
+
+            return [
+                'id' => $image->id,
+                'student_id' => $image->student_id,
+                'data' => base64_encode($data)
+            ];
+        })->filter()->values());
     }
 
     /**
@@ -43,14 +88,14 @@ class StudentProfileImageController extends Controller
             ]);
         }
 
-        if(Storage::missing('public/student_profiles')) {
-            Storage::makeDirectory('public/student_profiles');
+        if(Storage::missing('student_profiles')) {
+            Storage::makeDirectory('student_profiles');
         }
 
-        $path = 'public/student_profiles/'.Str::uuid().'.png';
+        $path = 'student_profiles/'.Str::uuid().'.png';
         $fullpath = Storage::path($path);
 
-        if(Storage::exists($fullpath)) {
+        if(Storage::exists($path)) {
             throw new \Exception("Conflicting UUIDs (you should buy a lottery ticket!)");
         }
 

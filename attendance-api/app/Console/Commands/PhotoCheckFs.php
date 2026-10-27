@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 use Spatie\Image\Image;
-use Spatie\Image\Manipulations;
+use Spatie\Image\Enums\Fit;
 
 class PhotoCheckFs extends Command
 {
@@ -35,7 +35,7 @@ class PhotoCheckFs extends Command
         $dryRun = $this->option('dry-run');
         $noConfirm = $this->option('no-confirm');
 
-        $onDisk = collect(Storage::files('public/student_profiles'));
+        $onDisk = collect(Storage::files('student_profiles'));
         $inDb = StudentProfileImage::all();
 
         $danglingFiles = $onDisk->diff($inDb->pluck('path'));
@@ -86,7 +86,8 @@ class PhotoCheckFs extends Command
         foreach($inDb as $m) {
             $path = $m->path;
             if(Storage::exists($path)) {
-                $image = Image::load(Storage::path($path))->useImageDriver('gd');
+                // useImageDriver() is a static factory that returns a new, empty image, so it must come before loading
+                $image = Image::useImageDriver('gd')->loadFile(Storage::path($path));
 
                 $width = $image->getWidth();
                 $height = $image->getHeight();
@@ -101,14 +102,17 @@ class PhotoCheckFs extends Command
             }
 
             if(!$dryRun && $reformat) {
-                $new_path = 'public/student_profiles/'.Str::random(40).'.png';
+                $new_path = 'student_profiles/'.Str::random(40).'.png';
                 $fullpath = Storage::path($new_path);
 
-                $image->fit(Manipulations::FIT_CONTAIN, $resize_size, $resize_size)
+                $image->fit(Fit::Contain, $resize_size, $resize_size)
                     ->save($fullpath);
 
                 $m->path = $new_path;
                 $m->save();
+
+                // Only delete the original once the model points at its replacement, so the model never references a missing file
+                Storage::delete($path);
             } else {
                 $new_path = "N/A";
             }
