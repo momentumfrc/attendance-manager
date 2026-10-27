@@ -22,7 +22,7 @@
             </ng-container>
             <ng-container matColumnDef="registrarId">
               <th mat-header-cell *matHeaderCellDef>Registered By</th>
-              <td mat-cell *matCellDef="let event">{{event.registrar.name}}</td>
+              <td mat-cell *matCellDef="let event">{{event.registrar?.name}}</td>
             </ng-container>
             <ng-container matColumnDef="eventType">
               <th mat-header-cell *matHeaderCellDef>Event Type</th>

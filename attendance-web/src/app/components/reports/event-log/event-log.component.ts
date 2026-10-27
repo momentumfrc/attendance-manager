@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { DateTime } from 'luxon';
-import { BehaviorSubject, combineLatest, debounceTime, filter, forkJoin, map, Observable, ReplaySubject, startWith, Subject, take, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, forkJoin, map, Observable, ReplaySubject, startWith, Subject, switchMap, take, tap } from 'rxjs';
 import { AttendanceEvent } from 'src/app/models/attendance-event.model';
 import { MeetingEvent } from 'src/app/models/meeting-event.model';
 import { Student } from 'src/app/models/student.model';
@@ -20,7 +20,7 @@ import { SelectedDateRange } from '../../reuse/date-picker/date-picker.component
 interface EventLogEvent {
   eventId: string,
   student?: Student,
-  registrar: User,
+  registrar?: User,
   event_type: string,
   date: DateTime,
   deleted: boolean,
@@ -97,20 +97,24 @@ export class EventLogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const eventsWithUsers = this.events.pipe(
+      switchMap(events => {
+        const userIds = [...new Set([...events.attendance, ...events.meetings].map(event => event.registered_by))];
+        return this.usersService.getSomeUsers(userIds).pipe(map(users => ({events, users})));
+      })
+    );
+
     combineLatest({
-      events: this.events,
+      eventsWithUsers,
       students: this.studentsService.getAllStudents().pipe(
         map(students => new Map(students.map(student => [student.id, student])))
-      ),
-      users: this.usersService.getAllUsers().pipe(
-        map(users => new Map(users.map(user => [user.id, user])))
       )
     }).pipe(
-        map(({events, students, users}) => {
+        map(({eventsWithUsers: {events, users}, students}) => {
           let formattedAttendanceEvents: Array<EventLogEvent> = events.attendance.map(it => ({
             eventId: "a-" + it.id,
             student: students.get(it.student_id),
-            registrar: users.get(it.registered_by)!!,
+            registrar: users.get(it.registered_by),
             event_type: it.type,
             date: it.created_at,
             deleted: it.deleted_at !== null,
@@ -119,7 +123,7 @@ export class EventLogComponent implements OnInit {
           let formattedMeetingEvents: Array<EventLogEvent> = events.meetings.map(it => ({
             eventId: "m-" + it.id,
             student: undefined,
-            registrar: users.get(it.registered_by)!!,
+            registrar: users.get(it.registered_by),
             event_type: it.type,
             date: it.created_at,
             deleted: false,

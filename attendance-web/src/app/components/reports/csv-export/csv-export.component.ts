@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DateTime } from 'luxon';
 import { Papa } from 'ngx-papaparse';
-import { BehaviorSubject, forkJoin, map, take } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, switchMap, take } from 'rxjs';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -33,16 +33,17 @@ export class CsvExportComponent implements OnInit {
     }
 
     forkJoin([
-      this.attendanceService.getEvents(this.dateRangeSelection),
-      this.studentsService.getAllStudents().pipe(take(1)),
-      this.usersService.getAllUsers().pipe(take(1))
+      this.attendanceService.getEvents(this.dateRangeSelection).pipe(
+        switchMap(events => this.usersService.getSomeUsers([...new Set(events.map(event => event.registered_by))]).pipe(
+          map(users => ({events, users}))
+        ))
+      ),
+      this.studentsService.getAllStudents().pipe(take(1))
     ]).pipe(
-      map( ([events, students, users]) =>  {
+      map( ([{events, users}, students]) =>  {
         const studentNameMap = new Map<number, string>();
         students.forEach(student => studentNameMap.set(student.id, student.name));
 
-        const userNameMap = new Map<number, string>();
-        users.forEach(user => userNameMap.set(user.id, user.name));
         const keys = ["event_id", "student_id", "student_name", "event_registered_by_id", "event_registered_by_name", "event_type", "event_created_at"];
         const values = events.map(event =>
           [
@@ -50,7 +51,7 @@ export class CsvExportComponent implements OnInit {
             event.student_id,
             studentNameMap.get(event.student_id) ?? "UNDEFINED",
             event.registered_by,
-            userNameMap.get(event.registered_by) ?? "UNDEFINED",
+            users.get(event.registered_by)?.name ?? "UNDEFINED",
             event.type as string,
             event.created_at.toISO() ?? "UNKNOWN"
           ]);
