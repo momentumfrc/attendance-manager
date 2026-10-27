@@ -65,14 +65,17 @@ php artisan test --filter=AttendanceEventControllerTest
 
 ## Web tests (Karma/Jasmine)
 
-From the attendance-web vscode window's terminal (inside the dev container):
+From the repo root on your host:
 ```bash
-npm test
+./test-web.sh
 ```
-This starts Karma in watch mode and opens Chrome. To run once headless, as CI does:
+This runs the tests once in headless Chromium, inside a throwaway `angular.test` container.
+Any extra arguments are passed through to `ng test`, e.g. to run a subset of the tests:
 ```bash
-npm test -- --no-watch --no-progress --browsers=ChromeHeadless
+./test-web.sh --include='src/app/services/**/*.spec.ts'
 ```
-Note that the web dev container doesn't install Chrome, so these commands need a Chrome
-installation available (set `CHROME_BIN` if it isn't on your path). Running them on your
-host, from the `attendance-web` directory after `npm install`, is the simplest option.
+
+From the attendance-web vscode window's terminal (inside the dev container), you can instead run:
+```bash
+npm test -- --no-watch --browsers=ChromeHeadlessNoSandbox
+```
