@@ -21,6 +21,10 @@ export class ReportsComponent implements OnInit {
       name: 'Student Roster'
     },
     {
+      path: './attendance-sessions',
+      name: 'Attendance Sessions'
+    },
+    {
       path: './event-log',
       name: 'Event Log'
     }

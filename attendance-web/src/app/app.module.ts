@@ -42,6 +42,7 @@ import { ErrorComponent } from './components/error/error.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { MeetingEventsComponent } from './components/meeting-events/meeting-events.component';
+import { AttendanceSessionsComponent } from './components/reports/attendance-sessions/attendance-sessions.component';
 import { EventLogComponent } from './components/reports/event-log/event-log.component';
 import { MeetingAttendanceReportComponent } from './components/reports/meeting-attendance-report/meeting-attendance-report.component';
 import { MeetingsReportComponent } from './components/reports/meetings-report/meetings-report.component';
@@ -75,6 +76,7 @@ import { httpInterceptorProviders } from './http-interceptors';
         SearchBoxComponent,
         ShowStudentComponent,
         StudentStatsComponent,
+        AttendanceSessionsComponent,
         ReportsComponent,
         EventLogComponent,
         MeetingEventsComponent,

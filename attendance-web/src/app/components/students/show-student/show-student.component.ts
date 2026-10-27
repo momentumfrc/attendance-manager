@@ -14,6 +14,7 @@ import { ProfileImagesService } from 'src/app/services/profile-images.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { UsersService } from 'src/app/services/users.service';
+import { formatTimeDiff } from 'src/app/utils/formatTimeDiff';
 import { environment } from 'src/environments/environment';
 
 enum PageState {
@@ -21,15 +22,6 @@ enum PageState {
   STUDENT_NOT_FOUND,
   STUDENT_FOUND
 };
-
-function formatTimeDiff(diffSeconds: number) {
-  const hours = Math.floor(diffSeconds / (60 * 60));
-  const minutes = Math.floor((diffSeconds % (60 * 60)) / 60);
-  const seconds = diffSeconds % 60;
-  return hours.toString()
-    + ":" + minutes.toString().padStart(2, '0')
-    + ":" + seconds.toString().padStart(2, '0');
-}
 
 class RichAttendanceSession {
   constructor(

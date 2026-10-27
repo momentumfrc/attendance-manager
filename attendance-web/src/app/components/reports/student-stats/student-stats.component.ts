@@ -6,6 +6,7 @@ import { StudentStats } from 'src/app/models/report-models';
 import { Student } from 'src/app/models/student.model';
 import { ReportsService } from 'src/app/services/reports.service';
 import { StudentsService } from 'src/app/services/students.service';
+import { formatTimeDiff } from 'src/app/utils/formatTimeDiff';
 
 interface StudentStatsRow {
   student: Student,
@@ -78,12 +79,5 @@ export class StudentStatsComponent implements OnInit, OnDestroy {
     this.dateRangeSelection.next(selection);
   }
 
-  formatTimeDiff(diffSeconds: number) {
-    const hours = Math.floor(diffSeconds / (60 * 60));
-    const minutes = Math.floor((diffSeconds % (60 * 60)) / 60);
-    const seconds = diffSeconds % 60;
-    return hours.toString()
-      + ":" + minutes.toString().padStart(2, '0')
-      + ":" + seconds.toString().padStart(2, '0');
-  }
+  readonly formatTimeDiff = formatTimeDiff;
 }
