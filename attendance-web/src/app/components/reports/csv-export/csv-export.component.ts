@@ -35,7 +35,7 @@ export class CsvExportComponent implements OnInit {
     forkJoin([
       this.attendanceService.getEvents(this.dateRangeSelection),
       this.studentsService.getAllStudents().pipe(take(1)),
-      this.usersService.getAllUsers()
+      this.usersService.getAllUsers().pipe(take(1))
     ]).pipe(
       map( ([events, students, users]) =>  {
         const studentNameMap = new Map<number, string>();
