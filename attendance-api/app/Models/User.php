@@ -19,7 +19,19 @@ class User extends Authenticatable
     protected $hidden = ['remember_token', 'roles'];
     protected $appends = ['role_names'];
 
+    protected static function booted(): void {
+        static::deleting(function(User $user) {
+            if($user->isSystemUser()) {
+                throw new \LogicException('The system user must not be deleted.');
+            }
+        });
+    }
+
     public function getRoleNamesAttribute() {
         return $this->getRoleNames();
+    }
+
+    public function isSystemUser(): bool {
+        return $this->slack_id === config('auth.system_slack_id');
     }
 }

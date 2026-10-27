@@ -59,6 +59,15 @@ class UserController extends Controller
             ], 422);
         }
 
+        if($user->isSystemUser()) {
+            return response([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => ['The user_id must not be the system user.']
+                ]
+            ], 422);
+        }
+
         Log::channel('admin')->notice('user '.$user->id.' roles updated by user '.Auth::id().' to '.json_encode($request->roles));
 
         $user->syncRoles($request->roles);
@@ -77,6 +86,10 @@ class UserController extends Controller
         $errors = [];
         if($user->id == Auth::id()) {
             $errors[] = 'The user_id must not be the currently authenticated user.';
+        }
+
+        if($user->isSystemUser()) {
+            $errors[] = 'The user_id must not be the system user.';
         }
 
         if($user->roles()->count() > 0) {

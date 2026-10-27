@@ -8,6 +8,7 @@ use Tests\TestCase;
 
 use Database\Seeders\RolesSeeder;
 
+use App\Console\Services\CommandService;
 use App\Models\User;
 
 class UserControllerTest extends TestCase
@@ -124,6 +125,25 @@ class UserControllerTest extends TestCase
         $response->assertStatus(422);
     }
 
+    public function test_update_system_user() {
+        $user = User::first();
+        $systemUser = app(CommandService::class)->getSystemUser();
+
+        $this->actingAs($user)
+            ->putJson('/api/users/'.$systemUser->id, [
+                'roles' => [ ]
+            ])
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => ['The user_id must not be the system user.']
+                ]
+            ]);
+
+        $this->assertSame(['mentor'], $systemUser->fresh()->getRoleNames()->toArray());
+    }
+
     public function test_delete() {
         $user = User::first();
         $users = User::factory()->count(2)->create();
@@ -181,6 +201,31 @@ class UserControllerTest extends TestCase
 
         $user->refresh();
         $this->assertNotSoftDeleted($user3);
+    }
+
+    public function test_delete_system_user() {
+        $user = User::first();
+        $systemUser = app(CommandService::class)->getSystemUser();
+        $systemUser->syncRoles([]);
+
+        $this->actingAs($user)
+            ->deleteJson('/api/users/'.$systemUser->id)
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'user_id' => ['The user_id must not be the system user.']
+                ]
+            ]);
+
+        $this->assertNotSoftDeleted($systemUser);
+
+        try {
+            $systemUser->delete();
+            $this->fail('Deleting the system user should throw');
+        } catch(\LogicException $e) {}
+
+        $this->assertNotSoftDeleted($systemUser);
     }
 
     public function test_delete_permissions() {
