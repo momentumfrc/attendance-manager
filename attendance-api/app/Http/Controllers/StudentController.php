@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AttendanceEvent;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -12,8 +11,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 
 class StudentController extends Controller
 {
@@ -22,22 +19,6 @@ class StudentController extends Controller
         $this->middleware('can:add students')->only('store');
         $this->middleware('can:modify students')->only('update');
         $this->middleware('can:remove students')->only('destroy');
-    }
-
-    private function getMostRecentAttendanceEventsForAllStudents($eventType) {
-        if($eventType != "check-in" && $eventType != "check-out") {
-            throw new InvalidArgumentException("Expected check-in or check-out");
-        }
-
-        $query = <<<EOD
-            SELECT id, created_at, updated_at, student_id, registered_by, type, deleted_at FROM (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY student_id ORDER BY updated_at DESC) AS rn
-                FROM attendance_events
-                WHERE type = "$eventType" AND deleted_at IS NULL
-            ) AS x WHERE x.rn = 1;
-        EOD;
-
-        return AttendanceEvent::hydrate(DB::select($query));
     }
 
     /**
@@ -59,22 +40,7 @@ class StudentController extends Controller
             $students = Student::all();
         }
 
-        $checkins = $this->getMostRecentAttendanceEventsForAllStudents("check-in")->keyBy('student_id');
-        $checkouts = $this->getMostRecentAttendanceEventsForAllStudents("check-out")->keyBy('student_id');
-
-        foreach($students as $student) {
-            if($checkins->has($student->id)) {
-                $student->last_check_in = $checkins[$student->id];
-            } else {
-                $student->last_check_in = null;
-            }
-
-            if($checkouts->has($student->id)) {
-                $student->last_check_out = $checkouts[$student->id];
-            } else {
-                $student->last_check_out = null;
-            }
-        }
+        Student::populateAttendanceEventsFor($students);
 
         return $students;
     }

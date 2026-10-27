@@ -56,9 +56,7 @@ class PollController extends Controller
             ->orWhere($whereGenerator('deleted_at'))
             ->get();
 
-        foreach($updated_students as $student) {
-            $student->populateAttendanceEvents();
-        }
+        Student::populateAttendanceEventsFor($updated_students);
 
         $meeting_events = MeetingEvent::where($whereGenerator('created_at'))
             ->orWhere($whereGenerator('updated_at'))

@@ -127,6 +127,23 @@ class PollControllerTest extends TestCase
         $this->assertEquals($checkOut->id, $student['last_check_out']['id']);
     }
 
+    public function test_latest_events_are_loaded_in_one_query() {
+        $students = collect(range(1, 5))->map(fn() => $this->makeOldStudent());
+        foreach($students as $student) {
+            $this->makeEvent($student, 'check-in', $this->since->copy()->addMinutes(10));
+            $this->makeEvent($student, 'check-out', $this->since->copy()->addMinutes(20));
+        }
+
+        DB::enableQueryLog();
+        $response = $this->poll(['since' => $this->since->timestamp])->assertStatus(200);
+
+        $response->assertJsonCount(5, 'updated_students');
+        $eventQueries = collect(DB::getQueryLog())->pluck('query')
+            ->filter(fn($query) => str_contains($query, 'attendance_events'));
+        // One for the changed events, one for every student's latest check-in and check-out
+        $this->assertCount(2, $eventQueries);
+    }
+
     public function test_returns_events_deleted_in_window() {
         $student = $this->makeOldStudent();
         $event = $this->makeEvent($student, 'check-in', $this->oldDate());
