@@ -93,7 +93,8 @@ Mentors update it from the registration page, and the daily cron job updates it 
 update if the canvas content is unchanged since the last successful update.
 
 The canvas is configured with `SLACK_BOT_TOKEN` and `SLACK_REGISTRATION_CANVAS_ID`. The bot token
-needs the `canvases:write` scope, and the bot must have write access to the canvas.
+needs the `canvases:write` scope, and the app must be added as an editor of the canvas in Slack.
+Without edit access, Slack rejects updates with `restricted_action`.
 
 ## Web (`attendance-web`)
 
