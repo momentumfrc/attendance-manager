@@ -35,6 +35,12 @@ set -x
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
 
+# Files are copied from the working tree, so uncommitted changes would ship labelled with HEAD's hash
+if ! git diff --quiet HEAD; then
+    echo "There are uncommitted changes. Commit or stash them before deploying."
+    exit 1
+fi
+
 rm -rf attendance
 mkdir attendance
 
@@ -71,23 +77,49 @@ GIT_HASH=$(git rev-parse --short HEAD)
 pushd attendance/attendance-api
 mv .env.example .env
 
-# The "//\//\\\/" wizardry just tells bash to substitute '/' with '\/'
-# This escapes the '/' so they're not interpreted as separators by sed
-sed -i "s/APP_KEY=.*/APP_KEY=${APP_KEY//\//\\\/}/g" .env
-sed -i "s/APP_URL=.*/APP_URL=${APP_URL//\//\\\/}/g" .env
-sed -i "s/APP_DEBUG=.*/APP_DEBUG=${APP_DEBUG//\//\\\/}/g" .env
-sed -i "s/APP_ENV=.*/APP_ENV=${APP_ENV//\//\\\/}/g" .env
-sed -i "s/APP_SUBDIR=.*/APP_SUBDIR=${APP_SUBDIR//\//\\\/}/g" .env
-sed -i "s/DB_HOST=.*/DB_HOST=${DB_HOST//\//\\\/}/g" .env
-sed -i "s/DB_USERNAME=.*/DB_USERNAME=${DB_USERNAME//\//\\\/}/g" .env
-sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD//\//\\\/}/g" .env
-sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE//\//\\\/}/g" .env
-sed -i "s/SLACK_CLIENT_ID=.*/SLACK_CLIENT_ID=${SLACK_CLIENT_ID//\//\\\/}/g" .env
-sed -i "s/SLACK_CLIENT_SECRET=.*/SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET//\//\\\/}/g" .env
-sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
-sed -i "s/SLACK_BOT_TOKEN=.*/SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN//\//\\\/}/g" .env
-sed -i "s/SLACK_REGISTRATION_CANVAS_ID=.*/SLACK_REGISTRATION_CANVAS_ID=${SLACK_REGISTRATION_CANVAS_ID//\//\\\/}/g" .env
-sed -i "s/GIT_HASH=.*/GIT_HASH=${GIT_HASH}/g" .env
+# Replaces the KEY= line in .env with KEY='VALUE'. Single-quoted .env values are taken literally,
+# so secrets containing $, \, &, / etc. are written as-is. The line is replaced in place rather
+# than appended because later lines (like SLACK_REDIRECT_URI) interpolate earlier ones.
+set_env() {
+    local key=$1 value=$2 line found=false
+    if [[ ${value} == *\'* || ${value} == *$'\n'* ]]; then
+        echo "${key} contains a single quote or newline, which can't be written to .env"
+        exit 1
+    fi
+    while IFS= read -r line || [ -n "${line}" ]; do
+        if [[ ${line} == "${key}="* ]]; then
+            printf "%s='%s'\n" "${key}" "${value}"
+            found=true
+        else
+            printf '%s\n' "${line}"
+        fi
+    done < .env > .env.new
+    if [ ${found} = false ]; then
+        echo "${key} is missing from .env.example"
+        exit 1
+    fi
+    mv .env.new .env
+}
+
+set +x  # Keep secrets out of the trace
+set_env APP_KEY "${APP_KEY}"
+set_env APP_URL "${APP_URL}"
+set_env APP_DEBUG "${APP_DEBUG}"
+set_env APP_ENV "${APP_ENV}"
+set_env APP_SUBDIR "${APP_SUBDIR}"
+set_env LOG_LEVEL "${LOG_LEVEL:-info}"
+set_env DB_HOST "${DB_HOST}"
+set_env DB_USERNAME "${DB_USERNAME}"
+set_env DB_PASSWORD "${DB_PASSWORD}"
+set_env DB_DATABASE "${DB_DATABASE}"
+set_env SLACK_CLIENT_ID "${SLACK_CLIENT_ID}"
+set_env SLACK_CLIENT_SECRET "${SLACK_CLIENT_SECRET}"
+set_env SLACK_TEAM "${SLACK_TEAM}"
+set_env SLACK_BOT_TOKEN "${SLACK_BOT_TOKEN}"
+set_env SLACK_REGISTRATION_CANVAS_ID "${SLACK_REGISTRATION_CANVAS_ID}"
+set_env SESSION_SECURE_COOKIE true
+set_env GIT_HASH "${GIT_HASH}"
+set -x
 popd
 
 pushd attendance/attendance-web-src
