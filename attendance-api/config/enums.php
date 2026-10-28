@@ -7,5 +7,11 @@ return [
     ],
     'meeting_event_types' => [
         'END_OF_MEETING' => 'end-of-meeting'
+    ],
+    'registration_event_types' => [
+        'STUDENT_CONTRACT' => 'student_contract',
+        'SHARED_SCIENCE' => 'shared_science',
+        'FIRST_CR' => 'first_cr',
+        'NEW_SEASON' => 'new_season'
     ]
 ];

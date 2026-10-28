@@ -11,6 +11,7 @@ use Tests\TestCase;
 
 use App\Models\AttendanceEvent;
 use App\Models\MeetingEvent;
+use App\Models\RegistrationEvent;
 use App\Models\Student;
 use App\Models\User;
 use App\Support\PollChangeMarker;
@@ -65,6 +66,16 @@ class PollControllerTest extends TestCase
         $meeting->updated_at = $date;
         $meeting->save();
         return $meeting;
+    }
+
+    private function makeRegistrationEvent(?Student $student, string $type, Carbon $date): RegistrationEvent {
+        return RegistrationEvent::forceCreate([
+            'student_id' => $student?->id,
+            'registered_by' => $this->user->id,
+            'event_type' => $type,
+            'created_at' => $date,
+            'updated_at' => $date
+        ]);
     }
 
     private function poll(array $query) {
@@ -244,6 +255,41 @@ class PollControllerTest extends TestCase
         $assertMarkerBumpedBy(fn() => $event->restore());
         $assertMarkerBumpedBy(fn() => $student->update(['name' => 'Renamed']));
         $assertMarkerBumpedBy(fn() => $this->makeMeeting($this->oldDate()));
+
+        $registration = $this->makeRegistrationEvent($student, 'student_contract', $this->oldDate());
+        $assertMarkerBumpedBy(fn() => $this->makeRegistrationEvent($student, 'first_cr', $this->oldDate()));
+        $assertMarkerBumpedBy(fn() => $registration->delete());
+    }
+
+    public function test_returns_students_with_registration_changes() {
+        $quiet = $this->makeOldStudent();
+        $registered = $this->makeOldStudent();
+        $unregistered = $this->makeOldStudent();
+        $this->makeRegistrationEvent($quiet, 'student_contract', $this->oldDate());
+        $contract = $this->makeRegistrationEvent($registered, 'student_contract', $this->since->copy()->addMinutes(10));
+        // Unchecked within the window, so the student must be polled to clear the box
+        $this->makeRegistrationEvent($unregistered, 'first_cr', $this->oldDate())->delete();
+
+        $response = $this->poll(['since' => $this->since->timestamp])->assertStatus(200);
+
+        $students = collect($response['updated_students'])->keyBy('id');
+        $this->assertEqualsCanonicalizing([$registered->id, $unregistered->id], $students->keys()->all());
+        $this->assertEquals($contract->id, $students[$registered->id]['registration']['student_contract']);
+        $this->assertNull($students[$unregistered->id]['registration']['first_cr']);
+    }
+
+    public function test_new_season_returns_every_student() {
+        $students = collect(range(1, 3))->map(fn() => $this->makeOldStudent());
+        $this->makeRegistrationEvent($students[0], 'student_contract', $this->oldDate());
+        $this->makeRegistrationEvent(null, 'new_season', $this->since->copy()->addMinutes(10));
+
+        $response = $this->poll(['since' => $this->since->timestamp])->assertStatus(200);
+
+        $this->assertEqualsCanonicalizing(
+            $students->pluck('id')->all(),
+            collect($response['updated_students'])->pluck('id')->all()
+        );
+        $this->assertNull($response['updated_students'][0]['registration']['student_contract']);
     }
 
     public function test_cold_cache_falls_back_to_querying() {

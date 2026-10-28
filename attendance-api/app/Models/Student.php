@@ -67,4 +67,45 @@ class Student extends Model
         }
     }
 
+    public function populateRegistration() {
+        static::populateRegistrationFor(new Collection([$this]));
+    }
+
+    /**
+     * Set registration on each of the students, mapping each registration step to the id of the
+     * event that completed it this season (or null). A step counts if its event came after the
+     * latest new_season event.
+     */
+    public static function populateRegistrationFor(Collection $students) {
+        $types = config('enums.registration_event_types');
+        $steps = [$types['STUDENT_CONTRACT'], $types['SHARED_SCIENCE'], $types['FIRST_CR']];
+
+        $season = RegistrationEvent::query()
+            ->where('event_type', $types['NEW_SEASON'])
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $events = RegistrationEvent::query()
+            ->whereIn('student_id', $students->modelKeys())
+            ->whereIn('event_type', $steps)
+            ->when($season, fn($query) => $query->where(fn($query) => $query
+                ->where('created_at', '>', $season->created_at)
+                ->orWhere(fn($query) => $query
+                    ->where('created_at', '=', $season->created_at)
+                    ->where('id', '>', $season->id))))
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->get(['id', 'student_id', 'event_type'])
+            ->groupBy('student_id');
+
+        foreach($students as $student) {
+            // Events are newest first, so the first of each type is the one that completed the step
+            $latest = $events->get($student->id, new Collection())->unique('event_type')->keyBy('event_type');
+            $student->registration = collect($steps)
+                ->mapWithKeys(fn($step) => [$step => $latest->get($step)?->id])
+                ->all();
+        }
+    }
+
 }

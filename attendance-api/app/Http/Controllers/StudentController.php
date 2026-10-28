@@ -41,6 +41,7 @@ class StudentController extends Controller
         }
 
         Student::populateAttendanceEventsFor($students);
+        Student::populateRegistrationFor($students);
 
         return $students;
     }
@@ -113,6 +114,7 @@ class StudentController extends Controller
         $student = Student::withTrashed()->findOrFail($id);
 
         $student->populateAttendanceEvents();
+        $student->populateRegistration();
 
         return $student;
     }
