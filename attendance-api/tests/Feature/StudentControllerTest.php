@@ -257,6 +257,9 @@ class StudentControllerTest extends TestCase
                     'last_check_out' => null
                 ]);
 
+            // Students can only be checked in once they've signed the contract
+            $this->makeRegistrationEvent($student, 'student_contract', Carbon::now()->subDay(), $user);
+
             // WHEN
             $response = $this->actingAs($user)->json('POST', '/api/attendance/events', [
                 'type' => 'check-in',
