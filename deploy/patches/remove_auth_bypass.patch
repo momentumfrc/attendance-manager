@@ -1,0 +1,43 @@
+diff --git a/attendance-api/.env.example b/attendance-api/.env.example
+index 8c483d1..f633186 100644
+--- a/attendance-api/.env.example
++++ b/attendance-api/.env.example
+@@ -5,8 +5,6 @@ APP_DEBUG=true
+ APP_URL=http://localhost
+ APP_SUBDIR=/
+ 
+-APP_SKIP_AUTH=true
+-
+ LOG_CHANNEL=stack
+ LOG_DEPRECATIONS_CHANNEL=null
+ LOG_LEVEL=debug
+diff --git a/attendance-api/app/Http/Controllers/AuthController.php b/attendance-api/app/Http/Controllers/AuthController.php
+index 7f436c5..2878998 100644
+--- a/attendance-api/app/Http/Controllers/AuthController.php
++++ b/attendance-api/app/Http/Controllers/AuthController.php
+@@ -28,12 +28,6 @@ private function do_login(User $user) {
+     }
+ 
+     public function redirect() {
+-        // Development-only login bypass. deploy.sh removes it entirely.
+-        if(config('app.skip_auth') && app()->isLocal()) {
+-            $user = User::first();
+-            return $this->do_login($user);
+-        }
+-
+         return Socialite::driver('slack')->redirect();
+     }
+ 
+diff --git a/attendance-api/config/app.php b/attendance-api/config/app.php
+index a4179ef..de4db86 100644
+--- a/attendance-api/config/app.php
++++ b/attendance-api/config/app.php
+@@ -124,8 +124,6 @@
+ 
+     'cipher' => 'AES-256-CBC',
+ 
+-    'skip_auth' => env('APP_SKIP_AUTH', false),
+-
+     'git_hash' => env('GIT_HASH', 'UNKNOWN'),
+ 
+     /*

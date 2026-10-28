@@ -35,19 +35,6 @@ set -x
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 pushd ${SCRIPT_DIR}
 
-pushd ..
-for patch in deploy/patches/*.patch ; do
-    patch -p1 -R < ${patch}
-done
-popd
-function finish {
-    cd ${SCRIPT_DIR}/..
-    for patch in deploy/patches/*.patch ; do
-        patch -p1 < ${patch}
-    done
-}
-trap finish EXIT
-
 rm -rf attendance
 mkdir attendance
 
@@ -59,6 +46,15 @@ git ls-files attendance-api | cpio -pdm deploy/attendance
 git ls-files attendance-web | cpio -pdm deploy/attendance
 
 popd
+
+# Strip development-only code (such as the login bypass) from the copy being deployed
+for patch in patches/*.patch ; do
+    patch -p1 --forward --batch --fuzz=0 -d attendance < ${patch}
+done
+if grep -rq skip_auth attendance/attendance-api/app attendance/attendance-api/config; then
+    echo "The login bypass is still present after patching. Refusing to deploy."
+    exit 1
+fi
 
 mv attendance/attendance-web attendance/attendance-web-src
 
