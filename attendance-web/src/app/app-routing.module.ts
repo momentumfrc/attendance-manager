@@ -15,6 +15,7 @@ import { ReportsComponent } from './components/reports/reports.component';
 import { StudentStatsComponent } from './components/reports/student-stats/student-stats.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
+import { RegistrationComponent } from './components/students/registration/registration.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { StudentsComponent } from './components/students/students.component';
 import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
@@ -39,6 +40,10 @@ const routes: Routes = [
       {path: 'import', component: ImportStudentsComponent,
         canActivate: [MustHavePermissionGuard],
         data: { permissions: ['add students', 'modify student images'] }
+      },
+      {path: 'registration', component: RegistrationComponent,
+        canActivate: [MustHavePermissionGuard],
+        data: { permissions: ['view student registration'] }
       }
     ]
   },

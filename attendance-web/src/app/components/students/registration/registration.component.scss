@@ -1,0 +1,36 @@
+@use 'media';
+
+#actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#searchbar {
+    margin-top: 20px;
+    display: flex;
+}
+
+app-search-box {
+    flex-grow: 1;
+}
+
+#tableContainer {
+    margin-top: 20px;
+    // The checkbox columns don't fit on narrow screens, so scroll sideways instead
+    overflow-x: auto;
+}
+
+#registrationTable {
+    width: 100%;
+}
+
+.centered {
+    text-align: center;
+}
+
+#noStudentsWarn {
+    padding: 16px;
+}

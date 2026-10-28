@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
+import { combineLatest, ReplaySubject } from 'rxjs';
 import { PermissionsService } from 'src/app/services/permissions.service';
 
 interface Tab {
@@ -20,13 +20,23 @@ export class StudentsComponent {
     permissionsService: PermissionsService
   ) {
 
-    permissionsService.checkPermissions(["add students"]).subscribe(userMayAddStudents => {
+    combineLatest([
+      permissionsService.checkPermissions(["add students"]),
+      permissionsService.checkPermissions(["view student registration"])
+    ]).subscribe(([userMayAddStudents, userMayViewRegistration]) => {
       let tabs: Tab[] = [
         {
           path: './list',
           name: 'List Students',
         }
       ];
+
+      if(userMayViewRegistration) {
+        tabs.push({
+          path: './registration',
+          name: 'Registration'
+        });
+      }
 
       if(userMayAddStudents) {
         tabs.push({

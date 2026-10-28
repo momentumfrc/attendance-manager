@@ -54,6 +54,7 @@ import { ExportableTableComponent } from './components/reuse/exportable-table/ex
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
 import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
+import { RegistrationComponent } from './components/students/registration/registration.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
 import { StudentsComponent } from './components/students/students.component';
 import { UpdateOrCreateStudentComponent } from './components/students/update-or-create-student/update-or-create-student.component';
@@ -73,6 +74,7 @@ import { httpInterceptorProviders } from './http-interceptors';
         StudentsComponent,
         ListStudentsComponent,
         ImportStudentsComponent,
+        RegistrationComponent,
         SearchBoxComponent,
         ShowStudentComponent,
         StudentStatsComponent,
