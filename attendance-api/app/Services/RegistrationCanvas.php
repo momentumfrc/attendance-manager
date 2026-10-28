@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -22,11 +21,15 @@ class RegistrationCanvas
 
     private const EDIT_URL = 'https://slack.com/api/canvases.edit';
 
-    // Canvas tables are limited to 300 cells, header row included. Four columns allow 74 students.
-    private const STUDENTS_PER_TABLE = 70;
-
-    private const YES = ':white_check_mark:';
-    private const NO = ':x:';
+    // Markdown tables stretch to the canvas width, which is too wide on phones, so each section is a
+    // monospaced table in a code block instead. Emoji are double-width there, so steps are plain marks.
+    private const STEP_COLUMNS = [
+        'student_contract' => 'Contract',
+        'shared_science' => 'SSCI',
+        'first_cr' => 'FIRST'
+    ];
+    private const YES = 'Y';
+    private const NO = '-';
 
     /**
      * Push the canvas to Slack, unless it hasn't changed since the last successful push.
@@ -86,15 +89,27 @@ class RegistrationCanvas
         ])->values();
         Student::populateRegistrationFor($students);
 
+        // Same disambiguation as the web app's StudentList.getQualifiedName
         $nameCounts = $students->countBy('name');
+        $names = $students->mapWithKeys(function($student) use ($nameCounts) {
+            $name = $student->name;
+            if($nameCounts[$student->name] > 1 && $student->graduation_year) {
+                $name .= " ({$student->graduation_year})";
+            }
+            // A backtick fence in a name would end the code block early
+            return [$student->id => str_replace('`', "'", $name)];
+        });
+        $nameWidth = max(mb_strlen('Student'), $names->map(fn($name) => mb_strlen($name))->max() ?? 0);
 
         $lines = [
             '# Student Registration',
             '',
             'Every student must complete these steps each season:',
-            '- **Student contract**: completed by the student',
-            '- **Shared Science registration** (dues): completed by a parent or guardian',
-            '- **FIRST consent and release form**: completed by a parent or guardian',
+            '- **Contract**: the student contract, completed by the student',
+            '- **SSCI**: Shared Science registration (dues), completed by a parent or guardian',
+            '- **FIRST**: the FIRST consent and release form, completed by a parent or guardian',
+            '',
+            '`'.self::YES.'` means the step is done, and `'.self::NO.'` means it still needs to be done.',
             '',
             'Students may **use tools** once they have completed the student contract and Shared Science registration.',
             'Students may **attend FIRST events** once they have completed the student contract and the FIRST consent and release form.',
@@ -123,17 +138,31 @@ class RegistrationCanvas
                 continue;
             }
 
-            foreach($sectionStudents->chunk(self::STUDENTS_PER_TABLE) as $chunk) {
-                $lines[] = '| Student | Student contract (student) | Shared Science (parent) | FIRST C&R (parent) |';
-                $lines[] = '| --- | --- | --- | --- |';
-                foreach($chunk as $student) {
-                    $lines[] = $this->renderRow($student, $nameCounts);
+            $lines[] = '```';
+            $lines[] = $this->renderRow(mb_str_pad('Student', $nameWidth), self::STEP_COLUMNS);
+            $lines[] = $this->renderRow(
+                str_repeat('-', $nameWidth),
+                array_map(fn($header) => str_repeat('-', mb_strlen($header)), self::STEP_COLUMNS)
+            );
+            foreach($sectionStudents as $student) {
+                $marks = [];
+                foreach(self::STEP_COLUMNS as $step => $header) {
+                    $marks[$step] = mb_str_pad(
+                        $this->isDone($student, $step) ? self::YES : self::NO,
+                        mb_strlen($header), ' ', STR_PAD_BOTH
+                    );
                 }
-                $lines[] = '';
+                $lines[] = $this->renderRow(mb_str_pad($names[$student->id], $nameWidth), $marks);
             }
+            $lines[] = '```';
+            $lines[] = '';
         }
 
         return implode("\n", $lines);
+    }
+
+    private function renderRow(string $name, array $cells): string {
+        return $name.' '.implode(' ', $cells);
     }
 
     private function isDone(Student $student, string $step): bool {
@@ -146,31 +175,5 @@ class RegistrationCanvas
 
     private function canAttendEvents(Student $student): bool {
         return $this->isDone($student, 'student_contract') && $this->isDone($student, 'first_cr');
-    }
-
-    private function renderRow(Student $student, Collection $nameCounts): string {
-        // Same disambiguation as the web app's StudentList.getQualifiedName
-        $name = $student->name;
-        if($nameCounts[$student->name] > 1 && $student->graduation_year) {
-            $name .= " ({$student->graduation_year})";
-        }
-
-        $cells = [
-            $this->escape($name),
-            $this->check($this->isDone($student, 'student_contract')),
-            $this->check($this->isDone($student, 'shared_science')),
-            $this->check($this->isDone($student, 'first_cr'))
-        ];
-
-        return '| '.implode(' | ', $cells).' |';
-    }
-
-    private function check(bool $done): string {
-        return $done ? self::YES : self::NO;
-    }
-
-    /** Escape characters that would break the table or be read as formatting. */
-    private function escape(string $text): string {
-        return preg_replace('/([\\\\`*_~|\[\]<>#:])/', '\\\\$1', $text);
     }
 }

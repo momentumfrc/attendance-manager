@@ -68,21 +68,35 @@ class RegistrationCanvasTest extends TestCase
         Http::fake([self::EDIT_URL => Http::response($response)]);
     }
 
-    /** The table rows of the rendered canvas, keyed by section title, then by the student column. */
-    private function sections(string $markdown): array {
-        $sections = [];
+    /** The code block tables of the rendered canvas, keyed by section title. */
+    private function tables(string $markdown): array {
+        $tables = [];
         $section = null;
+        $inTable = false;
         foreach(explode("\n", $markdown) as $line) {
             if(str_starts_with($line, '## ')) {
                 $section = substr($line, 3);
-                $sections[$section] = [];
-                continue;
+                $tables[$section] = [];
+            } else if($line == '```') {
+                $inTable = !$inTable;
+            } else if($inTable) {
+                $tables[$section][] = $line;
             }
-            if(!str_starts_with($line, '| ') || str_starts_with($line, '| Student |') || str_starts_with($line, '| -')) {
-                continue;
+        }
+        return $tables;
+    }
+
+    /** The table rows of the rendered canvas, keyed by section title, then by the student column. */
+    private function sections(string $markdown): array {
+        $sections = [];
+        foreach($this->tables($markdown) as $section => $lines) {
+            $sections[$section] = [];
+            // Skip the header and separator
+            foreach(array_slice($lines, 2) as $line) {
+                $this->assertMatchesRegularExpression('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/', $line);
+                preg_match('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/', $line, $matches);
+                $sections[$section][$matches[1]] = array_slice($matches, 2);
             }
-            $cells = array_map('trim', explode(' | ', trim($line, '| ')));
-            $sections[$section][$cells[0]] = array_slice($cells, 1);
         }
         return $sections;
     }
@@ -108,8 +122,8 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent($events, 'first_cr');
         $this->makeEvent($contractOnly, 'student_contract');
 
-        $yes = ':white_check_mark:';
-        $no = ':x:';
+        $yes = 'Y';
+        $no = '-';
         $this->assertSame([
             'Tools OK, Events OK' => ['Alice' => [$yes, $yes, $yes]],
             'Tools OK, No Events' => ['Bob' => [$yes, $yes, $no]],
@@ -124,7 +138,7 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent($student, 'first_cr');
 
         $this->assertSame(
-            ['Alice' => [':x:', ':white_check_mark:', ':white_check_mark:']],
+            ['Alice' => ['-', 'Y', 'Y']],
             $this->sections($this->canvas()->render())['No Tools, No Events']
         );
     }
@@ -147,7 +161,7 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent(null, 'new_season', Carbon::now()->subMonth());
 
         $this->assertSame(
-            [':x:', ':x:', ':x:'],
+            ['-', '-', '-'],
             $this->rows($this->canvas()->render())['Alice']
         );
     }
@@ -165,22 +179,36 @@ class RegistrationCanvasTest extends TestCase
         );
     }
 
-    public function test_render_escapes_names() {
+    public function test_render_shows_names_literally() {
         $this->makeStudent('Pipe | *Star* _under_');
+        // A backtick fence in a name would end the code block early
+        $this->makeStudent('Tick ```Tock');
 
-        $this->assertStringContainsString('Pipe \| \*Star\* \_under\_', $this->canvas()->render());
+        $this->assertSame(
+            ['Pipe | *Star* _under_', "Tick '''Tock"],
+            array_keys($this->rows($this->canvas()->render()))
+        );
     }
 
-    public function test_render_splits_large_rosters_into_tables() {
-        foreach(range(1, 85) as $i) {
-            $this->makeStudent(sprintf('Student %03d', $i));
-        }
+    public function test_render_aligns_columns() {
+        $short = $this->makeStudent('Al');
+        $this->makeStudent('Bartholomew José');
+        $this->makeEvent($short, 'shared_science');
 
+        $lines = $this->tables($this->canvas()->render())['No Tools, No Events'];
+
+        $this->assertSame('Student          Contract SSCI FIRST', $lines[0]);
+        $this->assertSame('---------------- -------- ---- -----', $lines[1]);
+        $this->assertSame('Al                  -      Y     -  ', $lines[2]);
+        $this->assertSame('Bartholomew José    -      -     -  ', $lines[3]);
+    }
+
+    public function test_render_explains_the_columns() {
         $markdown = $this->canvas()->render();
 
-        // Canvas tables are limited to 300 cells, so 85 unregistered students need 2 tables
-        $this->assertSame(2, substr_count($markdown, '| Student |'));
-        $this->assertCount(85, $this->sections($markdown)['No Tools, No Events']);
+        $this->assertStringContainsString('**Contract**', $markdown);
+        $this->assertStringContainsString('**SSCI**', $markdown);
+        $this->assertStringContainsString('**FIRST**', $markdown);
     }
 
     public function test_push_replaces_the_canvas() {
@@ -198,7 +226,7 @@ class RegistrationCanvasTest extends TestCase
                 && $change['operation'] == 'replace'
                 && !isset($change['section_id'])
                 && $change['document_content']['type'] == 'markdown'
-                && str_contains($change['document_content']['markdown'], '| Alice |');
+                && str_contains($change['document_content']['markdown'], "\nAlice ");
         });
     }
 
