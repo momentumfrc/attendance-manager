@@ -25,6 +25,7 @@ echo -e "\\t${0}"
 cd ${API_DIR}
 
 php ./artisan meetings:end
+php ./artisan registration:push-canvas
 
 echo
 

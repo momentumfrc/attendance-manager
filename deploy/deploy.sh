@@ -89,6 +89,8 @@ sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE//\//\\\/}/g" .env
 sed -i "s/SLACK_CLIENT_ID=.*/SLACK_CLIENT_ID=${SLACK_CLIENT_ID//\//\\\/}/g" .env
 sed -i "s/SLACK_CLIENT_SECRET=.*/SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET//\//\\\/}/g" .env
 sed -i "s/SLACK_TEAM=.*/SLACK_TEAM=${SLACK_TEAM//\//\\\/}/g" .env
+sed -i "s/SLACK_BOT_TOKEN=.*/SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN//\//\\\/}/g" .env
+sed -i "s/SLACK_REGISTRATION_CANVAS_ID=.*/SLACK_REGISTRATION_CANVAS_ID=${SLACK_REGISTRATION_CANVAS_ID//\//\\\/}/g" .env
 sed -i "s/GIT_HASH=.*/GIT_HASH=${GIT_HASH}/g" .env
 popd
 

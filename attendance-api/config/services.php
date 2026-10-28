@@ -37,4 +37,12 @@ return [
         'team' => env('SLACK_TEAM')
     ],
 
+    // The Slack canvas that shows every student's registration status
+    'slack_canvas' => [
+        'bot_token' => env('SLACK_BOT_TOKEN'),
+        'canvas_id' => env('SLACK_REGISTRATION_CANVAS_ID'),
+        // For the canvas's "last updated" time
+        'timezone' => 'America/Los_Angeles'
+    ],
+
 ];

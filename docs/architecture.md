@@ -35,6 +35,7 @@ Serving both from one origin means the browser can use cookie-based authenticati
 | `AttendanceEvent` | A `check-in` or `check-out` for a student. Soft-deleted, so events can be undone. |
 | `AttendanceSession` | Not a table: a database **view** (see the `attendance_sessions` migrations) that pairs each check-in with the next check-out for the same student. A check-in with no check-out is a missed checkout. |
 | `MeetingEvent` | Marks the end of a meeting. Registering one checks out all students who are still checked in. |
+| `RegistrationEvent` | A student completing one of the yearly registration steps (`student_contract`, `shared_science`, `first_cr`), or a `new_season` event with no student that clears everyone's registration. A step counts only if its event came after the latest `new_season` event (by `created_at`, then `id`). Soft-deleted, so steps and resets can be undone. Students report which event completed each step as `registration`. |
 | `User` | A person who logs in (a mentor or student lead). Soft-deleted. |
 
 Event types are defined in `config/enums.php`.
@@ -47,6 +48,7 @@ in `app/Http/Controllers`:
 - `students`, `student-profile-images`: `StudentController`, `StudentProfileImageController`
 - `attendance/events`, `attendance/sessions`: `AttendanceEventController`, `AttendanceSessionController`
 - `meetings`: `MeetingEventController`
+- `registration/events`, `registration/canvas`: `RegistrationEventController`, `RegistrationCanvasController`
 - `users`, `roles`: `UserController`
 - `reports/*`: `ReportController` (meeting lists, per-meeting attendance, student stats)
 - `poll`: `PollController`
@@ -78,9 +80,20 @@ Commands live in `app/Console/Commands` and are run with `php artisan <name>`:
 | `meetings:end` | Registers an end-of-meeting event if any student is still checked in. `--force` registers it regardless. |
 | `validate:attendance` | Finds invalid attendance sessions and tries to repair them. |
 | `app:photo-check-fs` | Checks that profile image records and files on disk agree. |
+| `registration:push-canvas` | Updates the registration Slack canvas if it changed since the last update. `--force` updates it regardless. |
 
-In production, `deploy/scripts/daily.sh` runs `meetings:end` from cron, which is what
-makes meeting ends automatic.
+In production, `deploy/scripts/daily.sh` runs `meetings:end` and `registration:push-canvas`
+from cron, which is what makes meeting ends automatic.
+
+### Registration canvas
+
+Students can't log in, so they check their registration status on a Slack canvas that the app
+keeps up to date (`app/Services/RegistrationCanvas.php`). Every update overwrites the whole canvas.
+Mentors update it from the registration page, and the daily cron job updates it too. Both skip the
+update if the canvas content is unchanged since the last successful update.
+
+The canvas is configured with `SLACK_BOT_TOKEN` and `SLACK_REGISTRATION_CANVAS_ID`. The bot token
+needs the `canvases:write` scope, and the bot must have write access to the canvas.
 
 ## Web (`attendance-web`)
 

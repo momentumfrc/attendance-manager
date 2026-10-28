@@ -10,6 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\MeetingEventController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PollController;
+use App\Http\Controllers\RegistrationCanvasController;
 use App\Http\Controllers\RegistrationEventController;
 use App\Http\Controllers\StudentProfileImageController;
 use Spatie\Permission\Models\Role;
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('registration/events', RegistrationEventController::class)->only([
         'store', 'destroy'
     ]);
+    Route::post('registration/canvas', [RegistrationCanvasController::class, 'push']);
 
     Route::get('user', function (Request $request) {
         return $request->user();
