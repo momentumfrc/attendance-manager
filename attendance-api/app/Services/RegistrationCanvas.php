@@ -22,14 +22,16 @@ class RegistrationCanvas
     private const EDIT_URL = 'https://slack.com/api/canvases.edit';
 
     // Markdown tables stretch to the canvas width, which is too wide on phones, so each section is a
-    // monospaced table in a code block instead. Emoji are double-width there, so steps are plain marks.
+    // monospaced table in a code block instead.
     private const STEP_COLUMNS = [
         'student_contract' => 'Contract',
         'shared_science' => 'SSCI',
         'first_cr' => 'FIRST'
     ];
-    private const YES = 'Y';
-    private const NO = '-';
+
+    // Shortcodes don't render in code blocks, so these are the emoji themselves
+    private const YES = '✅';
+    private const NO = '❌';
 
     /**
      * Push the canvas to Slack, unless it hasn't changed since the last successful push.
@@ -99,29 +101,30 @@ class RegistrationCanvas
             // A backtick fence in a name would end the code block early
             return [$student->id => str_replace('`', "'", $name)];
         });
-        $nameWidth = max(mb_strlen('Student'), $names->map(fn($name) => mb_strlen($name))->max() ?? 0);
+        $nameWidth = max(mb_strwidth('Student'), $names->map(fn($name) => mb_strwidth($name))->max() ?? 0);
 
         $lines = [
-            '# Student Registration',
+            '# Steps',
             '',
-            'Every student must complete these steps each season:',
-            '- **Contract**: the student contract, completed by the student',
-            '- **SSCI**: Shared Science registration (dues), completed by a parent or guardian',
-            '- **FIRST**: the FIRST consent and release form, completed by a parent or guardian',
+            'Every student must complete these steps each season. '. self::YES.' means the step is done, and '.self::NO.' means it still needs to be done.',
+            '1. **Contract**: the student contract, completed by the student',
+            '2. **SSCI**: Shared Science registration (dues), completed by a parent or guardian',
+            '3. **FIRST**: the FIRST consent and release form, completed by a parent or guardian',
             '',
-            '`'.self::YES.'` means the step is done, and `'.self::NO.'` means it still needs to be done.',
-            '',
-            'Students may **use tools** once they have completed the student contract and Shared Science registration.',
-            'Students may **attend FIRST events** once they have completed the student contract and the FIRST consent and release form.',
+            '# Restrictions',
+            '- Students must sign the student contract at their **first meeting** and may not attend further meetings until it is signed',
+            '- Students may **use tools** once they have completed the student contract and Shared Science registration',
+            '- Students may **attend FIRST events** once they have completed the student contract and the FIRST consent and release form',
+            '- Students must be **fully registered** (all '.self::YES.') to attend meetings after Halloween',
             ''
         ];
 
         // Like the registration spreadsheet, students are grouped by what they're allowed to do
         $sections = [
-            'Tools OK, Events OK' => [true, true],
-            'Tools OK, No Events' => [true, false],
-            'No Tools, Events OK' => [false, true],
-            'No Tools, No Events' => [false, false]
+            'Fully Registered (Tools OK and Events OK)' => [true, true],
+            'Missing FIRST (No Events)' => [true, false],
+            'Missing Shared Science (No Tools)' => [false, true],
+            'Missing Multiple (No Tools, No Events)' => [false, false]
         ];
 
         foreach($sections as $title => [$tools, $events]) {
@@ -139,26 +142,34 @@ class RegistrationCanvas
             }
 
             $lines[] = '```';
-            $lines[] = $this->renderRow(mb_str_pad('Student', $nameWidth), self::STEP_COLUMNS);
+            $lines[] = $this->renderRow($this->pad('Student', $nameWidth), self::STEP_COLUMNS);
             $lines[] = $this->renderRow(
                 str_repeat('-', $nameWidth),
-                array_map(fn($header) => str_repeat('-', mb_strlen($header)), self::STEP_COLUMNS)
+                array_map(fn($header) => str_repeat('-', mb_strwidth($header)), self::STEP_COLUMNS)
             );
             foreach($sectionStudents as $student) {
                 $marks = [];
                 foreach(self::STEP_COLUMNS as $step => $header) {
-                    $marks[$step] = mb_str_pad(
+                    $marks[$step] = $this->pad(
                         $this->isDone($student, $step) ? self::YES : self::NO,
-                        mb_strlen($header), ' ', STR_PAD_BOTH
+                        mb_strwidth($header), STR_PAD_BOTH
                     );
                 }
-                $lines[] = $this->renderRow(mb_str_pad($names[$student->id], $nameWidth), $marks);
+                $lines[] = $this->renderRow($this->pad($names[$student->id], $nameWidth), $marks);
             }
             $lines[] = '```';
             $lines[] = '';
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Pad text with spaces to a display width. Emoji and some other characters take up two columns
+     * in a monospaced font, so padding by character count would misalign them.
+     */
+    private function pad(string $text, int $width, int $type = STR_PAD_RIGHT): string {
+        return str_pad($text, strlen($text) + max(0, $width - mb_strwidth($text)), ' ', $type);
     }
 
     private function renderRow(string $name, array $cells): string {

@@ -93,8 +93,8 @@ class RegistrationCanvasTest extends TestCase
             $sections[$section] = [];
             // Skip the header and separator
             foreach(array_slice($lines, 2) as $line) {
-                $this->assertMatchesRegularExpression('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/', $line);
-                preg_match('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/', $line, $matches);
+                $this->assertMatchesRegularExpression('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/u', $line);
+                preg_match('/^(.*?)\s+(\S)\s+(\S)\s+(\S)\s*$/u', $line, $matches);
                 $sections[$section][$matches[1]] = array_slice($matches, 2);
             }
         }
@@ -122,13 +122,13 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent($events, 'first_cr');
         $this->makeEvent($contractOnly, 'student_contract');
 
-        $yes = 'Y';
-        $no = '-';
+        $yes = '✅';
+        $no = '❌';
         $this->assertSame([
-            'Tools OK, Events OK' => ['Alice' => [$yes, $yes, $yes]],
-            'Tools OK, No Events' => ['Bob' => [$yes, $yes, $no]],
-            'No Tools, Events OK' => ['Carol' => [$yes, $no, $yes]],
-            'No Tools, No Events' => ['Dave' => [$yes, $no, $no], 'Erin' => [$no, $no, $no]]
+            'Fully Registered (Tools OK and Events OK)' => ['Alice' => [$yes, $yes, $yes]],
+            'Missing FIRST (No Events)' => ['Bob' => [$yes, $yes, $no]],
+            'Missing Shared Science (No Tools)' => ['Carol' => [$yes, $no, $yes]],
+            'Missing Multiple (No Tools, No Events)' => ['Dave' => [$yes, $no, $no], 'Erin' => [$no, $no, $no]]
         ], $this->sections($this->canvas()->render()));
     }
 
@@ -138,8 +138,8 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent($student, 'first_cr');
 
         $this->assertSame(
-            ['Alice' => ['-', 'Y', 'Y']],
-            $this->sections($this->canvas()->render())['No Tools, No Events']
+            ['Alice' => ['❌', '✅', '✅']],
+            $this->sections($this->canvas()->render())['Missing Multiple (No Tools, No Events)']
         );
     }
 
@@ -149,7 +149,7 @@ class RegistrationCanvasTest extends TestCase
         $markdown = $this->canvas()->render();
 
         $this->assertSame(
-            ['Tools OK, Events OK', 'Tools OK, No Events', 'No Tools, Events OK', 'No Tools, No Events'],
+            ['Fully Registered (Tools OK and Events OK)', 'Missing FIRST (No Events)', 'Missing Shared Science (No Tools)', 'Missing Multiple (No Tools, No Events)'],
             array_keys($this->sections($markdown))
         );
         $this->assertSame(3, substr_count($markdown, '_No students_'));
@@ -161,7 +161,7 @@ class RegistrationCanvasTest extends TestCase
         $this->makeEvent(null, 'new_season', Carbon::now()->subMonth());
 
         $this->assertSame(
-            ['-', '-', '-'],
+            ['❌', '❌', '❌'],
             $this->rows($this->canvas()->render())['Alice']
         );
     }
@@ -195,12 +195,16 @@ class RegistrationCanvasTest extends TestCase
         $this->makeStudent('Bartholomew José');
         $this->makeEvent($short, 'shared_science');
 
-        $lines = $this->tables($this->canvas()->render())['No Tools, No Events'];
+        $lines = $this->tables($this->canvas()->render())['Missing Multiple (No Tools, No Events)'];
 
+        // The emoji are two columns wide, so each mark takes one less space of padding
         $this->assertSame('Student          Contract SSCI FIRST', $lines[0]);
         $this->assertSame('---------------- -------- ---- -----', $lines[1]);
-        $this->assertSame('Al                  -      Y     -  ', $lines[2]);
-        $this->assertSame('Bartholomew José    -      -     -  ', $lines[3]);
+        $this->assertSame('Al                  ❌     ✅   ❌  ', $lines[2]);
+        $this->assertSame('Bartholomew José    ❌     ❌   ❌  ', $lines[3]);
+        foreach($lines as $line) {
+            $this->assertSame(36, mb_strwidth($line), $line);
+        }
     }
 
     public function test_render_explains_the_columns() {
