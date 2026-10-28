@@ -7,6 +7,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -16,8 +17,17 @@ use Illuminate\Validation\ValidationException;
  */
 class RegistrationEventController extends Controller
 {
-    public function __construct() {
-        $this->middleware('can:modify student registration');
+    private const PERMISSIONS = ['modify student registration', 'modify student contract'];
+
+    /**
+     * The permission needed to add or remove an event of the given type. Student leads may record
+     * that a student signed the contract, but only mentors may change anything else.
+     */
+    private function requiredPermission(string $eventType): string {
+        if($eventType == config('enums.registration_event_types')['STUDENT_CONTRACT']) {
+            return 'modify student contract';
+        }
+        return 'modify student registration';
     }
 
     /**
@@ -28,6 +38,11 @@ class RegistrationEventController extends Controller
      */
     public function store(Request $request)
     {
+        // Reject users who can't modify anything before validating
+        if(Gate::none(self::PERMISSIONS)) {
+            abort(403);
+        }
+
         $newSeason = config('enums.registration_event_types')['NEW_SEASON'];
 
         $request->validate([
@@ -39,6 +54,8 @@ class RegistrationEventController extends Controller
                 Rule::exists('students', 'id')->whereNull('deleted_at')
             ]
         ]);
+
+        Gate::authorize($this->requiredPermission($request->event_type));
 
         if($request->event_type != $newSeason) {
             $student = Student::findOrFail($request->student_id);
@@ -68,7 +85,12 @@ class RegistrationEventController extends Controller
      */
     public function destroy($id)
     {
+        if(Gate::none(self::PERMISSIONS)) {
+            abort(403);
+        }
+
         $event = RegistrationEvent::findOrFail($id);
+        Gate::authorize($this->requiredPermission($event->event_type));
         $event->delete();
 
         return $event;
