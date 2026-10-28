@@ -62,15 +62,25 @@ mat-icon {
     justify-content: space-between;
     gap: 10px;
 
-    margin: 5px 0px;
-
+    // Space between rows is padding rather than margin, so unregistered rows are highlighted
+    // right up to the dividers
     @include media.mobile {
-        padding-left: 5px;
+        padding: 15px 8px;
     }
 
     @include media.desktop {
-        padding-left: 20px;
+        padding: 10px 8px 10px 20px;
     }
+}
+
+// Students who haven't completed every registration step this season
+.unregistered {
+    background-color: #fff6c2;
+}
+
+// Students who haven't signed the student contract, and so can't be checked in
+.noContract {
+    background-color: #ffd6d6;
 }
 
 .studentName {
@@ -89,11 +99,4 @@ mat-icon {
 
 #noStudentsWarn {
     padding: 0px 16px;
-}
-
-.studentDivider {
-    @include media.mobile {
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
 }

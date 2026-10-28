@@ -10,6 +10,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\AttendanceEvent;
+use App\Models\RegistrationEvent;
 
 use Carbon\Carbon;
 
@@ -86,6 +87,7 @@ class AttendanceEventControllerTest extends TestCase
             ->CREATE()[0];
 
         Config::set('config.simultaneous_interval', 60);
+        $this->signContract($student);
 
         $event = new AttendanceEvent();
         $event->type = 'check-out';
@@ -166,6 +168,57 @@ class AttendanceEventControllerTest extends TestCase
         $user = User::factory()->create();
         $user->syncRoles([$role]);
         return $user;
+    }
+
+    /** Students can only be checked in once they've signed the contract. */
+    private function signContract(Student $student, ?Carbon $date = null): RegistrationEvent {
+        $date ??= Carbon::now()->subDay();
+        return RegistrationEvent::forceCreate([
+            'student_id' => $student->id,
+            'registered_by' => User::first()->id,
+            'event_type' => 'student_contract',
+            'created_at' => $date,
+            'updated_at' => $date
+        ]);
+    }
+
+    public function test_check_in_requires_signed_contract() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $checkIn = ['type' => 'check-in', 'student_id' => $student->id];
+
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('student_id');
+
+        // Last season's contract doesn't count
+        $this->signContract($student, Carbon::now()->subYear());
+        RegistrationEvent::forceCreate([
+            'registered_by' => $user->id,
+            'event_type' => 'new_season',
+            'created_at' => Carbon::now()->subMonth(),
+            'updated_at' => Carbon::now()->subMonth()
+        ]);
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)->assertStatus(422);
+        $this->assertDatabaseCount('attendance_events', 0);
+
+        $this->signContract($student);
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)->assertStatus(201);
+        $this->assertDatabaseCount('attendance_events', 1);
+    }
+
+    public function test_check_out_does_not_require_signed_contract() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        // Checked in last season, before a new season cleared their contract
+        $this->makeEvent($student, $user, 'check-in', Carbon::now()->subHours(2));
+
+        $this->actingAs($user)->postJson('/api/attendance/events', [
+            'type' => 'check-out',
+            'student_id' => $student->id
+        ])->assertStatus(201);
     }
 
     private function makeEvent(Student $student, User $user, string $type, Carbon $date): AttendanceEvent {
@@ -285,6 +338,7 @@ class AttendanceEventControllerTest extends TestCase
     public function test_store_permissions() {
         $this->seed(RolesSeeder::class);
         $student = Student::factory()->registeredBy(User::first())->untrashed()->create();
+        $this->signContract($student);
         $checkIn = ['type' => 'check-in', 'student_id' => $student->id];
         $checkOut = ['type' => 'check-out', 'student_id' => $student->id];
 

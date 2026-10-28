@@ -7,7 +7,7 @@ import { DateTime } from 'luxon';
 import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, ReplaySubject, startWith, Subject, takeUntil, timer } from 'rxjs';
 import { AttendanceEventType } from 'src/app/models/attendance-event.model';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
-import { compareStudents, Student, StudentList } from 'src/app/models/student.model';
+import { compareStudents, hasSignedContract, isRegistered, Student, StudentList } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { ErrorService } from 'src/app/services/error.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
@@ -32,6 +32,8 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   lastEndOfMeeting = new ReplaySubject<MeetingEvent|null>(1);
 
   protected readonly eventTypes = AttendanceEventType
+  protected readonly isRegistered = isRegistered
+  protected readonly hasSignedContract = hasSignedContract
   protected mode: AttendanceEventType
 
   protected pendingStudentIds = new BehaviorSubject<number[]>([]);
@@ -264,7 +266,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       ),
       inUpdateLockout: this.inUpdateLockout
     }).pipe(
-      map(({availableActionDoesNotMatchTab, isPending, inUpdateLockout}) => availableActionDoesNotMatchTab || isPending || inUpdateLockout)
+      map(({availableActionDoesNotMatchTab, isPending, inUpdateLockout}) => availableActionDoesNotMatchTab || isPending || inUpdateLockout
+        // Students who haven't signed the contract may not attend, but can still be checked out
+        || (this.mode == AttendanceEventType.CHECK_IN && !hasSignedContract(student)))
     );
   }
 

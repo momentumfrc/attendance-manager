@@ -16,6 +16,15 @@ export interface ProfileImageData {
     data: string
 }
 
+export enum RegistrationStep {
+    STUDENT_CONTRACT = "student_contract",
+    SHARED_SCIENCE = "shared_science",
+    FIRST_CR = "first_cr"
+}
+
+/** For each registration step, the id of the event that completed it this season, or null. */
+export type StudentRegistration = Record<RegistrationStep, number|null>;
+
 export interface Student {
     id: number,
     name: string,
@@ -26,7 +35,25 @@ export interface Student {
     deleted_at?: DateTime,
     last_check_in?: AttendanceEvent,
     last_check_out?: AttendanceEvent,
-    profile_image?: StudentProfileImage
+    profile_image?: StudentProfileImage,
+    registration?: StudentRegistration
+}
+
+function hasCompleted(student: Student, step: RegistrationStep): boolean {
+    return student.registration?.[step] != null;
+}
+
+/** Students may not attend meetings until they've signed this season's contract. */
+export function hasSignedContract(student: Student): boolean {
+    return hasCompleted(student, RegistrationStep.STUDENT_CONTRACT);
+}
+
+export function isRegistered(student: Student): boolean {
+    return Object.values(RegistrationStep).every(step => hasCompleted(student, step));
+}
+
+function areRegistrationsEqual(a?: StudentRegistration, b?: StudentRegistration): boolean {
+    return Object.values(RegistrationStep).every(step => (a?.[step] ?? null) === (b?.[step] ?? null));
 }
 
 export function areStudentsEqual(a: Student, b: Student): boolean {
@@ -51,7 +78,8 @@ export function areStudentsEqual(a: Student, b: Student): boolean {
         && compare_optional_dates(a.deleted_at, b.deleted_at)
         && compare_optional_events(a.last_check_in, b.last_check_in)
         && compare_optional_events(a.last_check_out, b.last_check_out)
-        && a.profile_image?.id === b.profile_image?.id;
+        && a.profile_image?.id === b.profile_image?.id
+        && areRegistrationsEqual(a.registration, b.registration);
 }
 
 export function compareStudents(a: Student, b: Student): number {

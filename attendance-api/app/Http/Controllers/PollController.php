@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 use App\Models\AttendanceEvent;
 use App\Models\MeetingEvent;
+use App\Models\RegistrationEvent;
 use App\Models\Student;
 use App\Support\PollChangeMarker;
 
@@ -49,14 +50,28 @@ class PollController extends Controller
             ->orWhere($whereGenerator('deleted_at'))
             ->get();
 
+        $updated_registrations = RegistrationEvent::withTrashed()
+            ->where($whereGenerator('created_at'))
+            ->orWhere($whereGenerator('updated_at'))
+            ->orWhere($whereGenerator('deleted_at'))
+            ->get(['student_id', 'event_type']);
+
+        // A new season (or undoing one) changes every student's registration
+        $season_changed = $updated_registrations->contains(
+            'event_type', config('enums.registration_event_types')['NEW_SEASON']
+        );
+
         $updated_students = Student::withTrashed()
             ->whereIn('id', $updated_events->pluck('student_id')->unique())
+            ->orWhereIn('id', $updated_registrations->pluck('student_id')->filter()->unique())
             ->orWhere($whereGenerator('created_at'))
             ->orWhere($whereGenerator('updated_at'))
             ->orWhere($whereGenerator('deleted_at'))
+            ->when($season_changed, fn($query) => $query->orWhereNull('deleted_at'))
             ->get();
 
         Student::populateAttendanceEventsFor($updated_students);
+        Student::populateRegistrationFor($updated_students);
 
         $meeting_events = MeetingEvent::where($whereGenerator('created_at'))
             ->orWhere($whereGenerator('updated_at'))
