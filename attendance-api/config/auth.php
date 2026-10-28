@@ -116,6 +116,17 @@ return [
     | The "slack_id" of the System user used when executing console commands.
     |
     */
-    'system_slack_id' => 'SYSTEM-1'
+    'system_slack_id' => 'SYSTEM-1',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin User Id
+    |--------------------------------------------------------------------------
+    |
+    | The "slack_id" of the user RolesSeeder makes a mentor, so that someone
+    | can log in and give out the other roles.
+    |
+    */
+    'admin_slack_id' => env('ADMIN_SLACK_ID'),
 
 ];
