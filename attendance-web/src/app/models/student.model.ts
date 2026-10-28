@@ -43,6 +43,11 @@ function hasCompleted(student: Student, step: RegistrationStep): boolean {
     return student.registration?.[step] != null;
 }
 
+/** Students may not attend meetings until they've signed this season's contract. */
+export function hasSignedContract(student: Student): boolean {
+    return hasCompleted(student, RegistrationStep.STUDENT_CONTRACT);
+}
+
 export function isRegistered(student: Student): boolean {
     return Object.values(RegistrationStep).every(step => hasCompleted(student, step));
 }

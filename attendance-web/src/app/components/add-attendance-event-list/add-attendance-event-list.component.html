@@ -22,7 +22,9 @@
 @if (filteredStudents | async; as filteredStudents) {
   <div id="studentResults">
     @for (student of filteredStudents[0].students; track student; let i = $index; let isLast = $last) {
-      <div class="studentRow" [class.unregistered]="!isRegistered(student)">
+      <div class="studentRow"
+        [class.noContract]="!hasSignedContract(student)"
+        [class.unregistered]="hasSignedContract(student) && !isRegistered(student)">
         @if (showProfileImages|async) {
           <img class="student-profile" [src]="(getProfileImageSrc(student) | async) ?? profilePlaceholderSrc">
         }

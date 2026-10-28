@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { areStudentsEqual, isRegistered, RegistrationStep, Student, StudentProfileImage } from "./student.model";
+import { areStudentsEqual, hasSignedContract, isRegistered, RegistrationStep, Student, StudentProfileImage } from "./student.model";
 
 describe('areStudentsEqual', () => {
     const now = DateTime.now();
@@ -62,6 +62,12 @@ describe('registration status', () => {
     });
 
     const {STUDENT_CONTRACT, SHARED_SCIENCE, FIRST_CR} = RegistrationStep;
+
+    it('should know whether the contract is signed', () => {
+        expect(hasSignedContract(student([STUDENT_CONTRACT]))).toBeTrue();
+        expect(hasSignedContract(student([SHARED_SCIENCE, FIRST_CR]))).toBeFalse();
+        expect(hasSignedContract({...student([]), registration: undefined})).toBeFalse();
+    });
 
     it('should require every step to be registered', () => {
         expect(isRegistered(student([STUDENT_CONTRACT, SHARED_SCIENCE, FIRST_CR]))).toBeTrue();

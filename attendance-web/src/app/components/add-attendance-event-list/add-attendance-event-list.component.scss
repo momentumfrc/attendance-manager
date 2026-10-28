@@ -78,6 +78,11 @@ mat-icon {
     background-color: #fff6c2;
 }
 
+// Students who haven't signed the student contract, and so can't be checked in
+.noContract {
+    background-color: #ffd6d6;
+}
+
 .studentName {
     flex-grow: 1;
     min-width: 110px;
