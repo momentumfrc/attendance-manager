@@ -16,7 +16,7 @@ class User extends Authenticatable
     use SoftDeletes;
 
     protected $fillable = ['name', 'slack_id', 'avatar', 'deleted_at'];
-    protected $hidden = ['remember_token', 'roles'];
+    protected $hidden = ['remember_token', 'auth_secret', 'roles'];
     protected $appends = ['role_names'];
 
     protected static function booted(): void {
@@ -29,6 +29,12 @@ class User extends Authenticatable
 
     public function getRoleNamesAttribute() {
         return $this->getRoleNames();
+    }
+
+    // Users have no password, so the session guard signs remember cookies and sessions
+    // with a random secret instead. See AuthController.
+    public function getAuthPasswordName() {
+        return 'auth_secret';
     }
 
     public function isSystemUser(): bool {

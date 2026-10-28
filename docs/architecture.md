@@ -58,6 +58,12 @@ in `app/Http/Controllers`:
 
 - Users log in with Slack through Laravel Socialite (`AuthController`, `SlackSocialiteProvider`).
 - Sessions are cookie-based, using Laravel Sanctum's SPA authentication.
+- Users have no password. Laravel only honors "remember me" cookies (and keeps sessions
+  valid) for users with one, so a random per-user `auth_secret` stands in for it. It is
+  created on first login and cleared on logout, which signs the user out on every device.
+- In development, `APP_SKIP_AUTH=true` logs in as the first user without Slack. It only
+  works when `APP_ENV=local`, and `deploy/deploy.sh` removes it from deployed code with
+  `deploy/patches/remove_auth_bypass.patch`.
 - Authorization uses [spatie/laravel-permission](https://spatie.be/docs/laravel-permission).
   Fine-grained permissions such as `student check in` or `delete attendance event` are
   defined in `database/seeders/RolesSeeder.php` and grouped into the `mentor` and
