@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { BehaviorSubject, combineLatest, map, Observable, ReplaySubject, skip, startWith, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
-import { compareStudents, Student, StudentList } from 'src/app/models/student.model';
+import { compareStudents, hasSignedContract, Student, StudentList } from 'src/app/models/student.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
 import { StudentsService } from 'src/app/services/students.service';
@@ -134,7 +134,8 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     this.studentsService.getAllStudents().subscribe((students) => this.allStudents.next(students));
   }
 
-  selectAllGraduatingStudents(): void {
+  /** Select exactly the shown students that match the predicate. */
+  private selectStudentsWhere(predicate: (student: Student) => boolean): void {
     combineLatest({
       students: this.filteredStudents,
       controls: this.studentCheckControls
@@ -142,16 +143,21 @@ export class ListStudentsComponent implements OnInit, OnDestroy {
     .subscribe(({
       students: [indices, filteredStudents],
       controls: [allStudents, controls]}) => {
-      const nowYear = DateTime.now().year;
       for(let i = 0; i < indices.length; ++i) {
         const student = filteredStudents.students[i];
-        if(student.graduation_year) {
-          controls.at(indices[i]).setValue(nowYear >= student.graduation_year, {emitEvent: i == indices.length-1});
-        } else {
-          controls.at(indices[i]).setValue(false, {emitEvent: i == indices.length-1});
-        }
+        controls.at(indices[i]).setValue(predicate(student), {emitEvent: i == indices.length-1});
       }
     })
+  }
+
+  selectAllGraduatingStudents(): void {
+    const nowYear = DateTime.now().year;
+    this.selectStudentsWhere(student => student.graduation_year != undefined && nowYear >= student.graduation_year);
+  }
+
+  /** Students who haven't signed this season's contract have likely left the team. */
+  selectStudentsWithoutContract(): void {
+    this.selectStudentsWhere(student => !hasSignedContract(student));
   }
 
   deselectAll(): void {

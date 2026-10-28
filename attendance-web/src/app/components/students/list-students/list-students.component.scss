@@ -48,6 +48,17 @@ app-search-box {
     gap: 10px;
 }
 
+// Restore and Delete stay side by side, and the selection buttons wrap when space runs out
+.left-actions {
+    flex-shrink: 0;
+}
+
+.right-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
 .student-list-item {
     display: flex;
     height: 48px;
