@@ -22,7 +22,7 @@
           <td mat-cell *matCellDef="let row" class="centered">
             <mat-checkbox
               [checked]="isCompleted(row.student, column.step)"
-              [disabled]="!view.mayModify || view.pending.includes(pendingKey(row.student, column.step))"
+              [disabled]="!view.modifiableSteps.includes(column.step) || view.pending.includes(pendingKey(row.student, column.step))"
               (change)="toggleStep(row.student, column.step, $event)"
               [attr.aria-label]="column.label + ' for ' + row.name">
             </mat-checkbox>

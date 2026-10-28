@@ -13,7 +13,9 @@ import { StudentsService } from 'src/app/services/students.service';
 
 interface StepColumn {
   step: RegistrationStep,
-  label: string
+  label: string,
+  // Student leads may check off the contract, but only mentors may change the other steps
+  permission: string
 }
 
 export interface RegistrationRow {
@@ -24,7 +26,7 @@ export interface RegistrationRow {
 interface RegistrationView {
   rows: RegistrationRow[],
   pending: string[],
-  mayModify: boolean
+  modifiableSteps: RegistrationStep[]
 }
 
 @Component({
@@ -35,9 +37,9 @@ interface RegistrationView {
 })
 export class RegistrationComponent implements OnInit, OnDestroy {
   readonly steps: StepColumn[] = [
-    {step: RegistrationStep.STUDENT_CONTRACT, label: 'Student Contract'},
-    {step: RegistrationStep.SHARED_SCIENCE, label: 'Shared Science'},
-    {step: RegistrationStep.FIRST_CR, label: 'FIRST C&R'}
+    {step: RegistrationStep.STUDENT_CONTRACT, label: 'Student Contract', permission: 'modify student contract'},
+    {step: RegistrationStep.SHARED_SCIENCE, label: 'Shared Science', permission: 'modify student registration'},
+    {step: RegistrationStep.FIRST_CR, label: 'FIRST C&R', permission: 'modify student registration'}
   ];
   readonly columns = ['name', ...this.steps.map(column => column.step)];
 
@@ -46,6 +48,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
 
   /** Checkboxes with a request in flight, as pendingKey()s. */
   pending = new BehaviorSubject<string[]>([]);
+  /** Whether the user may start a new season and update the canvas. */
   mayModify: Observable<boolean>;
   view: Observable<RegistrationView>;
 
@@ -62,15 +65,20 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     permissionsService: PermissionsService
   ) {
     this.mayModify = permissionsService.checkPermissions(['modify student registration']).pipe(shareReplay(1));
+    const modifiableSteps = combineLatest(
+      this.steps.map(column => permissionsService.checkPermissions([column.permission]).pipe(
+        map(allowed => allowed ? [column.step] : [])
+      ))
+    ).pipe(map(steps => steps.flat()));
     this.view = combineLatest({
       rows: this.rows,
       pending: this.pending,
-      mayModify: this.mayModify
+      modifiableSteps
     });
   }
 
   ngOnInit(): void {
-    // Keep in sync with other mentors updating registration at the same time
+    // Keep in sync with other users updating registration at the same time
     this.pollService.getPollingObservable().pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
       if(pollData.updated_students.length > 0) {
         this.studentsService.updateStudentsInCache(pollData.updated_students);

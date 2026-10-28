@@ -121,6 +121,32 @@ describe('RegistrationComponent', () => {
         expect(component.pending.getValue()).toEqual([]);
     });
 
+    it('should only let student leads change the contract', () => {
+        const permissionsServiceSpy: jasmine.SpyObj<PermissionsService> = jasmine.createSpyObj('PermissionsService', ['checkPermissions']);
+        permissionsServiceSpy.checkPermissions.and.callFake(
+            permissions => of(permissions.every(permission => permission == 'modify student contract'))
+        );
+        const leadComponent = new RegistrationComponent(
+            studentsServiceSpy,
+            registrationServiceSpy,
+            jasmine.createSpyObj('PollService', {getPollingObservable: NEVER}),
+            {} as MatDialog,
+            {} as MatSnackBar,
+            permissionsServiceSpy
+        );
+        leadComponent.ngOnInit();
+        students.next([student(1, 'Alice')]);
+
+        let modifiableSteps: RegistrationStep[] = [];
+        let mayModify = true;
+        leadComponent.view.pipe(take(1)).subscribe(view => modifiableSteps = view.modifiableSteps);
+        leadComponent.mayModify.pipe(take(1)).subscribe(it => mayModify = it);
+
+        expect(modifiableSteps).toEqual([STUDENT_CONTRACT]);
+        expect(mayModify).toBeFalse();
+        leadComponent.ngOnDestroy();
+    });
+
     it('should put the box back if the request fails', () => {
         registrationServiceSpy.completeStep.and.returnValue(throwError(() => new Error('nope')));
         const checkboxChange = change(true);
