@@ -12,6 +12,7 @@ return [
         'STUDENT_CONTRACT' => 'student_contract',
         'SHARED_SCIENCE' => 'shared_science',
         'FIRST_CR' => 'first_cr',
-        'NEW_SEASON' => 'new_season'
+        'NEW_SEASON' => 'new_season',
+        'REQUIRE_REGISTRATION' => 'require_registration'
     ]
 ];

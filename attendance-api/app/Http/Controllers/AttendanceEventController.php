@@ -80,14 +80,12 @@ class AttendanceEventController extends Controller
 
         $student = Student::find($request->student_id);
 
-        // Students may not attend meetings until they've signed this season's contract. They can
-        // still be checked out, e.g. if a new season started while they were checked in.
+        // Students may not attend meetings until they've registered. They can still be checked out,
+        // e.g. if a new season started while they were checked in.
         if($request->type == config('enums.attendance_event_types')['CHECK_IN']) {
-            $student->populateRegistration();
-            if($student->registration[config('enums.registration_event_types')['STUDENT_CONTRACT']] === null) {
-                throw ValidationException::withMessages([
-                    'student_id' => ['The student has not signed the student contract.']
-                ]);
+            $rejection = $student->checkInRejection();
+            if($rejection !== null) {
+                throw ValidationException::withMessages(['student_id' => [$rejection]]);
             }
         }
 

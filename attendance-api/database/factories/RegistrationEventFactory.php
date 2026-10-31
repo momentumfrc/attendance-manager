@@ -18,7 +18,7 @@ class RegistrationEventFactory extends Factory
         $types = config('enums.registration_event_types');
         return [
             'registered_by' => User::all('id')->pluck('id')->random(),
-            'event_type' => $types[array_rand(array_diff_key($types, ['NEW_SEASON' => true]))],
+            'event_type' => $types[array_rand(array_diff_key($types, ['NEW_SEASON' => true, 'REQUIRE_REGISTRATION' => true]))],
         ];
     }
 
@@ -34,6 +34,13 @@ class RegistrationEventFactory extends Factory
         return $this->state(fn($attribute) => [
             'student_id' => null,
             'event_type' => config('enums.registration_event_types')['NEW_SEASON']
+        ]);
+    }
+
+    public function requireRegistration() {
+        return $this->state(fn($attribute) => [
+            'student_id' => null,
+            'event_type' => config('enums.registration_event_types')['REQUIRE_REGISTRATION']
         ]);
     }
 }

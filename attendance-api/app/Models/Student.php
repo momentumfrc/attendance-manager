@@ -80,20 +80,10 @@ class Student extends Model
         $types = config('enums.registration_event_types');
         $steps = [$types['STUDENT_CONTRACT'], $types['SHARED_SCIENCE'], $types['FIRST_CR']];
 
-        $season = RegistrationEvent::query()
-            ->where('event_type', $types['NEW_SEASON'])
-            ->orderBy('created_at', 'desc')
-            ->orderBy('id', 'desc')
-            ->first();
-
         $events = RegistrationEvent::query()
             ->whereIn('student_id', $students->modelKeys())
             ->whereIn('event_type', $steps)
-            ->when($season, fn($query) => $query->where(fn($query) => $query
-                ->where('created_at', '>', $season->created_at)
-                ->orWhere(fn($query) => $query
-                    ->where('created_at', '=', $season->created_at)
-                    ->where('id', '>', $season->id))))
+            ->afterSeason(RegistrationEvent::currentSeason())
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->get(['id', 'student_id', 'event_type'])
@@ -106,6 +96,21 @@ class Student extends Model
                 ->mapWithKeys(fn($step) => [$step => $latest->get($step)?->id])
                 ->all();
         }
+    }
+
+    /**
+     * Why the student may not be checked in, or null if they may. Students must sign this season's
+     * contract before attending, and once mentors require full registration, complete every step.
+     */
+    public function checkInRejection(): ?string {
+        $this->populateRegistration();
+        if($this->registration[config('enums.registration_event_types')['STUDENT_CONTRACT']] === null) {
+            return 'The student has not signed the student contract.';
+        }
+        if(RegistrationEvent::registrationRequirement() !== null && in_array(null, $this->registration, true)) {
+            return 'The student has not completed registration.';
+        }
+        return null;
     }
 
 }

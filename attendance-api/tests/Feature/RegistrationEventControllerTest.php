@@ -156,6 +156,74 @@ class RegistrationEventControllerTest extends TestCase
             ->assertJsonPath('registration.student_contract', $contract->id);
     }
 
+    public function test_store_registration_requirement() {
+        $response = $this->actingAs($this->admin)->postJson('/api/registration/events', [
+            'event_type' => 'require_registration'
+        ]);
+
+        $response->assertStatus(201)->assertJson([
+            'student_id' => null,
+            'event_type' => 'require_registration',
+            'registered_by' => $this->admin->id
+        ]);
+
+        $this->actingAs($this->admin)->getJson('/api/registration/requirement')
+            ->assertStatus(200)
+            ->assertJsonPath('event.id', $response['id']);
+    }
+
+    public function test_store_registration_requirement_validation() {
+        $this->actingAs($this->admin)->postJson('/api/registration/events', [
+            'event_type' => 'require_registration',
+            'student_id' => $this->student->id
+        ])->assertStatus(422)->assertJsonValidationErrors('student_id');
+
+        $this->assertDatabaseCount('registration_events', 0);
+    }
+
+    public function test_store_rejects_active_registration_requirement() {
+        $this->makeEvent(null, 'require_registration', Carbon::now()->subDay());
+
+        $this->actingAs($this->admin)->postJson('/api/registration/events', [
+            'event_type' => 'require_registration'
+        ])->assertStatus(422)->assertJsonValidationErrors('event_type');
+
+        $this->assertDatabaseCount('registration_events', 1);
+    }
+
+    public function test_store_allows_registration_requirement_after_undo_or_new_season() {
+        $this->makeEvent(null, 'require_registration', Carbon::now()->subYear());
+        $this->makeEvent(null, 'new_season', Carbon::now()->subMonth());
+        $this->makeEvent(null, 'require_registration', Carbon::now()->subDay())->delete();
+
+        $this->actingAs($this->admin)->getJson('/api/registration/requirement')
+            ->assertJsonPath('event', null);
+
+        $this->actingAs($this->admin)->postJson('/api/registration/events', [
+            'event_type' => 'require_registration'
+        ])->assertStatus(201);
+    }
+
+    public function test_destroy_registration_requirement() {
+        $requirement = $this->makeEvent(null, 'require_registration', Carbon::now()->subDay());
+
+        $this->actingAs($this->admin)->deleteJson('/api/registration/events/'.$requirement->id)->assertStatus(200);
+        $this->assertSoftDeleted($requirement);
+
+        $this->actingAs($this->admin)->getJson('/api/registration/requirement')
+            ->assertJsonPath('event', null);
+    }
+
+    public function test_everyone_can_read_registration_requirement() {
+        $requirement = $this->makeEvent(null, 'require_registration', Carbon::now()->subDay());
+
+        foreach(['mentor', 'student-lead', 'read-only'] as $role) {
+            $this->actingAs($this->userWithRole($role))->getJson('/api/registration/requirement')
+                ->assertStatus(200)
+                ->assertJsonPath('event.id', $requirement->id);
+        }
+    }
+
     public function test_read_only_cannot_modify() {
         $contract = $this->makeEvent($this->student, 'student_contract', Carbon::now()->subDay());
         $user = $this->userWithRole('read-only');
@@ -195,15 +263,20 @@ class RegistrationEventControllerTest extends TestCase
         }
         $this->actingAs($user)->postJson('/api/registration/events', ['event_type' => 'new_season'])
             ->assertStatus(403);
+        $this->actingAs($user)->postJson('/api/registration/events', ['event_type' => 'require_registration'])
+            ->assertStatus(403);
 
         $ssci = $this->makeEvent($this->student, 'shared_science', Carbon::now()->subDay());
         $season = $this->makeEvent(null, 'new_season', Carbon::now()->subMonth());
+        $requirement = $this->makeEvent(null, 'require_registration', Carbon::now()->subDay());
         $this->actingAs($user)->deleteJson('/api/registration/events/'.$ssci->id)->assertStatus(403);
         $this->actingAs($user)->deleteJson('/api/registration/events/'.$season->id)->assertStatus(403);
+        $this->actingAs($user)->deleteJson('/api/registration/events/'.$requirement->id)->assertStatus(403);
 
         $this->assertNotSoftDeleted($ssci);
         $this->assertNotSoftDeleted($season);
-        $this->assertDatabaseCount('registration_events', 3);
+        $this->assertNotSoftDeleted($requirement);
+        $this->assertDatabaseCount('registration_events', 4);
     }
 
     public function test_roles_can_view_registration() {

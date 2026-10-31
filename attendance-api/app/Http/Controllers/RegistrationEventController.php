@@ -43,13 +43,15 @@ class RegistrationEventController extends Controller
             abort(403);
         }
 
-        $newSeason = config('enums.registration_event_types')['NEW_SEASON'];
+        $types = config('enums.registration_event_types');
+        // These apply to every student, so have no student_id
+        $global = join(',', [$types['NEW_SEASON'], $types['REQUIRE_REGISTRATION']]);
 
         $request->validate([
-            'event_type' => 'required|string|in:'.join(',', config('enums.registration_event_types')),
+            'event_type' => 'required|string|in:'.join(',', $types),
             'student_id' => [
-                "required_unless:event_type,{$newSeason}",
-                "prohibited_if:event_type,{$newSeason}",
+                "required_unless:event_type,{$global}",
+                "prohibited_if:event_type,{$global}",
                 'integer',
                 Rule::exists('students', 'id')->whereNull('deleted_at')
             ]
@@ -57,7 +59,13 @@ class RegistrationEventController extends Controller
 
         Gate::authorize($this->requiredPermission($request->event_type));
 
-        if($request->event_type != $newSeason) {
+        if($request->event_type == $types['REQUIRE_REGISTRATION']) {
+            if(RegistrationEvent::registrationRequirement() !== null) {
+                throw ValidationException::withMessages([
+                    'event_type' => 'Full registration is already required.'
+                ]);
+            }
+        } else if($request->event_type != $types['NEW_SEASON']) {
             $student = Student::findOrFail($request->student_id);
             $student->populateRegistration();
             if($student->registration[$request->event_type] !== null) {
@@ -75,6 +83,15 @@ class RegistrationEventController extends Controller
         $event->save();
 
         return $event;
+    }
+
+    /**
+     * The require_registration event in effect, or null. Anyone may read it, since the check-in
+     * page needs it to know who may be checked in.
+     */
+    public function requirement()
+    {
+        return ['event' => RegistrationEvent::registrationRequirement()];
     }
 
     /**

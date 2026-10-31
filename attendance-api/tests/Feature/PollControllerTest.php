@@ -292,6 +292,33 @@ class PollControllerTest extends TestCase
         $this->assertNull($response['updated_students'][0]['registration']['student_contract']);
     }
 
+    public function test_returns_registration_requirement_when_it_changes() {
+        $student = $this->makeOldStudent();
+
+        // Unrelated registration changes leave it out
+        $this->makeRegistrationEvent($student, 'student_contract', $this->since->copy()->addMinutes(5));
+        $this->assertArrayNotHasKey('registration_requirement', $this->poll(['since' => $this->since->timestamp])->json());
+
+        $requirement = $this->makeRegistrationEvent(null, 'require_registration', $this->since->copy()->addMinutes(10));
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonPath('registration_requirement.id', $requirement->id);
+
+        $requirement->delete();
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonPath('registration_requirement', null);
+    }
+
+    public function test_new_season_resets_registration_requirement() {
+        $this->makeRegistrationEvent(null, 'require_registration', $this->oldDate());
+        $this->makeRegistrationEvent(null, 'new_season', $this->since->copy()->addMinutes(10));
+
+        $this->poll(['since' => $this->since->timestamp])
+            ->assertStatus(200)
+            ->assertJsonPath('registration_requirement', null);
+    }
+
     public function test_cold_cache_falls_back_to_querying() {
         $student = $this->makeOldStudent();
         $this->makeEvent($student, 'check-in', $this->since->copy()->addMinutes(10));

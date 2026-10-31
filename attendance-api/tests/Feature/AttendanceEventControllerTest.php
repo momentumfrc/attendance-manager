@@ -172,14 +172,80 @@ class AttendanceEventControllerTest extends TestCase
 
     /** Students can only be checked in once they've signed the contract. */
     private function signContract(Student $student, ?Carbon $date = null): RegistrationEvent {
+        return $this->makeRegistrationEvent($student, 'student_contract', $date);
+    }
+
+    private function makeRegistrationEvent(?Student $student, string $type, ?Carbon $date = null): RegistrationEvent {
         $date ??= Carbon::now()->subDay();
         return RegistrationEvent::forceCreate([
-            'student_id' => $student->id,
+            'student_id' => $student?->id,
             'registered_by' => User::first()->id,
-            'event_type' => 'student_contract',
+            'event_type' => $type,
             'created_at' => $date,
             'updated_at' => $date
         ]);
+    }
+
+    public function test_registration_requirement_blocks_partially_registered_check_in() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $checkIn = ['type' => 'check-in', 'student_id' => $student->id];
+        $this->signContract($student);
+        $this->makeRegistrationEvent(null, 'require_registration');
+
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['student_id' => 'The student has not completed registration.']);
+
+        $this->makeRegistrationEvent($student, 'shared_science');
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)->assertStatus(422);
+        $this->assertDatabaseCount('attendance_events', 0);
+
+        $this->makeRegistrationEvent($student, 'first_cr');
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)->assertStatus(201);
+        $this->assertDatabaseCount('attendance_events', 1);
+    }
+
+    public function test_registration_requirement_still_reports_missing_contract() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $this->makeRegistrationEvent(null, 'require_registration');
+
+        $this->actingAs($user)->postJson('/api/attendance/events', ['type' => 'check-in', 'student_id' => $student->id])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['student_id' => 'The student has not signed the student contract.']);
+    }
+
+    public function test_inactive_registration_requirement_allows_partially_registered_check_in() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $checkIn = ['type' => 'check-in', 'student_id' => $student->id];
+
+        // Turned off
+        $this->makeRegistrationEvent(null, 'require_registration', Carbon::now()->subWeek())->delete();
+        // Reset by a new season
+        $this->makeRegistrationEvent(null, 'require_registration', Carbon::now()->subYear());
+        $this->makeRegistrationEvent(null, 'new_season', Carbon::now()->subMonth());
+
+        $this->signContract($student);
+        $this->actingAs($user)->postJson('/api/attendance/events', $checkIn)->assertStatus(201);
+    }
+
+    public function test_check_out_does_not_require_registration() {
+        $this->seed(RolesSeeder::class);
+        $user = User::first();
+        $student = Student::factory()->registeredBy($user)->untrashed()->create();
+        $this->signContract($student);
+        $this->makeRegistrationEvent(null, 'require_registration');
+        $this->makeEvent($student, $user, 'check-in', Carbon::now()->subHours(2));
+
+        $this->actingAs($user)->postJson('/api/attendance/events', [
+            'type' => 'check-out',
+            'student_id' => $student->id
+        ])->assertStatus(201);
     }
 
     public function test_check_in_requires_signed_contract() {

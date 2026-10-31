@@ -57,9 +57,11 @@ class PollController extends Controller
             ->get(['student_id', 'event_type']);
 
         // A new season (or undoing one) changes every student's registration
-        $season_changed = $updated_registrations->contains(
-            'event_type', config('enums.registration_event_types')['NEW_SEASON']
-        );
+        $types = config('enums.registration_event_types');
+        $season_changed = $updated_registrations->contains('event_type', $types['NEW_SEASON']);
+        // A new season also resets the registration requirement
+        $requirement_changed = $season_changed
+            || $updated_registrations->contains('event_type', $types['REQUIRE_REGISTRATION']);
 
         $updated_students = Student::withTrashed()
             ->whereIn('id', $updated_events->pluck('student_id')->unique())
@@ -77,9 +79,14 @@ class PollController extends Controller
             ->orWhere($whereGenerator('updated_at'))
             ->get();
 
-        return [
+        $response = [
             'updated_students' => $updated_students,
             'meeting_events' => $meeting_events
         ];
+        // Only included when it may have changed, so clients keep what they have otherwise
+        if($requirement_changed) {
+            $response['registration_requirement'] = RegistrationEvent::registrationRequirement();
+        }
+        return $response;
     }
 }
