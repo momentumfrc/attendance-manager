@@ -1,12 +1,13 @@
 import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
 import { MatDialog } from "@angular/material/dialog";
+import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-toggle";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { DateTime } from "luxon";
 import { NEVER, of, ReplaySubject, Subject, take, throwError } from "rxjs";
 import { RegistrationStep, Student } from "src/app/models/student.model";
 import { PermissionsService } from "src/app/services/permissions.service";
-import { PollService } from "src/app/services/poll.service";
-import { RegistrationService } from "src/app/services/registration.service";
+import { PollResponse, PollService } from "src/app/services/poll.service";
+import { RegistrationEvent, RegistrationService, REQUIRE_REGISTRATION } from "src/app/services/registration.service";
 import { StudentsService } from "src/app/services/students.service";
 import { RegistrationComponent, RegistrationRow } from "./registration.component";
 
@@ -48,7 +49,11 @@ describe('RegistrationComponent', () => {
         students = new ReplaySubject(1);
         studentsServiceSpy = jasmine.createSpyObj('StudentsService', ['getAllStudents', 'updateStudentsInCache']);
         studentsServiceSpy.getAllStudents.and.returnValue(students);
-        registrationServiceSpy = jasmine.createSpyObj('RegistrationService', ['completeStep', 'removeEvent', 'startNewSeason', 'pushCanvas']);
+        registrationServiceSpy = jasmine.createSpyObj('RegistrationService', [
+            'completeStep', 'removeEvent', 'startNewSeason', 'pushCanvas',
+            'getRegistrationRequirement', 'updateRequirement', 'requireRegistration'
+        ]);
+        registrationServiceSpy.getRegistrationRequirement.and.returnValue(of(null));
         const pollServiceSpy: jasmine.SpyObj<PollService> = jasmine.createSpyObj('PollService', ['getPollingObservable']);
         pollServiceSpy.getPollingObservable.and.returnValue(NEVER);
         const permissionsServiceSpy: jasmine.SpyObj<PermissionsService> = jasmine.createSpyObj('PermissionsService', ['checkPermissions']);
@@ -145,6 +150,82 @@ describe('RegistrationComponent', () => {
         expect(modifiableSteps).toEqual([STUDENT_CONTRACT]);
         expect(mayModify).toBeFalse();
         leadComponent.ngOnDestroy();
+    });
+
+    describe('registration requirement', () => {
+        const requirement: RegistrationEvent = {
+            id: 9,
+            student_id: null,
+            registered_by: 1,
+            event_type: REQUIRE_REGISTRATION,
+            created_at: now,
+            updated_at: now
+        };
+
+        const toggleChange = (checked: boolean): MatSlideToggleChange => {
+            const source = {checked} as MatSlideToggle;
+            return {checked, source};
+        };
+
+        it('should require registration when toggled on', () => {
+            registrationServiceSpy.requireRegistration.and.returnValue(of(requirement));
+
+            component.toggleRequirement(toggleChange(true), null);
+
+            expect(registrationServiceSpy.requireRegistration).toHaveBeenCalledTimes(1);
+            expect(registrationServiceSpy.removeEvent).not.toHaveBeenCalled();
+        });
+
+        it('should remove the requirement when toggled off', () => {
+            registrationServiceSpy.removeEvent.and.returnValue(of(requirement));
+
+            component.toggleRequirement(toggleChange(false), requirement);
+
+            expect(registrationServiceSpy.removeEvent).toHaveBeenCalledOnceWith(requirement);
+            expect(registrationServiceSpy.requireRegistration).not.toHaveBeenCalled();
+        });
+
+        it('should disable the toggle while its request is pending', () => {
+            const response = new Subject<RegistrationEvent>();
+            registrationServiceSpy.requireRegistration.and.returnValue(response);
+
+            component.toggleRequirement(toggleChange(true), null);
+            expect(component.updatingRequirement).toBeTrue();
+
+            response.next(requirement);
+            response.complete();
+            expect(component.updatingRequirement).toBeFalse();
+        });
+
+        it('should put the toggle back if the request fails', () => {
+            registrationServiceSpy.requireRegistration.and.returnValue(throwError(() => new Error('nope')));
+            const change = toggleChange(true);
+
+            component.toggleRequirement(change, null);
+
+            expect(change.source.checked).toBeFalse();
+            expect(component.updatingRequirement).toBeFalse();
+        });
+
+        it('should take requirement updates from polling', () => {
+            const poll = new Subject<PollResponse>();
+            const pollingComponent = new RegistrationComponent(
+                studentsServiceSpy,
+                registrationServiceSpy,
+                jasmine.createSpyObj('PollService', {getPollingObservable: poll}),
+                {} as MatDialog,
+                {} as MatSnackBar,
+                jasmine.createSpyObj('PermissionsService', {checkPermissions: of(true)})
+            );
+            pollingComponent.ngOnInit();
+
+            poll.next({updated_students: [], meeting_events: []});
+            expect(registrationServiceSpy.updateRequirement).not.toHaveBeenCalled();
+
+            poll.next({updated_students: [], meeting_events: [], registration_requirement: null});
+            expect(registrationServiceSpy.updateRequirement).toHaveBeenCalledOnceWith(null);
+            pollingComponent.ngOnDestroy();
+        });
     });
 
     it('should put the box back if the request fails', () => {

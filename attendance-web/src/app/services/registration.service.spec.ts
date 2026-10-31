@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { of, throwError } from "rxjs";
 import { ErrorService } from "./error.service";
 import { RegistrationStep, Student } from "../models/student.model";
-import { NEW_SEASON, RegistrationEvent, RegistrationService } from "./registration.service";
+import { NEW_SEASON, RegistrationEvent, RegistrationService, REQUIRE_REGISTRATION } from "./registration.service";
 import { StudentsService } from "./students.service";
 
 describe('RegistrationService', () => {
@@ -25,7 +25,7 @@ describe('RegistrationService', () => {
     let errorServiceSpy: jasmine.SpyObj<ErrorService>;
 
     beforeEach(() => {
-        httpClientSpy = jasmine.createSpyObj('HttpClient', ['post', 'delete']);
+        httpClientSpy = jasmine.createSpyObj('HttpClient', ['get', 'post', 'delete']);
         studentsServiceSpy = jasmine.createSpyObj('StudentsService', ['refreshSingleStudent', 'refreshCache']);
         studentsServiceSpy.refreshSingleStudent.and.returnValue(of({} as Student));
         errorServiceSpy = jasmine.createSpyObj('ErrorService', ['interceptErrors']);
@@ -93,6 +93,69 @@ describe('RegistrationService', () => {
         service.removeEvent({id: 7, student_id: null}).subscribe();
         expect(studentsServiceSpy.refreshCache).toHaveBeenCalledTimes(2);
         expect(studentsServiceSpy.refreshSingleStudent).not.toHaveBeenCalled();
+    });
+
+    describe('registration requirement', () => {
+        let latest: RegistrationEvent|null|undefined;
+
+        beforeEach(() => {
+            latest = undefined;
+            httpClientSpy.get.and.returnValue(of({event: null}));
+            service.getRegistrationRequirement().subscribe(event => latest = event);
+        });
+
+        it('should fetch the requirement', () => {
+            expect(httpClientSpy.get).toHaveBeenCalledOnceWith(jasmine.stringMatching(/\/registration\/requirement$/));
+            expect(latest).toBeNull();
+        });
+
+        it('should take updates from polling', () => {
+            service.updateRequirement(event(null, REQUIRE_REGISTRATION));
+            expect(latest?.id).toBe(7);
+
+            service.updateRequirement(null);
+            expect(latest).toBeNull();
+        });
+
+        it('should require registration and refetch the requirement', () => {
+            httpClientSpy.post.and.returnValue(of(event(null, REQUIRE_REGISTRATION)));
+            httpClientSpy.get.and.returnValue(of({event: event(null, REQUIRE_REGISTRATION)}));
+
+            service.requireRegistration().subscribe();
+
+            expect(httpClientSpy.post).toHaveBeenCalledOnceWith(
+                jasmine.stringMatching(/\/registration\/events$/),
+                {event_type: 'require_registration'},
+                jasmine.anything()
+            );
+            expect(latest?.id).toBe(7);
+            expect(studentsServiceSpy.refreshCache).not.toHaveBeenCalled();
+        });
+
+        it('should treat a requirement someone else already added as done', (done: DoneFn) => {
+            httpClientSpy.post.and.returnValue(throwError(() => new HttpErrorResponse({status: 422})));
+            httpClientSpy.get.and.returnValue(of({event: event(null, REQUIRE_REGISTRATION)}));
+
+            service.requireRegistration().subscribe(result => {
+                expect(result).toBeNull();
+                // Show what the other user did
+                expect(latest?.id).toBe(7);
+                done();
+            });
+        });
+
+        it('should refetch the requirement after undoing it or a new season', () => {
+            httpClientSpy.get.and.returnValue(of({event: event(null, REQUIRE_REGISTRATION)}));
+            httpClientSpy.delete.and.returnValue(of(event(null, NEW_SEASON)));
+
+            service.removeEvent({id: 7, student_id: null}).subscribe();
+            expect(latest?.id).toBe(7);
+
+            httpClientSpy.get.and.returnValue(of({event: null}));
+            httpClientSpy.post.and.returnValue(of(event(null, NEW_SEASON)));
+            service.startNewSeason().subscribe();
+            expect(latest).toBeNull();
+        });
     });
 
     it('should report whether the canvas was pushed', (done: DoneFn) => {

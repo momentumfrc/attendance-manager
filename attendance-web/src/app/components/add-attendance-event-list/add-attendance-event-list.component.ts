@@ -7,13 +7,14 @@ import { DateTime } from 'luxon';
 import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, ReplaySubject, startWith, Subject, takeUntil, timer } from 'rxjs';
 import { AttendanceEventType } from 'src/app/models/attendance-event.model';
 import { MeetingEvent, MeetingEventType } from 'src/app/models/meeting-event.model';
-import { compareStudents, hasSignedContract, isRegistered, Student, StudentList } from 'src/app/models/student.model';
+import { compareStudents, hasSignedContract, isRegistered, mayCheckIn, Student, StudentList } from 'src/app/models/student.model';
 import { AttendanceService } from 'src/app/services/attendance.service';
 import { ErrorService } from 'src/app/services/error.service';
 import { MeetingsService } from 'src/app/services/meetings.service';
 import { PermissionsService } from 'src/app/services/permissions.service';
 import { PollService } from 'src/app/services/poll.service';
 import { ProfileImagesService } from 'src/app/services/profile-images.service';
+import { RegistrationService } from 'src/app/services/registration.service';
 import { StudentsService } from 'src/app/services/students.service';
 import { environment } from 'src/environments/environment';
 
@@ -36,6 +37,9 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
   protected readonly hasSignedContract = hasSignedContract
   protected mode: AttendanceEventType
 
+  /** Whether mentors require full registration (not just the contract) to check in. */
+  protected registrationRequired: Observable<boolean>
+
   protected pendingStudentIds = new BehaviorSubject<number[]>([]);
   protected inUpdateLockout = new BehaviorSubject<boolean>(false);
 
@@ -51,10 +55,12 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
     private meetingsService : MeetingsService,
     private permissionsService: PermissionsService,
     private profileImagesService: ProfileImagesService,
+    private registrationService: RegistrationService,
     private errorService: ErrorService,
     private snackbar: MatSnackBar,
     route: ActivatedRoute
   ) {
+    this.registrationRequired = registrationService.getRegistrationRequirement().pipe(map(event => event !== null));
     if(route.snapshot.url[0].path == 'check-in') {
       this.mode = AttendanceEventType.CHECK_IN;
     } else {
@@ -83,6 +89,12 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
 
     // Set up polling for new check-ins/check-outs
     this.pollService.getPollingObservable().pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
+      // This only disables Check In buttons, which can't make anyone tap the wrong row, so it
+      // doesn't need a lockout
+      if(pollData.registration_requirement !== undefined) {
+        this.registrationService.updateRequirement(pollData.registration_requirement);
+      }
+
       // If we get new data, disable the UI for a configurable period (in case a user is about
       // to tap an option that will move with the update)
       let shouldLockout: Observable<boolean>;
@@ -264,11 +276,12 @@ export class AddAttendanceEventListComponent implements OnInit, AfterViewInit, O
       isPending: this.pendingStudentIds.pipe(
         map(ids => ids.includes(student.id))
       ),
-      inUpdateLockout: this.inUpdateLockout
+      inUpdateLockout: this.inUpdateLockout,
+      registrationRequired: this.registrationRequired
     }).pipe(
-      map(({availableActionDoesNotMatchTab, isPending, inUpdateLockout}) => availableActionDoesNotMatchTab || isPending || inUpdateLockout
-        // Students who haven't signed the contract may not attend, but can still be checked out
-        || (this.mode == AttendanceEventType.CHECK_IN && !hasSignedContract(student)))
+      map(({availableActionDoesNotMatchTab, isPending, inUpdateLockout, registrationRequired}) => availableActionDoesNotMatchTab || isPending || inUpdateLockout
+        // Students who haven't registered may not attend, but can still be checked out
+        || (this.mode == AttendanceEventType.CHECK_IN && !mayCheckIn(student, registrationRequired)))
     );
   }
 

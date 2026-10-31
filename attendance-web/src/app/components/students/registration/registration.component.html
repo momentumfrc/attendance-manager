@@ -1,9 +1,18 @@
-@if (mayModify | async) {
-  <div id="actions">
+<div id="actions">
+  @if (requirement | async; as requirement) {
+    <!-- Everyone can see whether full registration is required, but only mentors may change it -->
+    <mat-slide-toggle id="requireRegistration"
+      [checked]="requirement.event !== null"
+      [disabled]="!(mayModify | async) || updatingRequirement"
+      (change)="toggleRequirement($event, requirement.event)">
+      Require full registration to check in
+    </mat-slide-toggle>
+  }
+  @if (mayModify | async) {
     <button mat-stroked-button color="warn" (click)="startNewSeason()">Start New Season</button>
     <button mat-raised-button color="primary" [disabled]="updatingCanvas" (click)="updateCanvas()">Update Slack Canvas</button>
-  </div>
-}
+  }
+</div>
 
 <div id="searchbar">
   <app-search-box (searchUpdatedEvent)="studentSearch.next($event)"></app-search-box>

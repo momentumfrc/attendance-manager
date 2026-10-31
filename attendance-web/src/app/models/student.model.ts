@@ -52,6 +52,14 @@ export function isRegistered(student: Student): boolean {
     return Object.values(RegistrationStep).every(step => hasCompleted(student, step));
 }
 
+/**
+ * Students must sign the contract to check in, and once mentors require full registration,
+ * complete every step.
+ */
+export function mayCheckIn(student: Student, registrationRequired: boolean): boolean {
+    return registrationRequired ? isRegistered(student) : hasSignedContract(student);
+}
+
 function areRegistrationsEqual(a?: StudentRegistration, b?: StudentRegistration): boolean {
     return Object.values(RegistrationStep).every(step => (a?.[step] ?? null) === (b?.[step] ?? null));
 }

@@ -2,13 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, combineLatest, finalize, map, Observable, ReplaySubject, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { compareStudents, RegistrationStep, Student, StudentList } from 'src/app/models/student.model';
 import { PermissionsService } from 'src/app/services/permissions.service';
 import { PollService } from 'src/app/services/poll.service';
-import { RegistrationService } from 'src/app/services/registration.service';
+import { RegistrationEvent, RegistrationService } from 'src/app/services/registration.service';
 import { StudentsService } from 'src/app/services/students.service';
 
 interface StepColumn {
@@ -52,6 +53,10 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   mayModify: Observable<boolean>;
   view: Observable<RegistrationView>;
 
+  /** The registration requirement in effect, wrapped so the template can tell "none" from "loading". */
+  requirement: Observable<{event: RegistrationEvent|null}>;
+  updatingRequirement = false;
+
   updatingCanvas = false;
 
   private unsubscribe = new Subject<void>();
@@ -65,6 +70,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     permissionsService: PermissionsService
   ) {
     this.mayModify = permissionsService.checkPermissions(['modify student registration']).pipe(shareReplay(1));
+    this.requirement = registrationService.getRegistrationRequirement().pipe(map(event => ({event})));
     const modifiableSteps = combineLatest(
       this.steps.map(column => permissionsService.checkPermissions([column.permission]).pipe(
         map(allowed => allowed ? [column.step] : [])
@@ -82,6 +88,9 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     this.pollService.getPollingObservable().pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
       if(pollData.updated_students.length > 0) {
         this.studentsService.updateStudentsInCache(pollData.updated_students);
+      }
+      if(pollData.registration_requirement !== undefined) {
+        this.registrationService.updateRequirement(pollData.registration_requirement);
       }
     });
 
@@ -137,6 +146,25 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       finalize(() => this.pending.next(this.pending.getValue().filter(it => it != key)))
     ).subscribe({
       // The checkbox has already toggled itself, so put it back
+      error: () => change.source.checked = !change.checked
+    });
+  }
+
+  toggleRequirement(change: MatSlideToggleChange, requirement: RegistrationEvent|null): void {
+    let request: Observable<unknown>;
+    if(change.checked) {
+      request = this.registrationService.requireRegistration();
+    } else if(requirement) {
+      request = this.registrationService.removeEvent(requirement);
+    } else {
+      return;
+    }
+
+    this.updatingRequirement = true;
+    request.pipe(
+      finalize(() => this.updatingRequirement = false)
+    ).subscribe({
+      // The toggle has already toggled itself, so put it back
       error: () => change.source.checked = !change.checked
     });
   }

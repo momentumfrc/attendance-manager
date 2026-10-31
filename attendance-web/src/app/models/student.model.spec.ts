@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { areStudentsEqual, hasSignedContract, isRegistered, RegistrationStep, Student, StudentProfileImage } from "./student.model";
+import { areStudentsEqual, hasSignedContract, isRegistered, mayCheckIn, RegistrationStep, Student, StudentProfileImage } from "./student.model";
 
 describe('areStudentsEqual', () => {
     const now = DateTime.now();
@@ -67,6 +67,19 @@ describe('registration status', () => {
         expect(hasSignedContract(student([STUDENT_CONTRACT]))).toBeTrue();
         expect(hasSignedContract(student([SHARED_SCIENCE, FIRST_CR]))).toBeFalse();
         expect(hasSignedContract({...student([]), registration: undefined})).toBeFalse();
+    });
+
+    it('should only require the contract to check in unless full registration is required', () => {
+        const partial = student([STUDENT_CONTRACT, SHARED_SCIENCE]);
+        const full = student([STUDENT_CONTRACT, SHARED_SCIENCE, FIRST_CR]);
+        const noContract = student([SHARED_SCIENCE, FIRST_CR]);
+
+        expect(mayCheckIn(partial, false)).toBeTrue();
+        expect(mayCheckIn(noContract, false)).toBeFalse();
+
+        expect(mayCheckIn(partial, true)).toBeFalse();
+        expect(mayCheckIn(full, true)).toBeTrue();
+        expect(mayCheckIn(noContract, true)).toBeFalse();
     });
 
     it('should require every step to be registered', () => {

@@ -3,12 +3,15 @@ import { Injectable } from '@angular/core';
 import { DateTime } from 'luxon';
 import { Student } from '../models/student.model';
 import { MeetingEvent } from '../models/meeting-event.model';
+import { RegistrationEvent } from './registration.service';
 import { EMPTY, Observable, distinctUntilChanged, exhaustMap, fromEvent, map, merge, startWith, switchMap, tap, timer } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 export interface PollResponse {
   updated_students: Student[],
-  meeting_events: MeetingEvent[]
+  meeting_events: MeetingEvent[],
+  // Only present when the registration requirement may have changed
+  registration_requirement?: RegistrationEvent|null
 };
 
 class Poller {

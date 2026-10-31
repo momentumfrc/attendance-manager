@@ -5,7 +5,13 @@
     display: flex;
     justify-content: flex-end;
     flex-wrap: wrap;
+    align-items: center;
     gap: 10px;
+}
+
+// Keep the toggle on the left, apart from the buttons
+#requireRegistration {
+    margin-right: auto;
 }
 
 #searchbar {
