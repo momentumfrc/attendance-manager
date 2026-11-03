@@ -7,6 +7,10 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
+/**
+ * Makes the permissions and roles match the ones listed here, deleting any that aren't listed.
+ * Safe to run against a live database: users keep the listed roles they have.
+ */
 class RolesSeeder extends Seeder
 {
     /**
@@ -16,41 +20,10 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
-        Role::query()->delete();
-        Permission::query()->delete();
-
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        Permission::create(['name' => 'list students']);
-        Permission::create(['name' => 'add students']);
-        Permission::create(['name' => 'modify students']);
-        Permission::create(['name' => 'remove students']);
-        Permission::create(['name' => 'view student images']);
-        Permission::create(['name' => 'modify student images']);
-        Permission::create(['name' => 'view student registration']);
-        Permission::create(['name' => 'modify student registration']);
-        // Only the student contract step, which leads check off as students sign it at meetings
-        Permission::create(['name' => 'modify student contract']);
-
-        Permission::create(['name' => 'list attendance events']);
-        Permission::create(['name' => 'student check in']);
-        Permission::create(['name' => 'student check out']);
-        Permission::create(['name' => 'undo attendance event']);
-        Permission::create(['name' => 'delete attendance event']);
-
-        Permission::create(['name' => 'list meeting events']);
-        Permission::create(['name' => 'add meeting events']);
-        Permission::create(['name' => 'remove meeting events']);
-
-        Permission::create(['name' => 'list users']);
-        Permission::create(['name' => 'list roles']);
-        Permission::create(['name' => 'elevate users']);
-        Permission::create(['name' => 'delete users']);
-
-        Permission::create(['name' => 'view stats']);
-
-        Role::create(['name' => 'mentor'])
-            ->givePermissionTo([
+        $roles = [
+            'mentor' => [
                 'list students',
                 'add students',
                 'view student images',
@@ -73,16 +46,15 @@ class RolesSeeder extends Seeder
                 'add meeting events',
                 'remove meeting events',
                 'view stats'
-            ]);
-
-        Role::create(['name' => 'student-lead'])
-            ->givePermissionTo([
+            ],
+            'student-lead' => [
                 'list students',
                 'add students',
                 'view student images',
                 'modify students',
                 'modify student images',
                 'view student registration',
+                // Only the student contract step, which leads check off as students sign it at meetings
                 'modify student contract',
                 'list attendance events',
                 'student check in',
@@ -92,10 +64,8 @@ class RolesSeeder extends Seeder
                 'list meeting events',
                 'add meeting events',
                 'view stats'
-            ]);
-
-        Role::create(['name' => 'read-only'])
-            ->givePermissionTo([
+            ],
+            'read-only' => [
                 'list students',
                 'list attendance events',
                 'view student images',
@@ -104,30 +74,38 @@ class RolesSeeder extends Seeder
                 'list roles',
                 'list meeting events',
                 'view stats'
-            ]);
+            ],
+        ];
+        // Every permission belongs to at least one role, so the roles list them all
+        $permissions = array_values(array_unique(array_merge(...array_values($roles))));
 
-        // Here I hard-code the initial admin user (who will then add the rest of the admins)
-        // It'd probably be best to get this from the app config or the .env environment
-        if(config('app.debug', false)) {
-            $adminId = 'U2Q3A63J9';
-        } else {
-            $adminId = 'U2YL0PXB5';
+        // Removing a permission or role here removes it from every role and user that has it
+        Permission::whereNotIn('name', $permissions)->delete();
+        Role::whereNotIn('name', array_keys($roles))->delete();
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+        foreach ($roles as $role => $rolePermissions) {
+            Role::firstOrCreate(['name' => $role])->syncPermissions($rolePermissions);
+        }
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // The initial admin, who will then add the rest of the users
+        $adminId = config('auth.admin_slack_id');
+        if (empty($adminId)) {
+            $this->command?->warn('ADMIN_SLACK_ID is not set, so no admin user was seeded.');
+            return;
         }
 
         $adminUser = \App\Models\User::firstOrCreate([
             'slack_id' => $adminId,
         ], [
-            'name' => 'Jordan Powers',
+            'name' => 'Admin',
             'avatar' => ''
         ]);
 
         $adminUser->assignRole('mentor');
-
-        /*
-        $adminRole = Role::create(['name' => 'admin'])
-            ->givePermissionTo(Permission::all());
-
-        $adminuser->assignRole('admin');
-        */
     }
 }

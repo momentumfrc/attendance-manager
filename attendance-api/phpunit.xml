@@ -17,6 +17,7 @@
     <server name="QUEUE_CONNECTION" value="sync"/>
     <server name="SESSION_DRIVER" value="array"/>
     <server name="TELESCOPE_ENABLED" value="false"/>
+    <server name="ADMIN_SLACK_ID" value="ADMIN-1"/>
   </php>
   <source>
     <include>
