@@ -252,6 +252,22 @@ class RegistrationCanvasTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function test_is_stale_until_pushed() {
+        $student = $this->makeStudent('Alice');
+        $this->fakeSlack();
+
+        $this->assertTrue($this->canvas()->isStale());
+        $this->canvas()->push();
+        $this->assertFalse($this->canvas()->isStale());
+
+        $event = $this->makeEvent($student, 'student_contract');
+        $this->assertTrue($this->canvas()->isStale());
+
+        // Undoing the change brings the canvas back up to date
+        $event->delete();
+        $this->assertFalse($this->canvas()->isStale());
+    }
+
     public function test_push_force_skips_the_check() {
         $this->makeStudent('Alice');
         $this->fakeSlack();
@@ -328,6 +344,26 @@ class RegistrationCanvasTest extends TestCase
                 ->assertStatus(403);
         }
         Http::assertNothingSent();
+    }
+
+    public function test_status_endpoint() {
+        $this->makeStudent('Alice');
+        $this->fakeSlack();
+
+        $this->actingAs($this->admin)->getJson('/api/registration/canvas')
+            ->assertStatus(200)
+            ->assertExactJson(['stale' => true]);
+        $this->canvas()->push();
+        $this->actingAs($this->admin)->getJson('/api/registration/canvas')
+            ->assertStatus(200)
+            ->assertExactJson(['stale' => false]);
+    }
+
+    public function test_status_endpoint_requires_permission() {
+        foreach(['student-lead', 'read-only'] as $role) {
+            $this->actingAs($this->userWithRole($role))->getJson('/api/registration/canvas')
+                ->assertStatus(403);
+        }
     }
 
     public function test_command() {

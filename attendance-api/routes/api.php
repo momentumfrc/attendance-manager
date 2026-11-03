@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'store', 'destroy'
     ]);
     Route::get('registration/requirement', [RegistrationEventController::class, 'requirement']);
+    Route::get('registration/canvas', [RegistrationCanvasController::class, 'status']);
     Route::post('registration/canvas',[RegistrationCanvasController::class, 'push']);
 
     Route::get('user', function (Request $request) {

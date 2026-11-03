@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -14,6 +15,7 @@ use App\Models\MeetingEvent;
 use App\Models\RegistrationEvent;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\RegistrationCanvas;
 use App\Support\PollChangeMarker;
 
 use Carbon\Carbon;
@@ -317,6 +319,58 @@ class PollControllerTest extends TestCase
         $this->poll(['since' => $this->since->timestamp])
             ->assertStatus(200)
             ->assertJsonPath('registration_requirement', null);
+    }
+
+    private function pushCanvas(): void {
+        config([
+            'services.slack_canvas.bot_token' => 'xoxb-test',
+            'services.slack_canvas.canvas_id' => 'F0TEST'
+        ]);
+        Http::fake(['https://slack.com/api/canvases.edit' => Http::response(['ok' => true])]);
+        app(RegistrationCanvas::class)->push();
+    }
+
+    public function test_returns_canvas_staleness_only_when_asked() {
+        $student = $this->makeOldStudent();
+        $this->makeRegistrationEvent($student, 'student_contract', $this->since->copy()->addMinutes(5));
+
+        $this->assertArrayNotHasKey('canvas_stale', $this->poll(['since' => $this->since->timestamp])->json());
+        $this->poll(['since' => $this->since->timestamp, 'canvas' => 1])
+            ->assertStatus(200)
+            ->assertJsonPath('canvas_stale', true);
+    }
+
+    public function test_canvas_staleness_is_validated() {
+        $this->poll(['since' => $this->since->timestamp, 'canvas' => 'maybe'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('canvas');
+    }
+
+    public function test_attendance_changes_leave_out_canvas_staleness() {
+        $student = $this->makeOldStudent();
+        $this->makeEvent($student, 'check-in', $this->since->copy()->addMinutes(5));
+
+        $this->assertArrayNotHasKey('canvas_stale', $this->poll(['since' => $this->since->timestamp, 'canvas' => 1])->json());
+    }
+
+    public function test_student_changes_return_canvas_staleness() {
+        $student = $this->makeOldStudent();
+        $student->update(['name' => 'Renamed']);
+
+        $this->poll(['since' => $this->since->timestamp, 'canvas' => 1])
+            ->assertStatus(200)
+            ->assertJsonPath('canvas_stale', true);
+    }
+
+    public function test_canvas_is_not_stale_after_pushing_polled_changes() {
+        $student = $this->makeOldStudent();
+        $this->makeRegistrationEvent($student, 'student_contract', $this->since->copy()->addMinutes(5));
+        $this->pushCanvas();
+
+        // The change is still in the window, but the canvas already includes it
+        $this->poll(['since' => $this->since->timestamp, 'canvas' => 1])
+            ->assertStatus(200)
+            ->assertJsonPath('canvas_stale', false);
     }
 
     public function test_cold_cache_falls_back_to_querying() {

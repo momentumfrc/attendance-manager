@@ -96,7 +96,10 @@ from cron, which is what makes meeting ends automatic.
 Students can't log in, so they check their registration status on a Slack canvas that the app
 keeps up to date (`app/Services/RegistrationCanvas.php`). Every update overwrites the whole canvas.
 Mentors update it from the registration page, and the daily cron job updates it too. Both skip the
-update if the canvas content is unchanged since the last successful update.
+update if the canvas content is unchanged since the last successful update. The registration page
+disables its update button while the canvas is up to date: `GET registration/canvas` gives the
+initial state, and polls that pass `canvas=1` report `canvas_stale` whenever registration or
+student changes may have affected it.
 
 The canvas is configured with `SLACK_BOT_TOKEN` and `SLACK_REGISTRATION_CANVAS_ID`. The bot token
 needs the `canvases:write` scope, and the app must be added as an editor of the canvas in Slack.

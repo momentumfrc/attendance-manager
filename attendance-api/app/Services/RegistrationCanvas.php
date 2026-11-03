@@ -49,7 +49,7 @@ class RegistrationCanvas
         }
 
         $body = $this->render();
-        $hash = hash('sha256', $body);
+        $hash = $this->hash($body);
         if(!$force && Cache::get(self::HASH_CACHE_KEY) === $hash) {
             return false;
         }
@@ -79,6 +79,13 @@ class RegistrationCanvas
 
         Cache::forever(self::HASH_CACHE_KEY, $hash);
         return true;
+    }
+
+    /**
+     * Whether the canvas content changed since the last successful push, so push() would update it.
+     */
+    public function isStale(): bool {
+        return Cache::get(self::HASH_CACHE_KEY) !== $this->hash($this->render());
     }
 
     /**
@@ -170,6 +177,10 @@ class RegistrationCanvas
      */
     private function pad(string $text, int $width, int $type = STR_PAD_RIGHT): string {
         return str_pad($text, strlen($text) + max(0, $width - mb_strwidth($text)), ' ', $type);
+    }
+
+    private function hash(string $body): string {
+        return hash('sha256', $body);
     }
 
     private function renderRow(string $name, array $cells): string {

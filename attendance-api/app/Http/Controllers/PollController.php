@@ -10,14 +10,17 @@ use App\Models\AttendanceEvent;
 use App\Models\MeetingEvent;
 use App\Models\RegistrationEvent;
 use App\Models\Student;
+use App\Services\RegistrationCanvas;
 use App\Support\PollChangeMarker;
 
 class PollController extends Controller
 {
-    public function poll(Request $request) {
+    public function poll(Request $request, RegistrationCanvas $canvas) {
         $request->validate([
             'since' => 'date_format:U|lt:4294967295|required',
-            'until' => 'date_format:U|lt:4294967295'
+            'until' => 'date_format:U|lt:4294967295',
+            // Checking the canvas renders it, so only pages showing the canvas button ask
+            'canvas' => 'boolean'
         ]);
 
         // Almost every poll finds nothing new, so skip the database entirely when we know nothing changed
@@ -86,6 +89,17 @@ class PollController extends Controller
         // Only included when it may have changed, so clients keep what they have otherwise
         if($requirement_changed) {
             $response['registration_requirement'] = RegistrationEvent::registrationRequirement();
+        }
+        // Only included when it may have changed. The canvas shows registration and student names,
+        // so attendance changes can't affect it.
+        $canvas_may_have_changed = fn() => $updated_registrations->isNotEmpty()
+            || Student::withTrashed()
+                ->where($whereGenerator('created_at'))
+                ->orWhere($whereGenerator('updated_at'))
+                ->orWhere($whereGenerator('deleted_at'))
+                ->exists();
+        if($request->boolean('canvas') && $canvas_may_have_changed()) {
+            $response['canvas_stale'] = $canvas->isStale();
         }
         return $response;
     }

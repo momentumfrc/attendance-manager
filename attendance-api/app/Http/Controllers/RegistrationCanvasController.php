@@ -12,6 +12,14 @@ class RegistrationCanvasController extends Controller
     }
 
     /**
+     * Whether the registration canvas is out of date, so pushing it would update it.
+     */
+    public function status(RegistrationCanvas $canvas)
+    {
+        return ['stale' => $canvas->isStale()];
+    }
+
+    /**
      * Push the registration canvas to Slack, if it changed since the last push.
      */
     public function push(RegistrationCanvas $canvas)
