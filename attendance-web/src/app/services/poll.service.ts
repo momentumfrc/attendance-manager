@@ -11,14 +11,22 @@ export interface PollResponse {
   updated_students: Student[],
   meeting_events: MeetingEvent[],
   // Only present when the registration requirement may have changed
-  registration_requirement?: RegistrationEvent|null
+  registration_requirement?: RegistrationEvent|null,
+  // Only present when polling with canvas, and the registration canvas may have changed
+  canvas_stale?: boolean
 };
+
+export interface PollOptions {
+  /** Also report whether the registration canvas is out of date. It's costly, so only ask if needed. */
+  canvas?: boolean
+}
 
 class Poller {
   private lastUpdate: DateTime = DateTime.now().minus({milliseconds: environment.pollInterval});
 
   public constructor(
-    private pollService: PollService
+    private pollService: PollService,
+    private options: PollOptions
   ) {}
 
   private getSince(): DateTime {
@@ -46,7 +54,7 @@ class Poller {
       switchMap(visible => visible ? timer(0, environment.pollInterval) : EMPTY),
       exhaustMap(() => {
         const requestTime = DateTime.now();
-        return this.pollService.getUpdates({since: this.getSince()}).pipe(tap(() => {
+        return this.pollService.getUpdates({...this.options, since: this.getSince()}).pipe(tap(() => {
           this.lastUpdate = requestTime;
         }));
       })
@@ -61,17 +69,20 @@ export class PollService {
 
   constructor(private httpClient: HttpClient) { }
 
-  public getUpdates(options: {since: DateTime, until?: DateTime}): Observable<PollResponse> {
+  public getUpdates(options: PollOptions & {since: DateTime, until?: DateTime}): Observable<PollResponse> {
     let params = new HttpParams();
     params = params.set('since', Math.floor(options.since.toMillis() / 1000));
     if(options.until) {
       params = params.set('until', Math.floor(options.until.toMillis() / 1000));
     }
+    if(options.canvas) {
+      params = params.set('canvas', 1);
+    }
 
     return this.httpClient.get<PollResponse>(environment.apiRoot + '/poll', {params});
   }
 
-  public getPollingObservable(): Observable<PollResponse> {
-    return new Poller(this).getObservable();
+  public getPollingObservable(options: PollOptions = {}): Observable<PollResponse> {
+    return new Poller(this, options).getObservable();
   }
 }

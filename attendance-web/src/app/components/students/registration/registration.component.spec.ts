@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { MatCheckbox, MatCheckboxChange } from "@angular/material/checkbox";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-toggle";
@@ -50,10 +51,11 @@ describe('RegistrationComponent', () => {
         studentsServiceSpy = jasmine.createSpyObj('StudentsService', ['getAllStudents', 'updateStudentsInCache']);
         studentsServiceSpy.getAllStudents.and.returnValue(students);
         registrationServiceSpy = jasmine.createSpyObj('RegistrationService', [
-            'completeStep', 'removeEvent', 'startNewSeason', 'pushCanvas',
+            'completeStep', 'removeEvent', 'startNewSeason', 'pushCanvas', 'isCanvasStale',
             'getRegistrationRequirement', 'updateRequirement', 'requireRegistration'
         ]);
         registrationServiceSpy.getRegistrationRequirement.and.returnValue(of(null));
+        registrationServiceSpy.isCanvasStale.and.returnValue(of(true));
         const pollServiceSpy: jasmine.SpyObj<PollService> = jasmine.createSpyObj('PollService', ['getPollingObservable']);
         pollServiceSpy.getPollingObservable.and.returnValue(NEVER);
         const permissionsServiceSpy: jasmine.SpyObj<PermissionsService> = jasmine.createSpyObj('PermissionsService', ['checkPermissions']);
@@ -139,6 +141,7 @@ describe('RegistrationComponent', () => {
             {} as MatSnackBar,
             permissionsServiceSpy
         );
+        registrationServiceSpy.isCanvasStale.calls.reset();
         leadComponent.ngOnInit();
         students.next([student(1, 'Alice')]);
 
@@ -149,7 +152,114 @@ describe('RegistrationComponent', () => {
 
         expect(modifiableSteps).toEqual([STUDENT_CONTRACT]);
         expect(mayModify).toBeFalse();
+        // Only mentors may see whether the canvas is out of date
+        expect(registrationServiceSpy.isCanvasStale).not.toHaveBeenCalled();
         leadComponent.ngOnDestroy();
+    });
+
+    describe('canvas', () => {
+        let poll: Subject<PollResponse>;
+        let pollServiceSpy: jasmine.SpyObj<PollService>;
+        let canvasComponent: RegistrationComponent;
+
+        beforeEach(() => {
+            poll = new Subject();
+            pollServiceSpy = jasmine.createSpyObj('PollService', {getPollingObservable: poll});
+            canvasComponent = new RegistrationComponent(
+                studentsServiceSpy,
+                registrationServiceSpy,
+                pollServiceSpy,
+                {} as MatDialog,
+                jasmine.createSpyObj('MatSnackBar', ['open']),
+                jasmine.createSpyObj('PermissionsService', {checkPermissions: of(true)})
+            );
+        });
+
+        afterEach(() => canvasComponent.ngOnDestroy());
+
+        it('should start out with whether the canvas is out of date', () => {
+            registrationServiceSpy.isCanvasStale.and.returnValue(of(false));
+            canvasComponent.ngOnInit();
+            expect(canvasComponent.canvasStale.getValue()).toBeFalse();
+        });
+
+        it('should take canvas updates from polling', () => {
+            registrationServiceSpy.isCanvasStale.and.returnValue(of(false));
+            canvasComponent.ngOnInit();
+            expect(pollServiceSpy.getPollingObservable).toHaveBeenCalledOnceWith({canvas: true});
+
+            poll.next({updated_students: [], meeting_events: [], canvas_stale: true});
+            expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+
+            // Polls without canvas changes leave it alone
+            poll.next({updated_students: [], meeting_events: []});
+            expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+
+            poll.next({updated_students: [], meeting_events: [], canvas_stale: false});
+            expect(canvasComponent.canvasStale.getValue()).toBeFalse();
+        });
+
+        for(const status of ['pushed', 'unchanged'] as const) {
+            it(`should mark the canvas up to date once ${status}`, () => {
+                registrationServiceSpy.pushCanvas.and.returnValue(of(status));
+                canvasComponent.ngOnInit();
+                expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+
+                canvasComponent.updateCanvas();
+                expect(canvasComponent.canvasStale.getValue()).toBeFalse();
+            });
+        }
+
+        it('should mark the canvas out of date as soon as we change a step', () => {
+            registrationServiceSpy.isCanvasStale.and.returnValue(of(false));
+            registrationServiceSpy.completeStep.and.returnValue(of(null));
+            registrationServiceSpy.removeEvent.and.returnValue(of(null));
+            canvasComponent.ngOnInit();
+
+            canvasComponent.toggleStep(student(1, 'Alice'), STUDENT_CONTRACT, change(true));
+            expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+
+            canvasComponent.canvasStale.next(false);
+            canvasComponent.toggleStep(student(1, 'Alice', {student_contract: 4}), STUDENT_CONTRACT, change(false));
+            expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+        });
+
+        it('should leave the canvas alone if changing a step fails', () => {
+            registrationServiceSpy.isCanvasStale.and.returnValue(of(false));
+            registrationServiceSpy.completeStep.and.returnValue(throwError(() => new Error('nope')));
+            canvasComponent.ngOnInit();
+
+            canvasComponent.toggleStep(student(1, 'Alice'), STUDENT_CONTRACT, change(true));
+            expect(canvasComponent.canvasStale.getValue()).toBeFalse();
+        });
+
+        it('should mark the canvas out of date as soon as we start a new season', () => {
+            const dialog = jasmine.createSpyObj('MatDialog', {open: {afterClosed: () => of(true)}});
+            const snackbar = jasmine.createSpyObj('MatSnackBar', {open: {onAction: () => NEVER}});
+            const seasonComponent = new RegistrationComponent(
+                studentsServiceSpy,
+                registrationServiceSpy,
+                pollServiceSpy,
+                dialog,
+                snackbar,
+                jasmine.createSpyObj('PermissionsService', {checkPermissions: of(true)})
+            );
+            registrationServiceSpy.isCanvasStale.and.returnValue(of(false));
+            registrationServiceSpy.startNewSeason.and.returnValue(of({} as RegistrationEvent));
+            seasonComponent.ngOnInit();
+
+            seasonComponent.startNewSeason();
+            expect(seasonComponent.canvasStale.getValue()).toBeTrue();
+            seasonComponent.ngOnDestroy();
+        });
+
+        it('should leave the canvas out of date if the push fails', () => {
+            registrationServiceSpy.pushCanvas.and.returnValue(throwError(() => new HttpErrorResponse({status: 502})));
+            canvasComponent.ngOnInit();
+
+            canvasComponent.updateCanvas();
+            expect(canvasComponent.canvasStale.getValue()).toBeTrue();
+        });
     });
 
     describe('registration requirement', () => {

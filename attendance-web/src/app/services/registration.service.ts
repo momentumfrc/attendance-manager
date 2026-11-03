@@ -120,6 +120,13 @@ export class RegistrationService {
     return request;
   }
 
+  /** Whether the Slack canvas is out of date, so pushCanvas() would update it. */
+  isCanvasStale(): Observable<boolean> {
+    return this.httpClient.get<{stale: boolean}>(environment.apiRoot + '/registration/canvas').pipe(
+      map(response => response.stale)
+    );
+  }
+
   /**
    * Update the Slack canvas, if anything changed since it was last updated. Errors are left to the
    * caller, since Slack can reject an update (e.g. while someone else edits the canvas).

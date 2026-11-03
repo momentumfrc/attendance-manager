@@ -104,6 +104,20 @@ describe('PollService', () => {
         tick(latency);
     }));
 
+    it('should only ask about the canvas when told to', fakeAsync(() => {
+        const lastParams = () => httpClientSpy.get.calls.mostRecent().args[1]?.params as HttpParams;
+
+        let subscription = service.getPollingObservable().subscribe();
+        tick(0);
+        expect(lastParams().has('canvas')).toBeFalse();
+        subscription.unsubscribe();
+
+        subscription = service.getPollingObservable({canvas: true}).subscribe();
+        tick(0);
+        expect(lastParams().get('canvas')).toBe('1');
+        subscription.unsubscribe();
+    }));
+
     it('should not restart polling on focus while already visible', fakeAsync(() => {
         const subscription = service.getPollingObservable().subscribe();
         tick(0);

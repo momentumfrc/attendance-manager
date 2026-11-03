@@ -4,7 +4,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, combineLatest, finalize, map, Observable, ReplaySubject, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, finalize, map, Observable, ReplaySubject, shareReplay, startWith, Subject, switchMap, take, takeUntil } from 'rxjs';
 import { ConfirmDialogComponent } from 'src/app/components/reuse/confirm-dialog/confirm-dialog.component';
 import { compareStudents, RegistrationStep, Student, StudentList } from 'src/app/models/student.model';
 import { PermissionsService } from 'src/app/services/permissions.service';
@@ -58,6 +58,8 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   updatingRequirement = false;
 
   updatingCanvas = false;
+  /** Whether updating the canvas would change it. Assumed not until we hear otherwise. */
+  canvasStale = new BehaviorSubject<boolean>(false);
 
   private unsubscribe = new Subject<void>();
 
@@ -85,14 +87,26 @@ export class RegistrationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Keep in sync with other users updating registration at the same time
-    this.pollService.getPollingObservable().pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
+    this.pollService.getPollingObservable({canvas: true}).pipe(takeUntil(this.unsubscribe)).subscribe(pollData => {
       if(pollData.updated_students.length > 0) {
         this.studentsService.updateStudentsInCache(pollData.updated_students);
       }
       if(pollData.registration_requirement !== undefined) {
         this.registrationService.updateRequirement(pollData.registration_requirement);
       }
+      // The server checks the canvas as of the poll, so changes we already pushed don't count
+      if(pollData.canvas_stale !== undefined) {
+        this.canvasStale.next(pollData.canvas_stale);
+      }
     });
+
+    // Only mentors may update the canvas, so only they may ask whether it's out of date
+    this.mayModify.pipe(
+      filter(mayModify => mayModify),
+      take(1),
+      switchMap(() => this.registrationService.isCanvasStale()),
+      takeUntil(this.unsubscribe)
+    ).subscribe(stale => this.canvasStale.next(stale));
 
     combineLatest({
       students: this.studentsService.getAllStudents(false),
@@ -145,6 +159,8 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     request.pipe(
       finalize(() => this.pending.next(this.pending.getValue().filter(it => it != key)))
     ).subscribe({
+      // Don't wait for polling to say so, which can be slow on a bad connection
+      next: () => this.canvasStale.next(true),
       // The checkbox has already toggled itself, so put it back
       error: () => change.source.checked = !change.checked
     });
@@ -185,8 +201,11 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       }
 
       this.registrationService.startNewSeason().subscribe(event => {
+        this.canvasStale.next(true);
         this.snackbar.open("Started a new season", "Undo", { duration: 8000 })
-          .onAction().subscribe(() => this.registrationService.removeEvent(event).subscribe());
+          .onAction().subscribe(() => this.registrationService.removeEvent(event).subscribe(
+            () => this.canvasStale.next(true)
+          ));
       });
     });
   }
@@ -196,11 +215,14 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     this.registrationService.pushCanvas().pipe(
       finalize(() => this.updatingCanvas = false)
     ).subscribe({
-      next: status => this.snackbar.open(
-        status == 'pushed' ? "Updated the Slack canvas" : "The Slack canvas is already up to date",
-        undefined,
-        { duration: 4000 }
-      ),
+      next: status => {
+        this.canvasStale.next(false);
+        this.snackbar.open(
+          status == 'pushed' ? "Updated the Slack canvas" : "The Slack canvas is already up to date",
+          undefined,
+          { duration: 4000 }
+        );
+      },
       error: (error: HttpErrorResponse) => this.snackbar.open(
         "Couldn't update the Slack canvas: " + (error.error?.message ?? error.message),
         "Dismiss"

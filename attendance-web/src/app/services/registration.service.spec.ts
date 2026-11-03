@@ -158,6 +158,16 @@ describe('RegistrationService', () => {
         });
     });
 
+    it('should fetch whether the canvas is out of date', (done: DoneFn) => {
+        httpClientSpy.get.and.returnValue(of({stale: true}));
+
+        service.isCanvasStale().subscribe(stale => {
+            expect(stale).toBeTrue();
+            expect(httpClientSpy.get).toHaveBeenCalledOnceWith(jasmine.stringMatching(/\/registration\/canvas$/));
+            done();
+        });
+    });
+
     it('should report whether the canvas was pushed', (done: DoneFn) => {
         httpClientSpy.post.and.returnValue(of({status: 'unchanged'}));
 

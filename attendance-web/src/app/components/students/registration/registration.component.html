@@ -10,7 +10,7 @@
   }
   @if (mayModify | async) {
     <button mat-stroked-button color="warn" (click)="startNewSeason()">Start New Season</button>
-    <button mat-raised-button color="primary" [disabled]="updatingCanvas" (click)="updateCanvas()">Update Slack Canvas</button>
+    <button mat-raised-button color="primary" [disabled]="updatingCanvas || !(canvasStale | async)" (click)="updateCanvas()">Update Slack Canvas</button>
   }
 </div>
 
