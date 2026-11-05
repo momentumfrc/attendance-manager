@@ -43,15 +43,6 @@ export class StudentsComponent {
           path: './add',
           name: 'Add Student'
         });
-
-        // FIXME: This should always be the same value as the $mobile-width scss variable. It would be
-        //        best if we somehow imported the scss variable instead of hardcoding the magic number.
-        if(window.innerWidth > 600) {
-          tabs.push( {
-            path: './import',
-            name: 'Import Students'
-          })
-        }
       }
 
       this.tabs.next(tabs);

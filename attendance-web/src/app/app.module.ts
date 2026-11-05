@@ -52,7 +52,6 @@ import { ConfirmDialogComponent } from './components/reuse/confirm-dialog/confir
 import { DatePickerComponent } from './components/reuse/date-picker/date-picker.component';
 import { ExportableTableComponent } from './components/reuse/exportable-table/exportable-table.component';
 import { SearchBoxComponent } from './components/reuse/search-box/search-box.component';
-import { ImportStudentsComponent } from './components/students/import-students/import-students.component';
 import { ListStudentsComponent } from './components/students/list-students/list-students.component';
 import { RegistrationComponent } from './components/students/registration/registration.component';
 import { ShowStudentComponent } from './components/students/show-student/show-student.component';
@@ -73,7 +72,6 @@ import { httpInterceptorProviders } from './http-interceptors';
         HomeComponent,
         StudentsComponent,
         ListStudentsComponent,
-        ImportStudentsComponent,
         RegistrationComponent,
         SearchBoxComponent,
         ShowStudentComponent,
